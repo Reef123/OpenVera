@@ -361,7 +361,7 @@ AskUserQuestion(
       question: "What next?",
       header: "Next",
       options: [
-        {label: "Build it (Recommended)", description: "/build new turns this into a working app — one session"},
+        {label: "Build it (Recommended)", description: "/build new turns this into a working app, resumable across sessions"},
         {label: "Pressure-test the bet", description: "/panel scans for blind spots before /build (~3 min)"},
         {label: "Dig deeper first", description: "/research goes wide on the topic (~15 min)"},
         {label: "Save for later", description: "Idea's saved — come back whenever"}

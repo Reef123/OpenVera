@@ -1,4 +1,6 @@
-# Vera
+# OpenVera
+
+*Vague idea → researched → shipped → remembered*
 
 **Start here.** This is the top-level workspace. The harness lives in `vera-system/`.
 

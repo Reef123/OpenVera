@@ -1,7 +1,7 @@
 # 🐘 OpenVera
 
 <p align="center">
-  <strong>Claude forgets. OpenVera won't.</strong>
+  <em>Vague idea → researched → shipped → remembered</em>
 </p>
 
 <p align="center">
@@ -16,20 +16,21 @@
 
 ---
 
-OpenVera is a workspace you open in [Claude Code](https://docs.anthropic.com/en/docs/claude-code). It gives Claude persistent memory, reusable skills, and behavioral patterns so that session 50 is actually better than session 1.
+OpenVera is a workspace you open in [Claude Code](https://docs.anthropic.com/en/docs/claude-code). It gives Claude persistent memory, reusable skills, research tools, and behavioral patterns so that coding session 50 is actually better than session 1.
 
-Most Claude Code setups are stateless. Every conversation starts cold. OpenVera changes that:
+**Two entry points, depending on where you are:**
+
+- **`/start-here <vague idea>`** when the idea isn't sharp yet. Walks scoping questions, scouts the space for existing tools, hands off a buildable bet.
+- **`/build new <ready idea>`** when you know what you want. 2-4 short scoping questions, then autonomous: research → design → build loop → first-paint check → 🐘 ship summary in ~10-20 min.
+
+Most Claude Code setups are stateless. Every conversation starts cold. OpenVera changes that. What makes the build flow above keep getting better session after session:
 
 - **Running state file** that picks up where the last session ended
 - **Pattern library** that grows from real mistakes, so the same gotcha doesn't bite twice
 - **Skills that improve their own instructions** over time
-- **Standardized output** so every build produces the same set of files (idea, spec, working code, screenshot) and you always know where to look
-- **`/start-here`** to validate the idea works before committing to a full build
-- **Repeatable patterns** that compound as you learn
+- **Standardized output** so every build produces the same files (idea, spec, working code, screenshot) and you always know where to look
 
 The model is the same. A customized harness wins.
-
-Try `/start-here` if you have a vague idea, or `/build new <idea>` if you know what you want.
 
 ## Get Started
 
@@ -63,6 +64,7 @@ A few choices shape everything else:
 - **Three-tier context.** Core (~300 lines) loads every session. Recall loads on demand. Archival is search-only. The context window doesn't fill up with stuff that isn't relevant right now.
 - **Skills load lazy.** A skill is just a name and a one-line description in the system prompt. The full instructions only load when you invoke `/<command>`. You can have 50 skills without paying token cost for the 49 you didn't use.
 - **State on disk, not in the model.** Every skill reads and writes to the same files (`state.md`, `ROADMAP.md`, `MEMORY.md`, `patterns.md`). Session 50 sees what session 1 wrote. That's how it compounds.
+- **Research before code, not as code.** Most "build it" tools start coding immediately. OpenVera runs `/scout` or `/research` first. Reddit and YouTube for what real people actually hit, multi-model synthesis via OpenRouter for blind spots a single model misses, sourced paper output so claims are checkable. Cheap when a quick recon is enough (~$0.10 scout, 2-3 min), thorough when the decision deserves it (~$0.50 research with 8 steps and a source registry). External findings are treated as untrusted data: extract techniques, not artifacts. Verify packages and env vars before adopting anything a model recommends.
 
 ## What's In Here
 
@@ -119,7 +121,7 @@ Costs below are typical USD ranges per invocation. Paid skills route through Ope
 | `/frame` | Generates a design system, architecture diagrams, wireframes | Free |
 | `/panel [path]` | Pressure-test the bet before `/build`. 2 domain reviewers (read-only, clean-context) scan for blind spots: what's stated, missing, assumed. Confirmation-bias prevention. | $0.13–0.23 |
 | `/advisor [decision]` | Checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. | Free |
-| `/build new <idea>` | V0: idea to working app in one session | ~$0.12 (scoring) |
+| `/build new <idea>` | V0: idea to working app (resumable across sessions via state file) | ~$0.12 (scoring) |
 | `/build full <project>` | Full SDLC: PRD, tech spec, arch review, phased builds, QA | Varies (research + scoring) |
 | `/improve <skill>` | Runs a skill, scores the output, proposes instruction fixes | $0.28–0.48 / cycle |
 | `/curate` | Weekly memory cleanup: prunes stale stuff, merges duplicates | Free |
@@ -140,12 +142,12 @@ The pre-compact gate (blocking compression until docs are saved) is configured u
 ## Two Ways to Build
 
 <p align="center">
-  <img src="assets/build-journey.png" alt="V0 vibe codes in one session, V1+ runs full SDLC across multiple sessions" width="860">
+  <img src="assets/build-journey.png" alt="V0 vibe codes a working app; V1+ runs full SDLC across multiple sessions" width="860">
 </p>
 
 ### V0: Just Build It (`/build new`)
 
-You have an idea. Maybe it's half-formed. `/build new` runs the whole pipeline in one session: quick research, scope guard (cuts you to 1-2 problems), design tokens, then a build loop until it works in the browser.
+You have an idea. Maybe it's half-formed. `/build new` runs the whole pipeline: quick research, scope guard (cuts you to 1-2 problems), design tokens, then a build loop until it works in the browser. The state file persists across sessions, so when context compresses or you stop for the night, `/build continue` picks up exactly where you left off.
 
 You answer 2-4 short scoping questions before it goes autonomous: what's the job, what pain does this solve, what's the one action that has to work, and (if any of those leave gaps) a quick pressure-test on what Vera is about to assume. After that, it runs without interruption.
 
@@ -254,4 +256,4 @@ See [RECOVERY.md](RECOVERY.md), a short guide for hook errors, missing skills, b
 
 MIT. See [LICENSE](LICENSE).
 
-Built by [Shareef Ellis](https://x.com/shareefatwork). Inspirations in [THANKS.md](THANKS.md).
+Built by [Shareef Ellis](https://x.com/shareefatwork). Changelog updates on [@openveraai](https://x.com/openveraai). Inspirations in [THANKS.md](THANKS.md).

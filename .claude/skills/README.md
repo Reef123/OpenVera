@@ -18,7 +18,7 @@ Three layers: **entry points** (what the user invokes), **building blocks** (cal
 | Consult | `/consult <decision>` | Decision accelerator — domain expert tradeoffs + recommendation. Free (no API calls). |
 | Research | `/research <topic> [--quick]` | Multi-model research with paper artifact. `--quick` skips scoping + adversarial review. Use when `/scout` isn't enough. |
 | Frame | `/frame [--quick \| --deep]` | Design system (DESIGN.md), architecture diagrams, wireframes. Called by `/build` or standalone. |
-| Build | `/build new <idea>` | V0 pipeline — ship in one session. |
+| Build | `/build new <idea>` | V0 pipeline — ship a working app, resumable across sessions. |
 | Build Full | `/build full <project>` | Full SDLC — PRD → tech spec → arch review → build → QA → ship. |
 | Improve | `/improve <skill>` | Autonomous skill improvement loop with rubric scoring. |
 | Curate | `/curate` | Weekly memory consolidation. |

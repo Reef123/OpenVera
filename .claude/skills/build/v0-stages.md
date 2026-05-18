@@ -356,7 +356,7 @@ Agent(
    - The ONE problem (from "The Job")
    - 3-5 steps of the core flow
    - Stack (from their answer, default SvelteKit)
-   - Cut everything else aggressively. Can this ship in one session? If no, cut more.
+   - Cut everything else aggressively. Can this ship without major architecture work? If no, cut more.
 
 3. **Spec (5 min):** Read `idea.md` to pull `## The bet` (guaranteed to exist after step 0). Then write `spec.md` (template below). **Spec is written BEFORE design artifacts** — `/frame --from-spec` reads spec.md mood signals to pick a palette from the rotation set, and reads spec.md component boundaries to scaffold wireframes. Design without spec context produces generic output.
 
@@ -770,4 +770,4 @@ When the user later types `retro` (or any message asking about the most-recent V
    When you're ready to upgrade: /build full <slug>
    ```
 
-**Frame V0 as validation, not finished product.** The goal was to prove the idea in one session. V1 starts when you have real signal on what's broken.
+**Frame V0 as validation, not finished product.** The goal was to prove the idea works at all. V1 starts when you have real signal on what's broken.

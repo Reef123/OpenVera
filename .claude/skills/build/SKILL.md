@@ -23,7 +23,7 @@ Use `paths.projects_dir` for project workspace (plans and research live inside e
 
 ## Two Modes
 
-**`/build new <idea>` — V0: get it working.** Ship a working V0 in one session. One pre-build phase — 2-3 short AskUserQuestion steps walking the design tree (Problem → Build path → Surface), plus an optional `/scout` recommendation if signals fire. Then autonomous to ship. Pipeline diagrams in [build-architecture.md](build-architecture.md).
+**`/build new <idea>` — V0: get it working.** Ship a working V0. One pre-build phase — 2-3 short AskUserQuestion steps walking the design tree (Problem → Build path → Surface), plus an optional `/scout` recommendation if signals fire. Then autonomous to ship. The state file persists across sessions; `/build continue` resumes after context compresses or after a break. Pipeline diagrams in [build-architecture.md](build-architecture.md).
 
 **`/build full <project>` — V1+: make it good.** Upgrading working products with real user feedback. ONE user stop (trigger + depth), then autonomous SDLC execution. **Read [full-sdlc.md](full-sdlc.md) for detailed instructions.** Do NOT load full-sdlc.md for V0 builds. Use `manifest-update.py` for MANIFEST transitions.
 
@@ -84,7 +84,7 @@ Call at EVERY stage transition. Script validates stages, timestamps automaticall
 
 ## V0 Pipeline (`/build new`)
 
-**V0 is a proof of concept.** Ship a barebones version in one session to validate the idea works. Not production — just enough to use it, break it, and learn what it actually needs. `/build full` is where it becomes real.
+**V0 is a proof of concept.** Ship a barebones version to validate the idea works. Resumable across sessions via the state file when context compresses or you stop and come back. Not production — just enough to use it, break it, and learn what it actually needs. `/build full` is where it becomes real.
 
 **Principles:**
 - **Senior Frame first:** Before building, identify the domain. What would a 10-year expert check first?

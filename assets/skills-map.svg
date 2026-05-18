@@ -22,8 +22,8 @@
   <g transform="translate(310, 104)">
     <rect width="240" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
     <text x="120" y="28" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/build new</text>
-    <text x="120" y="48" text-anchor="middle" fill="#FFF5E1" font-size="10">V0 — idea to working app, one session</text>
-    <text x="120" y="62" text-anchor="middle" fill="#8B7355" font-size="9">orchestrator, ~$0.04 scoring</text>
+    <text x="120" y="48" text-anchor="middle" fill="#FFF5E1" font-size="10">V0 — idea to working app, resumable</text>
+    <text x="120" y="62" text-anchor="middle" fill="#8B7355" font-size="9">orchestrator, ~$0.12 scoring</text>
   </g>
 
   <!-- /build full -->

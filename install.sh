@@ -78,7 +78,7 @@ if [[ -t 1 ]]; then
   printf '%b\n' "  ${G}║  > READY TO SHIP                              ║${R}"
   printf '%b\n' "  ${G}║    /build new <idea>                          ║${R}"
   printf '%b\n' "  ${G}║    Guided. Opinionated options. One stop.     ║${R}"
-  printf '%b\n' "  ${G}║    Ship a V0 in one session.                  ║${R}"
+  printf '%b\n' "  ${G}║    Ship a V0, resumable across sessions.      ║${R}"
   printf '%b\n' "  ${G}║                                               ║${R}"
   printf '%b\n' "  ${G}╚═══════════════════════════════════════════════╝${R}"
   echo ""

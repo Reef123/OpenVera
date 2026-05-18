@@ -39,8 +39,7 @@ fi
 [[ -t 1 && -n ${TERM:-} ]] && clear
 echo ""
 echo "  ${BROWN}╔══════════════════════════════════════╗${RESET}"
-echo "  ${BROWN}║${RESET}        ${GOLD}🐘  Vera Bootstrap${RESET}            ${BROWN}║${RESET}"
-echo "  ${BROWN}║${RESET}      ${BOLD}Claude forgets. Vera won't.${RESET}     ${BROWN}║${RESET}"
+echo "  ${BROWN}║${RESET}       ${GOLD}🐘  OpenVera Bootstrap${RESET}         ${BROWN}║${RESET}"
 echo "  ${BROWN}╚══════════════════════════════════════╝${RESET}"
 echo ""
 
@@ -325,7 +324,7 @@ echo ""
 echo "  ┌─────────────────────────────────────────────────────┐"
 echo "  │  Core Tools                                         │"
 echo "  ├──────────────────┬──────────────────────────────────┤"
-echo "  │ /build new       │ Ship a V0 in one session         │"
+echo "  │ /build new       │ Ship a V0 (resumable sessions)   │"
 echo "  │ /build full      │ Full SDLC — PRD to production    │"
 echo "  │ /scout           │ Quick answers (2-3 min, default) │"
 echo "  │ /research        │ Deep multi-model research        │"
