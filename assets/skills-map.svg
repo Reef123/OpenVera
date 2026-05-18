@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" font-family="system-ui, -apple-system, sans-serif">
+  <!-- Background -->
+  <rect width="880" height="560" rx="16" fill="#1a120b"/>
+
+  <!-- Title -->
+  <text x="440" y="34" text-anchor="middle" fill="#FFF5E1" font-size="15" font-weight="700" letter-spacing="1.5">VERA SKILLS — HOW THEY FIT TOGETHER</text>
+  <text x="440" y="54" text-anchor="middle" fill="#8B7355" font-size="11">user-facing entry points → building blocks → meta / maintenance</text>
+
+  <!-- =========== ENTRY POINTS ROW =========== -->
+  <text x="40" y="92" fill="#8B7355" font-size="11" font-weight="600" letter-spacing="2">ENTRY POINTS</text>
+  <line x1="170" y1="88" x2="840" y2="88" stroke="#4B3621" stroke-width="0.5"/>
+
+  <!-- /start-here -->
+  <g transform="translate(40, 104)">
+    <rect width="240" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
+    <text x="120" y="28" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/start-here</text>
+    <text x="120" y="48" text-anchor="middle" fill="#FFF5E1" font-size="10">vague spark → buildable concept</text>
+    <text x="120" y="62" text-anchor="middle" fill="#8B7355" font-size="9">interactive, free</text>
+  </g>
+
+  <!-- /build new -->
+  <g transform="translate(310, 104)">
+    <rect width="240" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
+    <text x="120" y="28" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/build new</text>
+    <text x="120" y="48" text-anchor="middle" fill="#FFF5E1" font-size="10">V0 — idea to working app, one session</text>
+    <text x="120" y="62" text-anchor="middle" fill="#8B7355" font-size="9">orchestrator, ~$0.04 scoring</text>
+  </g>
+
+  <!-- /build full -->
+  <g transform="translate(580, 104)">
+    <rect width="260" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
+    <text x="130" y="28" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/build full</text>
+    <text x="130" y="48" text-anchor="middle" fill="#FFF5E1" font-size="10">V1+ — full SDLC across many sessions</text>
+    <text x="130" y="62" text-anchor="middle" fill="#8B7355" font-size="9">PRD → spec → review → phased build → QA</text>
+  </g>
+
+  <!-- start-here → build new arrow -->
+  <path d="M 280 138 L 310 138" stroke="#EF6224" stroke-width="1.5" fill="none" marker-end="url(#arrOrange)"/>
+
+  <!-- build new → build full (graduation, dotted) -->
+  <path d="M 550 152 L 580 152" stroke="#8B7355" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrTan)"/>
+  <text x="565" y="148" text-anchor="middle" fill="#8B7355" font-size="8" font-style="italic">when worth it</text>
+
+  <!-- =========== BUILDING BLOCKS ROW =========== -->
+  <text x="40" y="220" fill="#8B7355" font-size="11" font-weight="600" letter-spacing="2">BUILDING BLOCKS</text>
+  <text x="195" y="220" fill="#8B7355" font-size="9" font-style="italic">— invoked by /build, also runnable standalone</text>
+  <line x1="475" y1="216" x2="840" y2="216" stroke="#4B3621" stroke-width="0.5"/>
+
+  <!-- Vertical connector: build new → building blocks -->
+  <path d="M 430 172 L 430 196 L 175 196 L 175 232" stroke="#4B3621" stroke-width="1" fill="none"/>
+  <path d="M 430 196 L 320 196 L 320 232" stroke="#4B3621" stroke-width="1" fill="none"/>
+  <path d="M 430 196 L 430 232" stroke="#4B3621" stroke-width="1" fill="none"/>
+  <path d="M 430 196 L 575 196 L 575 232" stroke="#4B3621" stroke-width="1" fill="none"/>
+  <path d="M 430 196 L 720 196 L 720 232" stroke="#4B3621" stroke-width="1" fill="none"/>
+
+  <!-- /scout -->
+  <g transform="translate(40, 232)">
+    <rect width="270" height="64" rx="10" fill="#241C14" stroke="#EF6224" stroke-width="1" stroke-opacity="0.55"/>
+    <text x="135" y="24" text-anchor="middle" fill="#EF6224" font-size="12" font-weight="700">/scout</text>
+    <text x="135" y="42" text-anchor="middle" fill="#FFF5E1" font-size="10">2-3 min — Reddit + YouTube + web</text>
+    <text x="135" y="56" text-anchor="middle" fill="#8B7355" font-size="9">$0.00–0.10 · default for most questions</text>
+  </g>
+
+  <!-- /research -->
+  <g transform="translate(320, 232)">
+    <rect width="210" height="64" rx="10" fill="#241C14" stroke="#EF6224" stroke-width="1" stroke-opacity="0.55"/>
+    <text x="105" y="24" text-anchor="middle" fill="#EF6224" font-size="12" font-weight="700">/research</text>
+    <text x="105" y="42" text-anchor="middle" fill="#FFF5E1" font-size="10">deep, 8 steps, paper output</text>
+    <text x="105" y="56" text-anchor="middle" fill="#8B7355" font-size="9">$0.15–0.55 · multi-model</text>
+  </g>
+
+  <!-- /consult -->
+  <g transform="translate(540, 232)">
+    <rect width="150" height="64" rx="10" fill="#241C14" stroke="#EF6224" stroke-width="1" stroke-opacity="0.55"/>
+    <text x="75" y="24" text-anchor="middle" fill="#EF6224" font-size="12" font-weight="700">/consult</text>
+    <text x="75" y="42" text-anchor="middle" fill="#FFF5E1" font-size="10">expert panel + rec</text>
+    <text x="75" y="56" text-anchor="middle" fill="#8B7355" font-size="9">free, no API</text>
+  </g>
+
+  <!-- /frame -->
+  <g transform="translate(700, 232)">
+    <rect width="150" height="64" rx="10" fill="#241C14" stroke="#EF6224" stroke-width="1" stroke-opacity="0.55"/>
+    <text x="75" y="24" text-anchor="middle" fill="#EF6224" font-size="12" font-weight="700">/frame</text>
+    <text x="75" y="42" text-anchor="middle" fill="#FFF5E1" font-size="10">tokens · arch · wireframes</text>
+    <text x="75" y="56" text-anchor="middle" fill="#8B7355" font-size="9">free (Stitch MCP optional)</text>
+  </g>
+
+  <!-- /advisor (second row of building blocks) -->
+  <g transform="translate(40, 312)">
+    <rect width="270" height="56" rx="10" fill="#241C14" stroke="#8B7355" stroke-width="1" stroke-opacity="0.6" stroke-dasharray="3,2"/>
+    <text x="135" y="22" text-anchor="middle" fill="#8B7355" font-size="12" font-weight="700">/advisor</text>
+    <text x="135" y="40" text-anchor="middle" fill="#FFF5E1" font-size="10">detached agent — checks decisions for mismatch</text>
+    <text x="135" y="52" text-anchor="middle" fill="#8B7355" font-size="9">auto-fires on scope/depth mismatch · free</text>
+  </g>
+
+  <!-- Note: /scout uses YouTube/Reddit helpers -->
+  <g transform="translate(320, 312)">
+    <rect width="530" height="56" rx="10" fill="#1f1812" stroke="#4B3621" stroke-width="0.5"/>
+    <text x="265" y="22" text-anchor="middle" fill="#8B7355" font-size="10" font-weight="600">EXTERNAL APIs (optional, used by scout/research)</text>
+    <text x="265" y="40" text-anchor="middle" fill="#FFF5E1" font-size="10">OpenRouter (multi-model) · Google AI (YouTube) · Reddit (anonymous) · WebSearch · WebFetch</text>
+    <text x="265" y="52" text-anchor="middle" fill="#8B7355" font-size="9">configured in .secrets · skills degrade gracefully when keys missing</text>
+  </g>
+
+  <!-- =========== META / MAINTENANCE ROW =========== -->
+  <text x="40" y="404" fill="#8B7355" font-size="11" font-weight="600" letter-spacing="2">META / MAINTENANCE</text>
+  <text x="245" y="404" fill="#8B7355" font-size="9" font-style="italic">— operate ON the harness, not on a project</text>
+  <line x1="500" y1="400" x2="840" y2="400" stroke="#4B3621" stroke-width="0.5"/>
+
+  <!-- /improve -->
+  <g transform="translate(40, 416)">
+    <rect width="240" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
+    <text x="120" y="26" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/improve &lt;skill&gt;</text>
+    <text x="120" y="46" text-anchor="middle" fill="#FFF5E1" font-size="10">run · score · diagnose · edit SKILL.md</text>
+    <text x="120" y="60" text-anchor="middle" fill="#8B7355" font-size="9">$0.20–0.40/cycle · self-modifying</text>
+  </g>
+  <!-- improve loops back to any skill (dotted self-arrow) -->
+  <path d="M 160 416 Q 160 380 220 380 Q 280 380 280 232" stroke="#EF6224" stroke-width="1" fill="none" stroke-dasharray="4,3" opacity="0.55" marker-end="url(#arrOrangeLight)"/>
+  <text x="232" y="392" text-anchor="middle" fill="#EF6224" font-size="9" font-style="italic" opacity="0.7">edits any skill</text>
+
+  <!-- /curate -->
+  <g transform="translate(310, 416)">
+    <rect width="240" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
+    <text x="120" y="26" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/curate</text>
+    <text x="120" y="46" text-anchor="middle" fill="#FFF5E1" font-size="10">weekly — prune, merge, scan model notes</text>
+    <text x="120" y="60" text-anchor="middle" fill="#8B7355" font-size="9">free · auto on boot if &gt; 7 days stale</text>
+  </g>
+
+  <!-- /doc-sync -->
+  <g transform="translate(580, 416)">
+    <rect width="260" height="68" rx="10" fill="#2F241D" stroke="#EF6224" stroke-width="1.5"/>
+    <text x="130" y="26" text-anchor="middle" fill="#EF6224" font-size="13" font-weight="700">/doc-sync</text>
+    <text x="130" y="46" text-anchor="middle" fill="#FFF5E1" font-size="10">state.md · ROADMAP · session log</text>
+    <text x="130" y="60" text-anchor="middle" fill="#8B7355" font-size="9">free · run every session · PreCompact-gated</text>
+  </g>
+
+  <!-- =========== STATE SUBSTRATE =========== -->
+  <g transform="translate(40, 504)">
+    <rect width="800" height="40" rx="8" fill="#241C14" stroke="#4B3621" stroke-width="1"/>
+    <text x="400" y="18" text-anchor="middle" fill="#8B7355" font-size="10" font-weight="600" letter-spacing="1.5">SHARED STATE — read &amp; written by all skills</text>
+    <text x="400" y="33" text-anchor="middle" fill="#FFF5E1" font-size="10">state.md  ·  ROADMAP.md  ·  MEMORY.md  ·  patterns.md  ·  conversations/</text>
+  </g>
+
+  <!-- All skills tap state (subtle vertical lines) -->
+  <line x1="160" y1="484" x2="160" y2="504" stroke="#4B3621" stroke-width="0.5" opacity="0.5"/>
+  <line x1="430" y1="484" x2="430" y2="504" stroke="#4B3621" stroke-width="0.5" opacity="0.5"/>
+  <line x1="710" y1="484" x2="710" y2="504" stroke="#4B3621" stroke-width="0.5" opacity="0.5"/>
+
+  <defs>
+    <marker id="arrOrange" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8" fill="none" stroke="#EF6224" stroke-width="1.5"/>
+    </marker>
+    <marker id="arrOrangeLight" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8" fill="none" stroke="#EF6224" stroke-width="1.2" opacity="0.6"/>
+    </marker>
+    <marker id="arrTan" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8" fill="none" stroke="#8B7355" stroke-width="1"/>
+    </marker>
+  </defs>
+</svg>

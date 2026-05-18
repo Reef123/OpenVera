@@ -1,0 +1,11 @@
+# Vera Auto Memory
+
+<!-- This file is an index of auto-memories. It grows as you use Vera. -->
+<!-- Each entry is one line under ~150 characters, pointing to a topic file. -->
+<!-- Keep under 200 lines. Claude Code loads first 200 lines / 25KB automatically. -->
+
+## Getting Started
+
+- After your first few sessions, memories will appear here automatically
+- Patterns discovered during work get added to patterns.md
+- Operational gotchas and project-specific knowledge get their own topic files

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "paths": {
+    "projects_dir": "vera-projects/projects",
+    "research_output_dir": "vera-projects/research-output",
+    "conversations_dir": "vera-system/conversations",
+    "state_file": "vera-system/state.md",
+    "roadmap_file": "vera-system/ROADMAP.md",
+    "memory_dir": "vera-system/memory"
+  },
+  "integrations": {
+    "_comment": "Optional MCP servers that enhance skills. Skills auto-detect availability.",
+    "firecrawl": "If configured, /research and /scout use Firecrawl instead of WebFetch for better JS rendering and cleaner markdown. Setup: https://docs.firecrawl.dev/mcp",
+    "stitch": "If configured, /frame generates UI screens via Google Stitch. Setup: add stitch MCP to .claude/settings.json"
+  },
+  "llm": {
+    "provider": "openrouter",
+    "default_model": "google/gemini-2.5-flash",
+    "scoring_model": "google/gemini-2.5-pro-preview-03-25",
+    "video_provider": "google-gemini",
+    "video_model": "gemini-2.5-flash"
+  }
+}

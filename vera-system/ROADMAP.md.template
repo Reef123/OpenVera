@@ -1,0 +1,29 @@
+# Roadmap
+
+Priorities and backlog. Updated as work progresses.
+
+---
+
+## Current Sprint
+
+<!-- The ONE thing you're focused on right now -->
+
+- [ ] First project — pick an idea and ship a V0
+
+## Up Next
+
+<!-- 2-3 items queued after the current sprint -->
+
+- [ ] Customize patterns.md with patterns discovered from real use
+- [ ] Try `/build full` for a V1 upgrade
+
+## Backlog
+
+<!-- Ideas and tasks that aren't prioritized yet -->
+
+
+## Done
+
+<!-- Completed items. Move here when finished. -->
+
+- [x] Bootstrap Vera harness

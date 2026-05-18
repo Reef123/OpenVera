@@ -1,0 +1,25 @@
+# Vera
+
+State file. Updated every session.
+
+---
+
+## State (Updated: YYYY-MM-DD)
+
+**STATUS:** Fresh install. Run `/start-here` or `/build new` to begin.
+**SPRINT:** Get started — explore an idea or build something.
+**BLOCKED:** (none — omit this line when nothing is blocked)
+
+## Done This Session
+
+(nothing yet)
+
+## Done Previous Session
+
+(nothing yet)
+
+## Next
+
+- Run first-run.md bootstrap if not done
+- Try `/start-here` with an idea
+- Try `/build new` to ship a V0

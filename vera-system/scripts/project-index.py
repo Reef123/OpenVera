@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""
+project-index.py — Generate a machine-readable index of all projects.
+
+Usage:
+    python3 vera-system/scripts/project-index.py [--format json|tsv]
+
+Scans all project CLAUDE.md files for YAML frontmatter, merges with
+telemetry data (cost rollup per project), and outputs a unified index.
+
+Output: stdout (pipe to file or consume directly)
+"""
+
+import json
+import csv
+import io
+import os
+import re
+import sys
+from pathlib import Path
+from datetime import datetime
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SYSTEM_DIR = SCRIPT_DIR.parent
+REPO_ROOT = SYSTEM_DIR.parent
+
+# Load config for paths
+config_path = SYSTEM_DIR / "config.json"
+if config_path.exists():
+    with open(config_path) as f:
+        config = json.load(f)
+    PROJECTS_DIR = REPO_ROOT / config["paths"]["projects_dir"]
+else:
+    PROJECTS_DIR = REPO_ROOT / "vera-projects" / "projects"
+
+RUNS_DIR = SYSTEM_DIR / "runs"
+
+
+def parse_frontmatter(path):
+    """Extract YAML frontmatter from a markdown file."""
+    text = path.read_text()
+    match = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
+    if not match:
+        return {}
+
+    data = {}
+    for line in match.group(1).strip().split("\n"):
+        if ":" in line:
+            key, _, value = line.partition(":")
+            value = value.strip()
+            if value == "null":
+                value = None
+            data[key.strip()] = value
+    return data
+
+
+def load_telemetry_costs():
+    """Roll up cost per project from all telemetry TSV files."""
+    costs = {}
+    if not RUNS_DIR.exists():
+        return costs
+
+    for tsv in RUNS_DIR.glob("*-telemetry.tsv"):
+        with open(tsv) as f:
+            reader = csv.DictReader(f, delimiter="\t")
+            for row in reader:
+                project = row.get("project", "-")
+                if project and project != "-":
+                    cost = row.get("cost_usd", "0")
+                    try:
+                        costs[project] = costs.get(project, 0) + float(cost)
+                    except (ValueError, TypeError):
+                        pass
+    return costs
+
+
+def scan_projects():
+    """Scan all project directories for CLAUDE.md frontmatter."""
+    projects = []
+    if not PROJECTS_DIR.exists():
+        return projects
+
+    for project_dir in sorted(PROJECTS_DIR.iterdir()):
+        if not project_dir.is_dir():
+            continue
+
+        claude_md = project_dir / "CLAUDE.md"
+        meta = {}
+
+        if claude_md.exists():
+            meta = parse_frontmatter(claude_md)
+
+        # Fallback: derive what we can from the directory
+        if not meta.get("slug"):
+            meta["slug"] = project_dir.name
+        if not meta.get("name"):
+            meta["name"] = project_dir.name.replace("-", " ").title()
+
+        # Check for key artifacts
+        meta["has_spec"] = (project_dir / "spec.md").exists()
+        meta["has_build_state"] = (project_dir / "build-state.md").exists()
+        meta["has_research"] = (project_dir / "research").is_dir()
+
+        # Count source files (rough project size signal)
+        source_extensions = {".py", ".js", ".ts", ".svelte", ".jsx", ".tsx", ".go", ".rs"}
+        source_count = sum(
+            1 for f in project_dir.rglob("*")
+            if f.suffix in source_extensions and "node_modules" not in str(f)
+        )
+        meta["source_files"] = source_count
+
+        projects.append(meta)
+
+    return projects
+
+
+def main():
+    fmt = "json"
+    if len(sys.argv) > 1 and sys.argv[1] in ("--format",):
+        fmt = sys.argv[2] if len(sys.argv) > 2 else "json"
+    elif len(sys.argv) > 1:
+        fmt = sys.argv[1].lstrip("-")
+
+    projects = scan_projects()
+    costs = load_telemetry_costs()
+
+    # Merge cost data
+    for p in projects:
+        slug = p.get("slug", "")
+        p["total_cost_usd"] = round(costs.get(slug, 0), 2)
+
+    if fmt == "json":
+        print(json.dumps(projects, indent=2, default=str))
+    elif fmt == "tsv":
+        if not projects:
+            return
+        fields = ["slug", "name", "status", "stack", "score", "total_cost_usd",
+                  "source_files", "created", "updated", "origin"]
+        writer = csv.DictWriter(sys.stdout, fieldnames=fields, delimiter="\t",
+                                extrasaction="ignore")
+        writer.writeheader()
+        for p in projects:
+            writer.writerow(p)
+    else:
+        print(f"Unknown format: {fmt}. Use json or tsv.", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

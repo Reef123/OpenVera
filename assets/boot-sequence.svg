@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 280" font-family="system-ui, -apple-system, sans-serif">
+  <!-- Background -->
+  <rect width="860" height="280" rx="16" fill="#1a120b"/>
+
+  <!-- Title -->
+  <text x="430" y="36" text-anchor="middle" fill="#FFF5E1" font-size="14" font-weight="600" letter-spacing="1">BOOT SEQUENCE — THREE-TIER CONTEXT LOADING</text>
+
+  <!-- Tier 1: Core -->
+  <rect x="30" y="60" width="240" height="190" rx="12" fill="#2F241D" stroke="#FFC425" stroke-width="2"/>
+  <rect x="30" y="60" width="240" height="36" rx="12" fill="#6B4C1E"/>
+  <rect x="30" y="84" width="240" height="12" fill="#6B4C1E"/>
+  <text x="150" y="84" text-anchor="middle" fill="#FFF5E1" font-size="13" font-weight="700">CORE</text>
+  <text x="150" y="106" text-anchor="middle" fill="#FFC425" font-size="11" font-weight="500">Every session. ~300 lines.</text>
+
+  <text x="52" y="134" fill="#FFF5E1" font-size="12">state.md</text>
+  <text x="195" y="134" fill="#8B7355" font-size="11" text-anchor="end">where you are</text>
+  <line x1="50" y1="146" x2="220" y2="146" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="52" y="168" fill="#FFF5E1" font-size="12">patterns.md</text>
+  <text x="195" y="168" fill="#8B7355" font-size="11" text-anchor="end">how to think</text>
+  <line x1="50" y1="180" x2="220" y2="180" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="52" y="202" fill="#FFF5E1" font-size="12">user.md</text>
+  <text x="195" y="202" fill="#8B7355" font-size="11" text-anchor="end">who you help</text>
+  <line x1="50" y1="214" x2="220" y2="214" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="52" y="236" fill="#FFF5E1" font-size="12">first-run.md</text>
+  <text x="195" y="236" fill="#8B7355" font-size="11" text-anchor="end">bootstrap only</text>
+
+  <!-- Arrow 1 -->
+  <path d="M 280 155 L 300 155" stroke="#6B4C1E" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Tier 2: Recall -->
+  <rect x="310" y="60" width="240" height="190" rx="12" fill="#2F241D" stroke="#EF6224" stroke-width="1.5" stroke-opacity="0.6"/>
+  <rect x="310" y="60" width="240" height="36" rx="12" fill="#5C3310"/>
+  <rect x="310" y="84" width="240" height="12" fill="#5C3310"/>
+  <text x="430" y="84" text-anchor="middle" fill="#FFF5E1" font-size="13" font-weight="700">RECALL</text>
+  <text x="430" y="106" text-anchor="middle" fill="#EF6224" font-size="11" font-weight="500">On demand. When relevant.</text>
+
+  <text x="332" y="134" fill="#FFF5E1" font-size="12">ROADMAP.md</text>
+  <text x="502" y="134" fill="#8B7355" font-size="11" text-anchor="end">priorities</text>
+  <line x1="330" y1="146" x2="500" y2="146" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="332" y="168" fill="#FFF5E1" font-size="12">identity.md</text>
+  <text x="502" y="168" fill="#8B7355" font-size="11" text-anchor="end">personality</text>
+  <line x1="330" y1="180" x2="500" y2="180" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="332" y="202" fill="#FFF5E1" font-size="12">voice.md</text>
+  <text x="502" y="202" fill="#8B7355" font-size="11" text-anchor="end">tone + style</text>
+  <line x1="330" y1="214" x2="500" y2="214" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="332" y="236" fill="#FFF5E1" font-size="12">MEMORY.md</text>
+  <text x="502" y="236" fill="#8B7355" font-size="11" text-anchor="end">auto-memory</text>
+
+  <!-- Arrow 2 -->
+  <path d="M 560 155 L 580 155" stroke="#6B4C1E" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Tier 3: Archival -->
+  <rect x="590" y="60" width="240" height="190" rx="12" fill="#2F241D" stroke="#4B3621" stroke-width="1" stroke-opacity="0.4"/>
+  <rect x="590" y="60" width="240" height="36" rx="12" fill="#3A2A1A" stroke="#4B3621" stroke-width="1"/>
+  <rect x="590" y="84" width="240" height="12" fill="#3A2A1A"/>
+  <text x="710" y="84" text-anchor="middle" fill="#C4A882" font-size="13" font-weight="700">ARCHIVAL</text>
+  <text x="710" y="106" text-anchor="middle" fill="#6B5B45" font-size="11" font-weight="500">Search only. Never pre-loaded.</text>
+
+  <text x="612" y="134" fill="#C4A882" font-size="12">conversations/</text>
+  <text x="782" y="134" fill="#8B7355" font-size="11" text-anchor="end">session logs</text>
+  <line x1="610" y1="146" x2="780" y2="146" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="612" y="168" fill="#C4A882" font-size="12">research papers</text>
+  <text x="782" y="168" fill="#8B7355" font-size="11" text-anchor="end">past research</text>
+  <line x1="610" y1="180" x2="780" y2="180" stroke="#4B3621" stroke-width="0.5"/>
+
+  <text x="612" y="202" fill="#C4A882" font-size="12">master plans</text>
+  <text x="782" y="202" fill="#8B7355" font-size="11" text-anchor="end">SDLC artifacts</text>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8" fill="none" stroke="#6B4C1E" stroke-width="1.5"/>
+    </marker>
+  </defs>
+</svg>

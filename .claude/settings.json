@@ -1,0 +1,86 @@
+{
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"
+  },
+  "permissions": {
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*id_rsa*)",
+      "Read(**/*id_ed25519*)",
+      "Read(**/.ssh/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.kube/**)",
+      "Read(**/.docker/**)",
+      "Read(**/.terraform/**)",
+      "Read(**/.git/credentials)",
+      "Read(**/.netrc)",
+      "Read(**/credentials.json)",
+      "Read(**/*.token)"
+    ],
+    "ask": [
+      "Bash(git reset --hard:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git clean -fdx:*)",
+      "Bash(git rebase:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)",
+      "Bash(killall:*)",
+      "Bash(xargs kill:*)",
+      "Read(**/.secrets)",
+      "Read(**/.secrets.*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.py\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-end-reminder.py\""
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\""
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Context is about to be compressed. Run /doc-sync NOW if it hasn't been run this session and files were created or edited. If doc-sync has already run, output {\"decision\":\"allow\"}. If it has NOT run and work was done, output {\"decision\":\"block\",\"reason\":\"STOP. Run /doc-sync before compact. Context is about to be lost — update state.md, conversation log, and ROADMAP.md now.\"}",
+            "statusMessage": "Checking doc-sync status before compact..."
+          }
+        ]
+      }
+    ]
+  }
+}
