@@ -248,8 +248,9 @@ Goal: turn the panel's open catches into resolved decisions **before** any code,
 2. **Walk the tree, biggest decisions first.** Resolve a parent decision before the children that depend on it, so you never settle a detail a larger call would erase. **Seed from the panel's `Unconsidered + open` items** (the known holes, e.g. "clustering underspecified") — those go first.
 3. **One question at a time.** Each is its own `AskUserQuestion` turn (open-ended ones may be plain text). Do NOT batch — the point is to let each answer reshape the next question.
 4. **Every question carries your recommended answer.** First option, labeled `(Recommended)`, plus a one-line *why*. Open-ended ones still lead with your pick. The user confirms or overrides.
-5. **~6 questions, capped.** Target six; stop early once decisions are resolved and you both share the picture, or at six to keep it bounded. Don't pad to hit the number.
-6. **Write it down.** Fold the resolved decisions into `idea.md` (`## The bet` / scope / `## What good looks like` / open questions). Show a short before/after diff. Then re-show the Step 6 verdict — usually a clean "proceed" now.
+5. **Push back once, on the biggest call.** After the load-bearing decision is locked, give the single strongest case against it, then ask: *"Strongest case against that: [X]. Keep it, or rethink?"* Log whichever way they go. One adversarial beat only — not every question. It sharpens the plan without nagging. (This is the counterfactual / attachment probe: what if the opposite is true, and are you over-invested past the evidence.)
+6. **~6 questions, capped.** Target six; stop early once decisions are resolved and you both share the picture, or at six to keep it bounded. Don't pad to hit the number.
+7. **Write it down.** Fold the resolved decisions into `idea.md` (`## The bet` / scope / `## What good looks like` / open questions). Show a short before/after diff. Then re-show the Step 6 verdict — usually a clean "proceed" now.
 
 Per-question shape:
 

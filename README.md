@@ -155,9 +155,11 @@ The pre-compact gate is deterministic Python, wired under `PreCompact` in `.clau
   <img src="assets/build-journey.png" alt="V0 vibe codes a working app; V1+ runs full SDLC across multiple sessions" width="860">
 </p>
 
+Both start from an idea. If yours is still vague, run `/start-vague` first. It shapes a rough idea into a buildable `idea.md`, then hands it to `/build new`.
+
 ### V0: Just Build It (`/build new`)
 
-You have an idea. Maybe it's half-formed. `/build new` runs the whole pipeline: quick research, scope guard (cuts you to 1-2 problems), design tokens, then a build loop until it works in the browser. The state file persists across sessions, so when context compresses or you stop for the night, `/build continue` picks up exactly where you left off.
+You have an idea you can describe in a sentence. `/build new` runs the whole pipeline: quick research, scope guard (cuts you to 1-2 problems), design tokens, then a build loop until it works in the browser. The state file persists across sessions, so when context compresses or you stop for the night, `/build continue` picks up exactly where you left off.
 
 You answer 2-4 short scoping questions before it goes autonomous: what's the job, what pain does this solve, what's the one action that has to work, and (if any of those leave gaps) a quick pressure-test on what Vera is about to assume. After that, it runs without interruption.
 

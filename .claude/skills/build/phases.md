@@ -32,9 +32,9 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
 
    **Wait for answers.** Let the human's response reshape your assumptions before framing structured questions.
 
-4. **Structured questions (AskUserQuestion).** Now that discovery has surfaced the real concerns, use framed options to close decisions:
+4. **Structured questions — run as the Deeper Understanding interview.** Now that discovery has surfaced the real concerns, close the decisions using the same method as `/panel`'s Step 6b interview: **one question at a time** (its own AskUserQuestion), **biggest decisions first** (walk the dependency tree — Scope before Success before Priority, since later answers depend on earlier ones), **each carrying your recommended answer** (first option, labeled `(Recommended)`, with a one-line *why*), and **one adversarial push-back after the biggest call**: *"Strongest case against that: [X]. Keep it, or rethink?"* Explore before asking — if discovery, the handoff, or the codebase already answered something, don't re-ask it.
 
-   Question categories to cover:
+   Decision categories to cover (the interview walks these in dependency order):
    - **Scope:** What's in? What's explicitly out?
    - **Users:** Who uses this? What's their context?
    - **Constraints:** Technical, timeline, budget, dependency constraints?
@@ -47,8 +47,8 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
      question: "What's the primary success metric for [topic]?",
      header: "Success",
      options: [
-       {label: "Option A", description: "Trade-off: X"},
-       {label: "Option B", description: "Trade-off: Y"}
+       {label: "[your pick] (Recommended)", description: "Why this: X"},
+       {label: "[alternative]",             description: "When this is right instead: Y"}
      ]
    )
    ```
