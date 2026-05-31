@@ -141,8 +141,10 @@ def extract_skill_commands(filepath):
     commands = set()
     if not filepath.exists():
         return commands
-    # Matches `/name` — backticked, starting with slash, alphanumeric name.
-    backtick_cmd = re.compile(r"`/([A-Za-z][A-Za-z0-9_-]*)`")
+    # Matches `/name` and `/name <args>` — backticked, starting with slash,
+    # alphanumeric name, optionally followed by space + arg-hint inside the
+    # same backticks (e.g., `/scout <question>` or `/code-review <path>`).
+    backtick_cmd = re.compile(r"`/([A-Za-z][A-Za-z0-9_-]*)(?:\s[^`]*)?`")
     rename_note = re.compile(r"renamed from\s+`/([A-Za-z][A-Za-z0-9_-]*)`", re.IGNORECASE)
     for line in filepath.read_text().splitlines():
         line = line.strip()
@@ -166,8 +168,32 @@ for cmd in sorted(actual_commands):
 documented = claude_md_skills | readme_skills
 # Commands referenced as illustrative examples, not real skill directories.
 EXAMPLE_COMMANDS = {"commit", "slash-command"}
+
+
+def _is_internal_skill(skill_name):
+    """Skills with `internal: true` in SKILL.md frontmatter have no slash
+    command (read inline by other skills, e.g., /tdd by /build full Phase 5).
+    These intentionally don't appear in the skills table."""
+    skill_md = skills_dir / skill_name / "SKILL.md"
+    if not skill_md.exists():
+        return False
+    in_frontmatter = False
+    for line in skill_md.read_text().splitlines()[:30]:
+        if line.strip() == "---":
+            if in_frontmatter:
+                return False  # end of frontmatter, not found
+            in_frontmatter = True
+            continue
+        if in_frontmatter and line.strip() == "internal: true":
+            return True
+    return False
+
+
 for skill in sorted(actual_skills - documented):
-    warn(f"Skill '{skill}' exists on disk but not in any skill table")
+    if _is_internal_skill(skill):
+        note(f"Skill '{skill}' is internal-only (no slash command)")
+    else:
+        warn(f"Skill '{skill}' exists on disk but not in any skill table")
 for cmd in sorted(documented - registered - EXAMPLE_COMMANDS):
     warn(f"Skill table references '/{cmd}' but no .claude/skills/{cmd}/ or .claude/commands/{cmd}.md exists")
 
@@ -259,18 +285,42 @@ else:
     note("No curate history yet (normal for new harness)")
 
 
-# --- Check 8: Script inventory (security) ---
+# --- Check 8: Doc-sync freshness ---
+# Stamped by /doc-sync's final step. Stale = context drift across sessions.
+last_sync_file = REPO_ROOT / ".claude" / "last-doc-sync"
+if last_sync_file.exists():
+    try:
+        raw = last_sync_file.read_text().strip()
+        # Tolerate trailing 'Z' or fractional seconds
+        ts = raw.rstrip("Z").split(".")[0]
+        last_sync = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
+        age_days = (datetime.utcnow() - last_sync).days
+        if age_days > 7:
+            warn(f"Last /doc-sync was {age_days} days ago — docs may be drifting from session state")
+        else:
+            note(f"Last /doc-sync: {age_days} day(s) ago")
+    except ValueError:
+        warn(f"{last_sync_file.name} has invalid format — expected ISO timestamp YYYY-MM-DDTHH:MM:SS")
+else:
+    note("No doc-sync history yet (run /doc-sync at session end)")
+
+
+# --- Check 9: Script inventory (security) ---
 # Skills pre-approve Bash(python3 vera-system/scripts/*) via allowed-tools.
 # Any unexpected script in this directory runs WITHOUT user approval.
 print("\n[Script Inventory]")
 KNOWN_SCRIPTS = {
     "build-state.py",
+    "curate-mode.py",
     "doc-sync-cascade.py",
     "doc-sync-gap.py",
     "doc-sync-todos.py",
     "doctor.py",
+    "frontmatter.py",
     "manifest-update.py",
     "openrouter.py",
+    "palette-pick.py",
+    "panel-score.py",
     "project-index.py",
     "reddit-fetch.py",
     "stamp.py",

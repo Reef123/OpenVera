@@ -219,17 +219,7 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
 
 3. **Map PRD requirements to phases.** Every FR-N must appear in at least one phase.
 
-4. **Visual specs (UI projects only).** Generate wireframes for each build phase's UI work:
-
-   **If Stitch MCP available:**
-   - Generate screens: `mcp__stitch__generate_screen_from_text` per core flow step
-   - Generate variants: `mcp__stitch__generate_variants` for key screens (2-3 alternatives). Present to user — they pick.
-   - Create design system: `mcp__stitch__create_design_system` → save as `DESIGN.md`
-   - Record screen IDs in each build phase's Visual Spec section
-
-   **If no design tool:**
-   - Create ASCII wireframes in `{project}/wireframes.md` — one per screen
-   - Write `DESIGN.md` manually: colors, typography, spacing, component patterns
+4. **Visual specs (UI projects only).** Invoke `/frame --from-spec` to generate `DESIGN.md` and per-screen wireframes. `/frame` handles design-tool routing internally (Stitch MCP when available, text wireframes otherwise) and applies the Vera Considered Palettes aesthetic floor. Record screen references in each build phase's Visual Spec section.
 
    DESIGN.md is the styling source of truth. Wireframes show layout. Both are references for Build + Code Review.
 
@@ -256,7 +246,7 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
 
 8. **Write the phase plan.** Use [templates/phase-plan.md](templates/phase-plan.md).
 
-9. **Ambition check.** Before presenting, verify: "Is this a Full-tier plan for a Lite-tier feature set?" Count features across all phases. Compare to research sources consulted. If ratio < 0.3, the scope is too thin for the investment — expand or downgrade the tier.
+9. **Ambition check.** Before presenting, verify the SDLC tier matches scope. If scope is thin for the chosen tier, downgrade. If it's too ambitious for one tier, split.
 
 10. **Gate:** Present phase summary with test specs and visual specs (if any). Wait for approval.
 
@@ -282,44 +272,47 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
    - Record screen references in build spec's **Wireframes Referenced** table; record "Wireframes loaded: PASSED" + "DESIGN.md loaded: PASSED" in **Verification Evidence**.
    - **Gate:** Visual Spec exists but wireframes/DESIGN.md not loaded → build spec rejected at review.
 
-3. **Write tests FIRST.** From the test spec in the phase plan:
+3. **Read the TDD cycle.** Before writing any test, read `.claude/skills/tdd/SKILL.md`. It governs the red-green-refactor loop for this phase — one behavior at a time, see each test fail, smallest code that passes, refactor on green. Not optional.
+
+4. **Write tests FIRST.** From the test spec in the phase plan:
    - Create test files before implementation files
    - Tests should fail initially (nothing to test yet)
    - Test names match the test spec descriptions
+   - Follow the cycle in `tdd/SKILL.md` — one test, one implementation, one refactor, then the next
 
-4. **Write implementation code.** Make the tests pass.
+5. **Write implementation code.** Make the tests pass.
    - Follow the tech spec architecture
    - Keep to the phase scope — don't build ahead
    - **For UI work:** Build with the wireframe open. Match layout, color system, spacing, and visual hierarchy. The wireframe is the spec, not a suggestion.
    - If you discover something missing from the spec, note it as a deviation
 
-5. **Run all tests.** Paste output into build spec.
+6. **Run all tests.** Paste output into build spec.
 
-6. **PRD validation.** Check each requirement this phase addresses. Is it actually met?
+7. **PRD validation.** Check each requirement this phase addresses. Is it actually met?
 
-7. **Browser verification (ALL phases with runnable code).** Not optional. Tests verify logic; this verifies the app works.
+8. **Browser verification (ALL phases with runnable code).** Not optional. Tests verify logic; this verifies the app works.
    - Start dev server (`npm run dev`). Requires Playwright MCP (`claude mcp add playwright`). If unavailable, record "browser verification skipped — Playwright MCP not installed" and proceed; do not fabricate evidence.
    - For each route: navigate (`browser_navigate`), snapshot (`browser_snapshot` or `browser_take_screenshot` for visual), read console errors (`browser_console_messages`). Save screenshots to `{project_dir}/.build/screenshots/`, never workspace root.
    - Any route crashes or console errors → fix before proceeding.
    - Record paths, routes verified, console status in **Verification Evidence** table.
    - **Gate:** No FAILED entries; empty table = spec rejected.
 
-8. **Design quality check (UI phases).** Tests verify behavior. This step verifies quality. Ask yourself:
+9. **Design quality check (UI phases).** Tests verify behavior. This step verifies quality. Ask yourself:
    - Does this look like what the wireframes show? Not "close enough" — actually match?
    - Does it embody the Design System (colors, typography, component style, interaction patterns)?
    - Would a user seeing only the built UI and only the wireframe say "same thing"?
    - If not, fix it now. Not in a later phase. Not in a polish pass.
 
-9. **Document deviations.** If anything diverged from the plan, explain why. **Visual deviations from wireframes must be explicitly justified.**
+10. **Document deviations.** If anything diverged from the plan, explain why. **Visual deviations from wireframes must be explicitly justified.**
 
-10. **Write the build spec.** Use [templates/build-spec.md](templates/build-spec.md).
+11. **Write the build spec.** Use [templates/build-spec.md](templates/build-spec.md).
    - Files created/modified table must be complete
    - Test results must be included (not just "all passing")
    - Deviations section is critical for review
    - **Verification Evidence table** must be filled — no FAILED or empty entries
    - **Visual Targets section** (UI phases): list which screens were referenced and any deviations
 
-11. **Gate:** All tests pass. Verification Evidence table complete. Deliverables match phase plan. UI matches wireframes. Proceed to Code Review.
+12. **Gate:** All tests pass. Verification Evidence table complete. Deliverables match phase plan. UI matches wireframes. Proceed to Code Review.
 
 ### Build Phase Loop
 
@@ -327,8 +320,11 @@ After Code Review N passes:
 - If more build phases remain → advance to Build Phase N+1
 - If this was the last build phase → advance to Phase 7 (Integration & QA)
 
-Update MANIFEST after each build phase: `Current Build Phase: N of M`
-Update MANIFEST Trace Map: for each PRD requirement addressed in this phase, add/update the row with build phase number and key files touched.
+Update the MANIFEST build-phase counter with the script:
+```bash
+python3 vera-system/scripts/manifest-update.py <slug> build-phase --current N --total M
+```
+Then update the MANIFEST Trace Map by hand: for each PRD requirement addressed in this phase, add/update its row with the build phase number and key files touched. (The script owns the phase counter; the Trace Map stays model-authored.)
 
 ---
 
@@ -366,7 +362,7 @@ Agent(
 6. **Visual fidelity (UI phases — MANDATORY if Visual Spec exists).** Compare built UI against wireframes. Missing design system = High. Missing structural elements = Medium. Minor spacing = Low.
 
 7. **Write the review.** Use [templates/code-review.md](templates/code-review.md).
-   - Every review has at least one finding (even Low)
+   - Report findings honestly. Don't pad to hit a count.
    - Categorize findings by severity
    - Action items must be specific and actionable
 
@@ -384,7 +380,7 @@ python3 vera-system/scripts/manifest-update.py <slug> phase-complete --phase "Ph
 
 ## Phase 6.5: Simplification Pass
 
-**Purpose:** Remove accidental complexity before QA. The senior architect's secret weapon.
+**Purpose:** Remove accidental complexity before QA.
 
 **Context to read:** All `build/phase-*-spec.md` and `build/phase-*-review.md`
 
@@ -494,6 +490,8 @@ Write to `.build/security-review.md`:
    | **Edge Cases** | Robustness | Malformed input, empty states, API failures, race conditions, boundary values |
    | **Security** | Safety + alignment | Auth bypass, injection, data leaks, OWASP top 10 surface scan |
 
+   **Nested worktree base.** Phase 7 runs inside the Stage 1 worktree (`build-full-<slug>-*`). Each QA agent's worktree must branch off the CURRENT branch (the Stage 1 worktree branch), not main — otherwise the QA agent reviews the wrong code. Use `EnterWorktree` with `base: HEAD` (or equivalent) so the new worktree forks from the in-flight build state. QA agents are read-only by design (they write findings only, not source) — no merge-back step at exit; just discard the QA worktrees after merging results into the Phase 7 report.
+
    Each agent writes a short findings list (Critical/High/Medium/Low). Merge results.
 
 4. **Trace Map check.** Read the Trace Map in `MANIFEST.md`. Walk each row:
@@ -536,7 +534,11 @@ Write to `.build/security-review.md`:
 2. **Smoke test.** Verify it works in the deployed environment.
 
 3. **Update documentation.**
-   - Project `CLAUDE.md` frontmatter — `status: shipped`, `score: X.X`, `updated: <today>`
+   - Project `CLAUDE.md` frontmatter — set with the script (it writes the date and preserves the lifecycle comment):
+     ```bash
+     python3 vera-system/scripts/frontmatter.py set <project>/CLAUDE.md status=live score=X.X updated=today
+     ```
+     The `live` state signals the project is past V0 and in real use; `/build full` reaching Phase 8 is the explicit version-graduation event. (A re-run on an already-`live` project just re-sets `live` — harmless.)
    - `vera-system/state.md` — state reflects this project is complete
    - `vera-system/ROADMAP.md` — mark as done, remove from backlog
    - Any project-specific docs
@@ -546,7 +548,7 @@ Write to `.build/security-review.md`:
    - Rollback plan is NOT optional
    - Lessons learned are valuable for future projects
 
-5. **Update MANIFEST.** Set status to `complete`. Fill in all dates.
+5. **Update MANIFEST.** `python3 vera-system/scripts/manifest-update.py <slug> complete` (sets Status: complete + Last Updated; per-phase dates were already filled by the `phase-complete` calls during the run).
 
 6. **Gate:** Smoke tests pass. Docs updated. MANIFEST complete. Project closed.
 

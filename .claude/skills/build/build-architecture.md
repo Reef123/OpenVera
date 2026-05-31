@@ -2,6 +2,8 @@
 
 How the build pipeline works — agent topology, state flow, and artifact handoffs.
 
+*Visual reference only. Canonical execution instructions live in `SKILL.md`, `v0-stages.md`, `phases.md`. If a diagram disagrees with those, the source files win.*
+
 ---
 
 ## V0 Pipeline (`/build new`)
@@ -111,12 +113,10 @@ USER                          SUPERVISOR (main thread)                    AGENTS
  │                                    │                                        │
  │                                    ├─ build-state.py "complete"             │
  │                                    │                                        │
- │                                    │  SHIP PHASE (immediate)               │
- │                                    │  ├─ viewing block ("Your V0 is live") │
- │                                    │  ├─ retro invitation (plain-text)     │
- │                                    │  ├─ v1-checklist.md (initial)         │
- │                                    │  └─ ship check-in                     │
- │                                    │     Agent: doc-sync ──────────────────>│ (sonnet, bg)
+ │                                    │  STAGE 4a/4b SHIP                      │
+ │                                    │  (rich 🐘 ship summary + handoff.md   │
+ │                                    │   contract — see v0-stages.md)         │
+ │                                    │     Agent: doc-sync ──────────────────>│ (bg)
  │                                    │                                        │
  │  user uses V0, types `retro` ──────│                                        │
  │                                    │                                        │
@@ -143,7 +143,7 @@ USER                          SUPERVISOR (main thread)                    AGENTS
  │  /build full <project>             │                                        │
  │ ──────────────────────────────────>│                                        │
  │                                    ├─ build-state.py "Full Stage 0"        │
- │                                    │  read spec.md (Cut List, Purpose)      │
+ │                                    │  read kickoff sources (see SKILL.md)   │
  │                                    │                                        │
  │  ┌─────────────────────────────────┤                                        │
  │  │ AskUserQuestion (ONE stop)      │                                        │
@@ -152,7 +152,12 @@ USER                          SUPERVISOR (main thread)                    AGENTS
  │  │  • Research?                    │                                        │
  │  └────────────────────────────────>│                                        │
  │                                    │                                        │
+ │                                    ├─ EnterWorktree("build-full-<slug>-...") │
+ │                                    │  all Stage 1/2 work runs on branch     │
+ │                                    │  main stays clean until ExitWorktree   │
+ │                                    │                                        │
  │                                    ├─ build-state.py "Full Stage 1"        │
+ │                                    │  (writes inside worktree from here on) │
  │                                    │                                        │
  │  NO MORE STOPS                     │  ┌─── PARALLEL FAN-OUT ──────────────┐│
  │  (except Major arch decision)      │  │  Agent: doc-sync ─────────────────>│ (bg)
@@ -218,6 +223,10 @@ USER                          SUPERVISOR (main thread)                    AGENTS
  │                                    │  build-state.py "complete"             │
  │                                    │  telemetry.py build PASS               │
  │                                    │                                        │
+ │                                    ├─ ExitWorktree(merge: true/false)       │
+ │                                    │  score ≥ 3.5 or ship-accepted → merge  │
+ │                                    │  declined → preserve branch for review │
+ │                                    │                                        │
  │                                    ├─ SURFACE WHAT'S NEXT                   │
  │                                    │  (mine PRD, Cut List, research)        │
  │                                    │  Agent: doc-sync ──────────────────────>│ (bg)
@@ -231,7 +240,6 @@ USER                          SUPERVISOR (main thread)                    AGENTS
 ```
                     ┌─────────────────────────┐
                     │   /build (supervisor)    │
-                    │   model: opus            │
                     │   role: orchestrator     │
                     │   owns: state, routing,  │
                     │   user stops, sequencing │
@@ -242,7 +250,6 @@ USER                          SUPERVISOR (main thread)                    AGENTS
             ▼                ▼                ▼                  ▼
    ┌────────────────┐ ┌────────────┐ ┌──────────────┐ ┌──────────────┐
    │ doc-sync       │ │ scout      │ │ validator    │ │ reviewer     │
-   │ model: sonnet  │ │ model: son.│ │ model: son.  │ │ model: son.  │
    │ role: docs     │ │ role: recon│ │ role: test   │ │ role: review │
    │ when: start,   │ │ when: if   │ │ when: after  │ │ when: after  │
    │       end      │ │ requested  │ │ each build   │ │ core flow or │
@@ -255,25 +262,6 @@ USER                          SUPERVISOR (main thread)                    AGENTS
 
 ---
 
-## Artifact Flow
-
-```
-Stage 0 (user)                Stage 1 (planning)              Stage 2 (building)           Stage 3-4 (ship)
-──────────────                ──────────────────              ────────────────────          ────────────────
-
-Purpose answers ──────> idea.md (synth if missing) ──> code files ─────────────────> retro.md
-                        spec.md (reads idea.md)        .build/validation.md          build-state.md (complete)
-                        arch.md                        .build/review.md              telemetry.tsv
-                        wireframes.md
-                        DESIGN.md
-                        build-state.md
-
-                        ┌── scout results (if any)
-                        └── research paper (if any)
-```
-
----
-
 ## Canonical Project Folder
 
 Every `/build` output lands under `{paths.projects_dir}/<slug>/`. Never at the repo root. Never mixed with harness files in `vera-system/`.
@@ -282,7 +270,7 @@ Every `/build` output lands under `{paths.projects_dir}/<slug>/`. Never at the r
 vera-projects/projects/<slug>/
 ├── CLAUDE.md               # frontmatter: name, slug, status, stack, run, score
 ├── build-state.md          # state machine (build-state.py only)
-├── idea.md                 # universal — /start-here OR synthesized at Stage 1 step 0
+├── idea.md                 # universal — /start-vague OR synthesized at Stage 1 step 0
 ├── spec.md                 # V0 spec
 ├── arch.md, wireframes.md, DESIGN.md
 ├── retro.md, v1-checklist.md
@@ -328,6 +316,8 @@ Each transition: python3 vera-system/scripts/build-state.py <slug> "<stage>" [--
 | Script | Purpose | Called by |
 |--------|---------|----------|
 | `build-state.py` | State transitions, decision log, artifacts | Every stage boundary |
-| `manifest-update.py` | MANIFEST.md for Full SDLC (init, phase-start, phase-complete) | Structured/Major routes |
+| `frontmatter.py` | Slug gen + project `CLAUDE.md` frontmatter (create / set status,score,updated) | V0 step 1 create, Stage 4a ship; Full Phase 8 |
+| `manifest-update.py` | MANIFEST.md for Full SDLC (init, phase-start, phase-complete, build-phase, complete) | Structured/Major routes |
+| `palette-pick.py` | Deterministic palette pick + `:root` token block | Stage 2 styling (DESIGN.md thin/missing) |
 | `telemetry.py` | Log build outcome, score, cost, latency | After scoring |
 | `openrouter.py` | External judge scoring | Stage 3 |

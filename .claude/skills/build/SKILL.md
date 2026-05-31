@@ -34,25 +34,23 @@ Use `paths.projects_dir` for project workspace (plans and research live inside e
 ## Routing
 
 ### `new <idea-or-slug>`
-1. If `{paths.projects_dir}/<slug>/` already exists (e.g., from /start-here), use it. Read `idea.md` for context. Otherwise, generate kebab-case slug and create the dir.
-2. Write `CLAUDE.md` in the project root (breadcrumb for Vera + machine-readable for dashboard):
-   ```markdown
-   ---
-   name: <Project Name>
-   slug: <slug>
-   status: building
-   created: <YYYY-MM-DD>
-   updated: <YYYY-MM-DD>
-   stack: <framework + key libs>
-   run: <dev server command>
-   score: null
-   origin: /build new
-   ---
-   # <Project Name>
-   <one line — what this does>
+1. **Check for graduated slug.** If `{paths.projects_dir}/<slug>/` already exists:
+   - Read its `CLAUDE.md` frontmatter `status` field.
+   - `status: building` → continue at step 2 (user is resuming a half-done V0).
+   - `status: shipped` or `status: live` → **refuse + route.** Print: *"`<slug>` is past V0 (`status: <X>`). Use `/build full <slug>` to do V1+ work, or manually edit CLAUDE.md `status: building` if you really want to restart V0."* Do NOT auto-execute `/build full` — the user makes the call.
+   - `CLAUDE.md` missing → fall back to today's behavior: use the dir, read `idea.md` for context, continue at step 2.
+
+   If the dir does NOT exist, generate the slug and create the project `CLAUDE.md` in one pair of calls:
+   ```bash
+   SLUG=$(python3 vera-system/scripts/frontmatter.py slug "<idea>")
+   python3 vera-system/scripts/frontmatter.py create --slug "$SLUG" --name "<Project Name>" \
+     --status building --origin "/build new" --stack "<framework + key libs>" \
+     --run "<dev server command>" --summary "<one line, what this does>"
    ```
+   The script writes the frontmatter block (name/slug/status/created/updated/stack/run/score/origin), the dates, and the lifecycle comment. If the stack/run aren't decided yet, omit those two flags (they default to `null`) and fill them later with `frontmatter.py set`. Continue at step 2.
+2. **Status lifecycle:** `building` (V0 in active dev) → `shipped` (V0 deployed, set by Stage 4a) → `live` (past V0, in real use, set by `/build full` Phase 8 or manual edit after `/curate` flags as candidate).
 3. Create state file at `{paths.projects_dir}/<slug>/build-state.md`.
-4. **idea.md handoff:** If `idea.md` exists (project came from `/start-here`), read its `## What's out there` section. Real signal (scout or WebSearch output) → skip the Research question in Stage 0 — already validated. *"Not checked yet"* or `[pending]` → KEEP the Research question; user hasn't actually validated yet. **If `idea.md` doesn't exist** (direct `/build new` with no prior /start-here), don't create it now — Stage 1 step 0 synthesizes it from Stage 0 answers + the original `<idea>` argument. This guarantees idea.md is universal: spec.md can pull `## The bet` and `## Original spark` from one place regardless of entry path.
+4. **idea.md handoff:** If `idea.md` exists (project came from `/start-vague`), read its `## What's out there` section. Real signal (scout or WebSearch output) → skip the Research question in Stage 0 — already validated. *"Not checked yet"* or `[pending]` → KEEP the Research question; user hasn't actually validated yet. **If `idea.md` doesn't exist** (direct `/build new` with no prior /start-vague), don't create it now — Stage 1 step 0 synthesizes it from Stage 0 answers + the original `<idea>` argument. This guarantees idea.md is universal: spec.md can pull `## The bet` and `## Original spark` from one place regardless of entry path.
 5. Begin V0 pipeline (below).
 
 ### `full <project>`
@@ -63,7 +61,13 @@ Use `paths.projects_dir` for project workspace (plans and research live inside e
 5. Begin Upgrade pipeline (below)
 
 ### `continue`
-Find most recent `build-state.md` across `{paths.projects_dir}/*/`. Read it to recover: slug, mode, current stage, substage, artifacts, and decision log. If mode=new → resume V0 pipeline at the recorded stage. If mode=full → read MANIFEST.md for current phase, then read [full-sdlc.md](full-sdlc.md) and resume at that phase.
+Find most recent `build-state.md` across `{paths.projects_dir}/*/`. Read it to recover: slug, mode, current stage, substage, artifacts, and decision log.
+
+**Worktree detection (mode=full only).** Before resuming, run `git worktree list` and grep for `build-full-<slug>-*`:
+- **Match found** — call `EnterWorktree(branch: <matched-branch>)` to re-enter. Then read MANIFEST.md (which lives inside the worktree) for current phase. This handles all `/build full` runs uniformly — Targeted, Structured, and Major — without depending on MANIFEST being readable from main.
+- **No match** — either a legacy run started before worktree-by-default, or the worktree was already merged/discarded. Continue on the current branch. If `build-state.md` is on main, resume from main; if it was inside a now-discarded worktree, `build-state.md` won't be found by the glob and the project will appear absent (user should re-run `/build full <project>`).
+
+After worktree entry (or skip), read [full-sdlc.md](full-sdlc.md) and resume at the phase recorded in MANIFEST/build-state.md. mode=new uses no worktree — resume V0 pipeline at the recorded stage directly.
 
 ### `status`
 Show all build state files. Summary table.
@@ -118,14 +122,19 @@ python3 vera-system/scripts/build-state.py <slug> "Full Stage 0" --substage "kic
 
 Read the project's existing artifacts first, in this order:
 
-1. `idea.md` — `## The bet` (the category claim from /start-here Step 4) and `## Original spark`. The bet is what V1 should reach for — V0 may have shipped to spec but missed the bet, and the upgrade is the chance to close that gap.
-2. `spec.md` — Purpose + Cut List + `## The bet` (mirrored from idea.md) from V0
-3. `v1-notes.md` (if exists) — user's real-use perspective from the V0 interview. **Highest-signal input** for V1 priorities — the only artifact that captures friction in the user's own words.
-4. `v1-checklist.md` (if exists) — mechanical Verified / Unverified state
-5. `retro.md` (if exists) — Vera's self-retrospective on the build
-6. Existing code — what actually shipped
+1. **`handoff.md`** (if exists — V0→V1 contract from Stage 4b). **Read this FIRST.** Outcome, Invariants (DO NOT MODIFY), Anti-patterns, Observable behavior (what V0 demonstrably does), What V0 proved / did NOT prove, Open questions (V1 must resolve), Constraints. This is the codification of V0 evidence. Treat ## Invariants as hard constraints — do not modify without ADR. Treat ## What V0 did NOT prove as the explicit guard against codifying V0 accidents as V1 requirements.
+2. `idea.md` — `## The bet` (the category claim from /start-vague Step 4) and `## Original spark`. The bet is what V1 should reach for — V0 may have shipped to spec but missed the bet, and the upgrade is the chance to close that gap.
+3. `v1-notes.md` (if exists) — user's real-use perspective from the V0 interview. **Highest-signal input for V1 PRIORITIES** — friction the user actually felt outranks gaps Vera codified at ship time.
+4. `spec.md` — Purpose + Cut List + `## The bet` (mirrored from idea.md) from V0
+5. `v1-checklist.md` (if exists) — mechanical Verified / Unverified state
+6. `retro.md` (if exists) — Vera's self-retrospective on the build
+7. Existing code — what actually shipped
 
-Read in this order: bet first (ambition), spec second (intent), v1-notes third (user reality), then mechanical state, then code. The bet anchors V1 — if shipped V0 missed it, that gap is the highest-priority upgrade. Then:
+Read in this order: handoff first (what V0 proved + invariants), bet second (ambition), v1-notes third (user reality), spec fourth (intent + cut list), then mechanical state, then code.
+
+**Legacy V0 fallback:** If `handoff.md` is missing (project shipped via `/build new` before Stage 4b existed), read in the old order (idea → spec → v1-notes → v1-checklist → retro → code) and treat spec.md ## Out of Scope as the closest analog to ## Open questions. Flag in MANIFEST that handoff was missing so future passes know the constraints were inferred, not codified.
+
+Then:
 
 ```
 AskUserQuestion(
@@ -135,12 +144,15 @@ AskUserQuestion(
       header: "The Trigger",
       multiSelect: true,
       options: [
-        // GENERATE 3-4 from v1-notes.md ## Friction FIRST (user's real-use words),
-        // then fill remaining slots from spec.md Cut List. v1-notes friction
-        // outranks deferred features — the user already told us what hurt.
+        // GENERATE 3-4 options. Source priority:
+        //   1. v1-notes.md ## Friction (user's real-use words — highest signal)
+        //   2. handoff.md ## Open questions (V0-codified V1 decisions)
+        //   3. spec.md Cut List (deferred features)
+        // Fill from source 1 first, then 2, then 3. User friction outranks
+        // codified gaps which outrank deferred features.
         {label: "[Gap A — top friction from v1-notes.md, in user's words]", description: "[the friction they named, why it matters now]"},
-        {label: "[Gap B — second friction OR top deferred feature]", description: "[why this is likely the trigger]"},
-        {label: "[Gap C — another deferred feature from Cut List]", description: "[why now]"},
+        {label: "[Gap B — second friction OR top handoff.md ## Open question]", description: "[why this is likely the trigger]"},
+        {label: "[Gap C — another open question OR deferred feature from Cut List]", description: "[why now]"},
         {label: "Something else", description: "I'll tell you what needs to change."}
       ]
     },
@@ -166,7 +178,7 @@ AskUserQuestion(
 )
 ```
 
-**Generate options from real context.** Source priority: `v1-notes.md ## Friction` (user's actual friction in their own words) FIRST → `spec.md` Cut List (deferred features) → `spec.md` Purpose section (what V0 promised). The friction the user named at ship time outranks anything Vera deferred — they already told us what hurt. If `v1-notes.md` is missing (skipped at ship or legacy V0), fall back to Cut List + Purpose only.
+If `v1-notes.md` is missing (skipped at ship or legacy V0), promote `handoff.md ## Open questions` to source 1. If both are missing (pre-Stage-4b legacy V0), fall back to Cut List + Purpose only.
 
 ### Stage 0.5: Advisor Auto-Check (scope-depth mismatch)
 
@@ -183,6 +195,14 @@ Display the advisor's output verbatim. Then let the user either revise their pic
 The user can also invoke `/advisor` manually at any decision point — the slash command is always available.
 
 ### Stage 1: Autonomous Sprint
+
+**0. Enter worktree.** Before any agents launch:
+
+```
+EnterWorktree(branch: "build-full-<slug>-<YYYYMMDD>")
+```
+
+All Stage 1 work — SDLC artifacts, code, MANIFEST, `.build/` files, build-state.md updates from this point on — lives on this branch. Main stays clean until Stage 2 merges. The Stage 0 `build-state.md` already exists on main from the kickoff step, so `/build continue` can still find the project slug by globbing main. From the slug, `git worktree list` reveals any active `build-full-<slug>-*` branch for re-entry. If the run is abandoned mid-flight, discard the worktree; no rollback needed.
 
 ```bash
 python3 vera-system/scripts/build-state.py <slug> "Full Stage 1" --substage "autonomous sprint"
@@ -218,6 +238,8 @@ Same as Structured but with ONE extra stop after research completes: present the
 
 ### Stage 2: Score + Complete
 
+**0. Score first, merge after.** Stage 2 still runs inside the Stage 1 worktree. Score, run the 30-second test, and complete the fix cascade before exiting. The merge happens only after score lands and the user (or auto-pass on score ≥ 3.5) accepts the ship.
+
 1. **Score** using the same method as V0 Stage 3 (see [`v0-stages.md`](v0-stages.md) "Stage 3: Score") — read `.build/validation.md` and `.build/review.md`, call `openrouter.py` with `{llm.scoring_model}` as judge. Same calibration scale.
 2. **Run the 30-second test** from spec.md. Does the upgrade actually address the Trigger from Stage 0?
 3. **If score < 3.5:** Fix cascade — max 2 rounds, then complete with score noted.
@@ -225,9 +247,12 @@ Same as Structured but with ONE extra stop after research completes: present the
    python3 vera-system/scripts/build-state.py <slug> "complete" --artifact "Build score=X.X/5.0"
    python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug> --score X.X --latency <seconds> --cost <usd> --note "<project> full"
    ```
-4. **Spawn doc-sync as background agent.** Don't wait.
-5. Update state file, report summary.
-6. **Surface what's next.** Mine SDLC artifacts (PRD non-goals, Tech Spec rejected alternatives, Arch/Code Review deferred issues, Cut List, scout/research signals not acted on) for unfinished business. Output format:
+4. **Exit worktree.** Decide merge vs. preserve, then exit so subsequent doc-sync writes land on main:
+   - **Score ≥ 3.5 OR user accepts ship-with-caveat** → `ExitWorktree(merge: true)`. All Stage 1/2 commits land on main as one atomic merge.
+   - **Score < 3.5 AND user declines to ship** → `ExitWorktree(merge: false)`. Branch stays in `git worktree list` for `/build continue` to find on re-entry. Main stays clean.
+5. **Spawn doc-sync as background agent.** Don't wait. Doc-sync writes to `conversations/`, `state.md`, and MANIFEST on main — those reflect ship state (or paused state if merge:false).
+6. Update state file, report summary.
+7. **Surface what's next.** Mine SDLC artifacts (PRD non-goals, Tech Spec rejected alternatives, Arch/Code Review deferred issues, Cut List, scout/research signals not acted on) for unfinished business. Output format:
 
    > "V1 shipped. Score: X.X. Here's what's still on the table:"
    > - **Deferred:** [2-3 specific items from Cut List / PRD with why they were cut]

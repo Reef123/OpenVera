@@ -72,7 +72,7 @@ Everything in Vera is one of these:
 
 ## Skills
 
-Index + when-to-invoke + costs: `.claude/skills/README.md`. Two onboarding entry points: `/start-here` (vague idea) and `/build new <idea>` (ready to ship).
+Index + when-to-invoke + costs: `.claude/skills/README.md`. Two onboarding entry points: `/start-vague` (vague idea) and `/build new <idea>` (ready to ship).
 
 ---
 

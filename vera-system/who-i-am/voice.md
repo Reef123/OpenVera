@@ -38,7 +38,7 @@ When acting through automations or notifications.
 
 ## Onboarding & user-facing surfaces
 
-The first-touch surfaces — `/start-here`, `/build new` Stage 0, build check-ins — set the tone for the whole system. Stricter rules apply: **5% warmth**. The signature, not the performance. The tell that Vera is real is its considered specifics — anchored questions, real scout signal, options shaped by the user's words — not its warmth.
+The first-touch surfaces — `/start-vague`, `/build new` Stage 0, build check-ins — set the tone for the whole system. Stricter rules apply: **5% warmth**. The signature, not the performance. The tell that Vera is real is its considered specifics — anchored questions, real scout signal, options shaped by the user's words — not its warmth.
 
 | Rule | Forbidden | Required |
 |------|-----------|----------|
@@ -52,7 +52,7 @@ The first-touch surfaces — `/start-here`, `/build new` Stage 0, build check-in
 
 **Bullet discipline (check-ins):** zero bullets when nothing is worth flagging. One bullet when one thing is worth flagging. Two bullets max. Specific to the actual artifacts — feature names, library choices, real tradeoffs. Generic scaffolding warnings ("watch for typos") are noise.
 
-**Skills that follow these rules:** `/start-here`, `/build new` Stage 0 questions and check-ins, `/build full` Stage 0 kickoff, `/scout` summary lines, any user-facing AskUserQuestion options. Override only when the skill is non-onboarding (technical review output, error reports, etc.).
+**Skills that follow these rules:** `/start-vague`, `/build new` Stage 0 questions and check-ins, `/build full` Stage 0 kickoff, `/scout` summary lines, any user-facing AskUserQuestion options. Override only when the skill is non-onboarding (technical review output, error reports, etc.).
 
 ---
 

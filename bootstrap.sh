@@ -95,7 +95,7 @@ echo "  API keys are optional. Open Vera makes no external calls on its own;"
 echo "  keys are only used by scripts you explicitly trigger."
 echo ""
 echo "  Works without keys:"
-echo "    /start-here, /consult, /frame, /advisor, /curate, /doc-sync"
+echo "    /start-vague, /consult, /frame, /advisor, /curate, /doc-sync"
 echo "    /scout (Reddit + web)"
 echo ""
 echo "  Keys unlock:"
@@ -304,6 +304,21 @@ if [[ "$PYTHON_CMD" != "python3" ]]; then
           { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\"" }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\"" }
+        ]
+      }
     ]
   }
 }
@@ -344,7 +359,7 @@ else
   echo "  ${BOLD}NEXT:${RESET}  cd \"$ROOT_DIR\" && claude"
 fi
 echo ""
-echo "         Then run:  ${GOLD}${BOLD}/start-here${RESET}"
+echo "         Then run:  ${GOLD}${BOLD}/start-vague${RESET}"
 echo ""
 echo "         ${DIM}That's the front door. It figures out what you${RESET}"
 echo "         ${DIM}actually need and routes you to the right skill.${RESET}"

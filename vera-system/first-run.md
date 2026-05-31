@@ -47,7 +47,7 @@ Then:
    > "You're set up. If you want multi-model research later, copy `vera-system/.secrets.template` to `vera-system/.secrets` and add your OpenRouter key."
 
 8. **Welcome message:**
-   > "Vera is ready. Try `/start-here` — it'll help you figure out what to build and show you around. Or if you already know what you want: `/build new <your idea>`."
+   > "Vera is ready. Try `/start-vague` — it'll help you figure out what to build and show you around. Or if you already know what you want: `/build new <your idea>`."
 
 ---
 

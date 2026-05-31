@@ -71,7 +71,7 @@ if [[ -t 1 ]]; then
   printf '%b\n' "  ${G}╠═══════════════════════════════════════════════╣${R}"
   printf '%b\n' "  ${G}║                                               ║${R}"
   printf '%b\n' "  ${G}║  > VAGUE IDEA                                 ║${R}"
-  printf '%b\n' "  ${G}║    /start-here                                ║${R}"
+  printf '%b\n' "  ${G}║    /start-vague                               ║${R}"
   printf '%b\n' "  ${G}║    Guided idea-fleshing. Hands you off to     ║${R}"
   printf '%b\n' "  ${G}║    /build new when ready.                     ║${R}"
   printf '%b\n' "  ${G}║                                               ║${R}"
@@ -85,4 +85,4 @@ if [[ -t 1 ]]; then
 fi
 
 echo "  Next:  cd $TARGET && claude"
-echo "         then run /start-here"
+echo "         then run /start-vague"

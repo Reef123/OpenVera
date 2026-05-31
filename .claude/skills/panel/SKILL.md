@@ -6,9 +6,9 @@ argument-hint: "[optional: path to idea.md — defaults to last project]"
 
 # Panel
 
-Convene 2 domain reviewers to scan the bet for blind spots. Forge first, then a scope-check tail. The point isn't to find every flaw — it's to make sure you've seen the perimeter before committing to /build.
+Convene 2 domain reviewers to scan the bet for blind spots. Forge first, then a scope-check tail.
 
-Use this AFTER `/start-here` Step 4 (bet locked in idea.md), BEFORE `/build new` Stage 0.
+Use this AFTER `/start-vague` Step 4 (bet locked in idea.md), BEFORE `/build new` Stage 0.
 
 ---
 
@@ -28,11 +28,11 @@ Skip if: you're in pure /scout / exploration mode, or the bet is genuinely throw
 If `$ARGUMENTS` is a path, use it. Otherwise find the most recently updated `idea.md` under `{paths.projects_dir}/<slug>/idea.md`.
 
 Read the file. Required sections for /panel to run:
-- `## The bet` (the category claim from /start-here Step 4)
+- `## The bet` (the category claim from /start-vague Step 4)
 - `## Who it's for` (audience)
 - `## The problem`
 
-If any are missing or empty, halt with: *"Panel needs the bet, audience, and problem locked first. Run `/start-here` to fill them in."*
+If any are missing or empty, halt with: *"Panel needs the bet, audience, and problem locked first. Run `/start-vague` to fill them in."*
 
 ---
 
@@ -132,25 +132,25 @@ Wait for both to return.
 
 Parse each reviewer's YAML output. Build the merged finding set:
 
-**Score each finding:**
-- `severity_score`: high=3, med=2, low=1
-- `confidence_score`: high=3, med=2, low=1
-- `base_score = severity_score × confidence_score` (range 1-9)
+**Tag each finding** — this is the judgment part:
+- `severity` and `confidence`: each `high` / `med` / `low`.
+- `cross_panel: true` if 2+ reviewers raised related concerns (similar text, same evidence/gap/assumption target) — bundle them into one finding first.
+- `contested: true` if one reviewer's concern is contradicted by the other (e.g., A "audience too narrow," B "too broad").
+- `addressed: true` if the concern's keyword already appears in idea.md outside `## The bet`.
 
-**Cross-panel adjustments (the "+" in d+):**
-- If 2+ reviewers raised related concerns (similar text, same evidence/gap/assumption target): bundle them as one merged finding, score = max + 1 (cross-panel bump).
-- If 1 reviewer raised a concern but the OTHER reviewer's findings contradict it (e.g., A says "audience too narrow," B says "audience too broad"): tag as `contested`, score unchanged.
-- If a concern's text is already addressed in idea.md (mechanical check — does the concern's keyword appear in idea.md outside `## The bet`?): downweight by 1.
+**Then score deterministically** — pipe the tagged findings (a JSON array) to the scorer, which does the arithmetic, sort, and tie-break so surfacing is reproducible:
+```bash
+echo '<findings JSON array>' | python3 vera-system/scripts/panel-score.py --top 4
+```
+It returns `{"top": [...], "rest": [...]}`. Scoring: `severity × confidence` (high=3 / med=2 / low=1), `+1` for `cross_panel`, `-1` for `addressed`, `contested` unchanged; tie-break severity > confidence > cross-panel-bumped > raw order.
 
-**All-clean edge case:** if both reviewers returned 0 findings, skip Step 5. Log directly + verdict-prompt:
+**All-clean edge case:** if both reviewers returned 0 findings, skip the scorer and Step 5. Log directly + verdict-prompt:
 
 > "Panel returned no concerns. Bet looks clean from both lenses. Proceed?"
 
 → Single AskUserQuestion (verdict only — Step 6 shape).
 
-**Otherwise, surface top 4** by score (AskUserQuestion options cap). Anything beyond top 4 stays in the `## Panel log` for the user to pull manually if curious.
-
-**Tie-break order** (when scores are equal): severity > confidence > cross-panel-bumped > order in raw output. Ties are common; this keeps surfacing deterministic.
+**Surface the `top`** (4 findings, the AskUserQuestion options cap). The `rest` stays in the `## Panel log` for the user to pull manually if curious.
 
 Show the work briefly in chat (not just options). One line per surfaced finding — drop the confidence chip from the chat surface to reduce density (it's still in the panel log):
 
@@ -220,7 +220,7 @@ AskUserQuestion(
       options: [
         {label: "Yes — proceed",   description: "Lock the bet, continue to /build new"},
         {label: "Revise",          description: "Update idea.md, /panel re-fires manually if you want"},
-        {label: "Kill",            description: "Back to /start-here Step 4 to re-bet"}
+        {label: "Kill",            description: "Back to /start-vague Step 4 to re-bet"}
       ],
       multiSelect: false
     }
@@ -282,7 +282,7 @@ Append to idea.md (don't overwrite earlier content):
 [blank]
 ```
 
-The `### Outcome` block stays blank until `/retro` populates it post-V0. That closes the Karpathy loop — panel logs become training data for future calibration via `/improve`.
+The `### Outcome` block stays blank until `/retro` populates it post-V0.
 
 ---
 
@@ -295,7 +295,7 @@ The `### Outcome` block stays blank until `/retro` populates it post-V0. That cl
 > "Update idea.md with the changes. Re-run `/panel` if you want a fresh pass — it doesn't auto-fire."
 
 **Verdict = kill:**
-> "Bet archived in panel log. Run `/start-here` again to re-bet from scratch — your scout findings and audience can carry forward."
+> "Bet archived in panel log. Run `/start-vague` again to re-bet from scratch — your scout findings and audience can carry forward."
 
 ---
 
@@ -309,16 +309,6 @@ The `### Outcome` block stays blank until `/retro` populates it post-V0. That cl
 - **Scope-diff before verdict.** If the user's response added scope, show the diff. Pure transparency, no judgment — user decides whether the growth is real or bloat.
 - **No auto re-fire.** Revising the bet doesn't auto-trigger another panel pass. User runs `/panel` again manually if they want another scan.
 - **The log is the training data.** Every finding (surfaced or cut), every triage decision, every verdict goes into `## Panel log`. Future `/improve` calibrates against retro outcomes.
-
----
-
-## Future direction (V1+)
-
-- **Auto-fire from /start-here Step 5.** Once /panel earns trust, promote from manual to automatic gate after bet capture.
-- **Adaptive roster.** Replace fixed 7-function list with AI-invented roles per bet ("for THIS bet, who would the right reviewers be?").
-- **/retro hook.** Wire `### Outcome` block to be filled by `/retro` after V0 ships — closes the Karpathy loop. /improve reads paired panel-log + retro-outcome data to recalibrate scoring weights.
-- **Three-person panel as default.** If two-person panels miss too many real concerns at retro, bump default size.
-- **Per-user severity calibration.** Track which "high-severity" concerns the user dismisses and which they take seriously. Surface this back as bias visibility.
 
 ---
 

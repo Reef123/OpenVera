@@ -1,7 +1,7 @@
 ---
 name: doc-sync
 description: "Session documentation sync — update state, log conversation, check alignment, surface missed TODOs. Run at session end or before context compression. If it's not in a file, it doesn't exist after reboot."
-allowed-tools: Bash(python3 vera-system/scripts/*) Bash(git *)
+allowed-tools: Bash(python3 vera-system/scripts/*) Bash(git *) Bash(touch .claude/.doc-sync-running) Bash(rm -f .claude/session-dirty .claude/.doc-sync-running) Bash(echo * > .claude/last-doc-sync)
 ---
 
 # Doc-Sync
@@ -10,7 +10,26 @@ Update docs based on session changes. Delta-based — only touch what changed.
 
 ---
 
+## Runtime marker contract (read first)
+
+This skill participates in the PreCompact safety gate. Two markers in `.claude/`:
+
+- `session-dirty` — set by the PostToolUse hook on harness writes; cleared at the end of doc-sync. PreCompact reads it.
+- `.doc-sync-running` — lockfile set at Step 0 / cleared at Step 10. While present, the PostToolUse hook (`.claude/hooks/mark-dirty.py`) skips so doc-sync's own writes don't re-dirty the marker it's about to clear.
+
+The lockfile MUST be touched BEFORE the first Write/Edit in this skill (Step 0 below) and removed only at Step 10. Solo-user assumption: one Claude Code session per repo at a time.
+
+---
+
 ## Step 0: Detect What Changed
+
+Acquire the doc-sync lock first — every subsequent Write/Edit in this skill relies on it:
+
+```bash
+touch .claude/.doc-sync-running
+```
+
+Then detect changes:
 
 ```bash
 python3 vera-system/scripts/doc-sync-cascade.py
@@ -104,6 +123,17 @@ Apply to every file you wrote in steps 2-6: state.md, ROADMAP.md, the new conver
 ### 9. Bridge Skills (optional)
 
 If bridge skills exist in `.claude/skills/`, invoke them. Skip silently if none.
+
+### 10. Clear Runtime Markers (Bash only — last step)
+
+```bash
+echo "$(date -u +%FT%T)" > .claude/last-doc-sync
+rm -f .claude/session-dirty .claude/.doc-sync-running
+```
+
+Use Bash redirection (`>`) and `rm`, NOT Write/Edit, for these two operations. Write/Edit would re-fire PostToolUse and re-dirty the marker after we just cleared it. The lockfile prevents the same re-dirty during Steps 1-9; this step releases it last.
+
+Order matters: write `last-doc-sync` BEFORE removing the markers, so a crash between commands leaves the system in a recoverable state (timestamp present, marker still set = next session knows to retry).
 
 ---
 

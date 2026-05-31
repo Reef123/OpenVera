@@ -49,6 +49,10 @@ vera-system/ROADMAP.md
 **/.claude/bootstrapped
 # Machine-local settings override (written by bootstrap when python3 isn't the local Python command)
 .claude/settings.local.json
+# Runtime markers (PreCompact gate state — set/cleared by hooks and /doc-sync)
+.claude/session-dirty
+.claude/last-doc-sync
+.claude/.doc-sync-running
 
 # Runtime telemetry + signal logs (appended by scripts/telemetry.py and skills)
 vera-system/runs/*
@@ -65,3 +69,6 @@ BUILD-SKILL-SPLIT-PLAN.md
 # Screenshots (build verification artifacts — saved per-project, not at root)
 *.png
 !assets/*.png
+
+# Archived/superseded assets — kept locally for reference, never shipped
+assets/archive/

@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  harness-correctness:
+    name: Harness scripts + config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python syntax check
+        run: |
+          set -euo pipefail
+          find vera-system/scripts .claude/hooks -name '*.py' -print0 \
+            | xargs -0 python3 -m py_compile
+
+      - name: JSON validity
+        run: |
+          set -euo pipefail
+          for f in vera-system/config.json .claude/settings.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1])); print(sys.argv[1], 'ok')" "$f"
+          done
+
+      - name: shellcheck
+        run: shellcheck install.sh bootstrap.sh
+
+      - name: Doctor (warnings allowed)
+        run: |
+          set +e
+          python3 vera-system/scripts/doctor.py
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ] || [ "$rc" -eq 2 ]; then
+            echo "doctor.py exit $rc — pass (0=ok, 2=warnings)"
+            exit 0
+          fi
+          echo "doctor.py exit $rc — fail"
+          exit "$rc"

@@ -2,7 +2,9 @@
 
 Complete software development lifecycle. PRD to shipped product with test-first methodology, code reviews, and quality gates.
 
-**First step:** If upgrading from a V0, read `spec.md` — especially the **Cut List**. These are features that were deliberately deferred. Evaluate each: does real usage confirm it's needed, or was cutting it the right call? The Cut List seeds Phase 1 (PRD) requirements.
+**First step:** If upgrading from a V0, read `handoff.md` FIRST (if it exists — Stage 4b V0→V1 contract). Outcome, Invariants (DO NOT MODIFY), Anti-patterns, What V0 proved / did NOT prove, Open questions. **This is what V0 demonstrably did and what V1 must preserve.** Then read `spec.md` ## Cut List for deferred features. Cross-reference: a Cut List item that real usage proves IS needed (per `v1-notes.md ## Friction` if available) seeds Phase 1 (PRD) requirements. Items in `handoff.md ## What V0 did NOT prove` are explicit guards against codifying V0 accidents as V1 requirements.
+
+**Legacy fallback:** If `handoff.md` is missing (V0 shipped before Stage 4b existed), fall back to spec.md Cut List + idea.md ## The bet + v1-notes.md if it exists.
 
 **Supporting files:**
 - [phases.md](phases.md) — detailed instructions for each SDLC phase

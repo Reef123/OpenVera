@@ -3,11 +3,13 @@
 Five stages — **one user stop, then autonomous to ship**:
 
 ```
-Stage 0: Kickoff + Purpose   ← only user interaction
-Stage 1: Parallel Sprint     ← background agents + scope/design/spec
-Stage 2: Build Loop          ← supervisor + validator + reviewer
-Stage 3: Score               ← external judge via openrouter
-Stage 4: Ship                ← retro, V1 checklist, V0→V1 user interview, doc-sync
+Stage 0:  Kickoff + Frame + Purpose  ← only user interaction
+Stage 1:  Parallel Sprint            ← background agents + scope/design/spec
+Stage 2:  Build Loop                 ← supervisor + validator + reviewer
+Stage 3:  Score                      ← external judge via openrouter
+Stage 4a: Ship                       ← verify, frontmatter, telemetry, paint check, doc-sync
+Stage 4b: Handoff                    ← v1-checklist + handoff.md + rich ship summary
+          ↳ Retro Phase (deferred, user-triggered)
 ```
 
 Vera check-in fire points + format: see [`vera-checkins.md`](vera-checkins.md).
@@ -23,14 +25,73 @@ This is the ONLY user interaction before building starts. Combine kickoff, scopi
 ```
 **🐘 Here's the plan, <user-name>:**
 
-By the end of this session you'll have a working V0 — a clickable prototype running in your browser that you can use, break, and show people. Not production. Just enough to validate the idea is worth building further.
-
-I'll walk through the design tree in two to four short steps — Problem first, then build path, then the one action that has to work, plus a quick pressure-test on any gaps. ~2-3 minutes of decisions, then I run for ~10-20 min and surface back when V0 is ready.
+Working V0 in your browser by the end of this session. Not production. 2-4 short decisions next, then I run ~10-20 min and surface when V0 is ready.
 ```
 
 **Voice rules:** read `relationships/user.md` for the name (fall back to "you"). Skip the opener if `voice.md`/`user.md` are missing AND the user clearly knows what /build does (referenced prior builds). On a true first-time `/build new`, always print it.
 
-**Design-tree walk — 2-4 steps.** *Vocabulary note: pipeline phase names use "Stage" (Stage 0/1/2/3/4 — internal state-machine). User-decision walks within a stage use "Step" (matches `/start-here`'s convention). Same word as `/start-here` so users see one mental model across both onboarding skills.* Claude Code's `AskUserQuestion` tool caps at 4 questions per call, but the real reason for grouping is dependency resolution: each step resolves the decisions that the next step's options depend on. Stage 0 is structured as **Step 1 — Problem** (root of the tree), **Step 2 — Build path** (options informed by Step 1 + scout if it ran), **Step 3 — Surface** (options informed by Step 2's Shape), **Step 4 — Pressure Test** (generated grills on Vera's implicit-decision gaps — fires only when HIGH/MED gaps exist). Between Step 1 and Step 2 there's an optional **Scout gate** — a recommendation, not a step — that fires when signals warrant `/scout` even though the user said no to research. Total user-facing decisions: 2-4 steps plus an optional yes/no on scout.
+---
+
+### Frame (one free-text partner check before the design tree)
+
+After the opener prints, before any AskUserQuestion fires, run ONE quick partner-check probe. **Inverted-elicitation order:** user states their read FIRST; Vera contrasts SECOND. The reverse order (Vera states thesis first → user confirms/redirects) anchors the user to Vera's framing and is a well-documented bias trap in requirements work.
+
+**Skip Frame entirely if:**
+- `idea.md` already has a strong user-stated `## The bet` (from `/start-vague` Step 4 where the user explicitly picked from 3 framings — that's better than Frame could elicit). Print *"Bet locked from /start-vague: <bet>"* one line, fire Step 1.
+- The user passed an explicit thesis in the `/build new` argument (e.g. `/build new build X that does Y because Z`). Print *"Read locked from your prompt: <bet>"* one line, fire Step 1. Surface implicit gaps at Pressure Test if needed.
+
+**Otherwise — print:**
+
+```
+**🐘 Quick partner check before the menus.**
+
+In one sentence: **what's the bet here?** What are you actually reaching
+for with this V0?
+
+*(Type your one-sentence read inline ↓. Or hit Enter to skip — I'll proceed
+with my best guess and surface it at the Pressure Test.)*
+```
+
+**Wait for response. Three branches:**
+
+**1. User typed something substantial (≥3 words):**
+
+> Here's how I'm reading the same idea — where do these diverge?
+>
+> > **Your bet:** <user's verbatim words, lightly cleaned for grammar — NEVER paraphrase>
+> > **My read:** <Vera-generated one-sentence bet thesis, reaching for the leverage, not restating the literal Job>
+>
+> Continuing to the design tree. Push back at any step if my read drifted from yours.
+
+Then fire Step 1 (Problem menu) with options derived from BOTH reads — keep Vera's read in mind, but let user's framing inform option labels.
+
+**2. User skipped (typed "skip", "next", or hit Enter empty):**
+
+> Going with my read for now. I'll surface it at the Pressure Test step so you can catch any drift.
+>
+> > **My read of the bet:** <Vera-generated bet thesis>
+
+Then fire Step 1 normally.
+
+**3. User redirected (read meaningfully diverges from the framing implied by `idea.md` / scout / spark):**
+
+Update Vera's internal read to match the user's words **before** generating Step 1 options. The menus that follow are now informed by the corrected framing, not Vera's training-data guess.
+
+> Got it — re-reading from your angle.
+>
+> > **Updated read:** <Vera's bet thesis, regenerated from user's words>
+
+Then fire Step 1 with options derived from the corrected framing.
+
+**Voice rules for Frame:**
+- Use the user's verbatim words for *Your bet* — don't paraphrase. Paraphrasing re-anchors to Vera's frame.
+- Frame the diff as adversarial (*"where do these diverge?"*), NOT confirmatory (*"is this right?"*). Disconfirmation-seeking probes mitigate anchoring; confirmation-seeking probes activate it.
+- Skip path is silent. No commentary on the choice to skip. Honoring the skip option is the respect; "good call" or apology is friction.
+- Bet thesis = one sentence reaching for the leverage that makes V0 possible, NOT a restatement of the literal Job. If `idea.md` already has `## The bet`, pull verbatim rather than regenerating.
+
+---
+
+**Design-tree walk — 2-4 menu steps + Frame.** Pipeline state uses "Stage"; user-facing menu decisions within a stage use "Step." Each step resolves what the next step's options depend on. Stage 0: **Frame** (one free-text partner check, see above), then **Step 1 — Problem** (root of the tree), **Step 2 — Build path** (options informed by Step 1 + scout if it ran), **Step 3 — Surface** (options informed by Step 2's Shape), **Step 4 — Pressure Test** (generated grills on Vera's implicit-decision gaps — fires only when HIGH/MED gaps exist). Between Step 1 and Step 2 there's an optional **Scout gate** — a recommendation, not a step — that fires when signals warrant `/scout` even though the user said no to research. Total user-facing decisions: one Frame probe (free-text or skip) + 2-4 menu steps + an optional yes/no on scout.
 
 **Step 1 — Problem (max 4 Qs):**
 
@@ -66,7 +127,7 @@ AskUserQuestion(
       ]
     },
     // SKIP this question if idea.md's "What's out there" section has real signal (scout or WebSearch output).
-    // KEEP it if the section says "Not checked yet" or is "[pending]" — start-here couldn't validate, user still needs to.
+    // KEEP it if the section says "Not checked yet" or is "[pending]" — start-vague couldn't validate, user still needs to.
     {
       question: "Do you want to explore the space first?",
       header: "Research",
@@ -96,7 +157,7 @@ After Step 1 answers come back, evaluate Job + Pain + 30s test for signals that 
 - Job names a crowded category — "todo", "notes", "dashboard", "habit tracker", "journal", "kanban", "note-taking"
 - Specific external platform/API named in Job or Pain — "Notion", "Linear", "Slack", "GitHub", "Stripe", any named API or SaaS
 - Pain framed as "alternative to <existing tool>" or "X but better"
-- `/start-here` Step 4 left "What's out there" as `[pending]` AND Job is in a category where existing tools are likely
+- `/start-vague` Step 4 left "What's out there" as `[pending]` AND Job is in a category where existing tools are likely
 
 **Gate logic:**
 - If user picked **"Quick scout"** or **"Full research"** in Step 1 → gate is moot (already running in Stage 1). Skip.
@@ -114,7 +175,7 @@ Use plain text + single yes/no, not `AskUserQuestion`. This is a recommendation 
 - If user says **yes** → spawn `/scout` foreground (not background — Step 2 needs the result). When scout returns, summarize findings in 2-3 lines, then continue to Step 2 with Build-vs-Use as the 4th question.
 - If user says **no** → continue straight to Step 2 without Build-vs-Use. Don't re-ask. They've now declined twice.
 
-**If idea.md already has fresh scout/research output** (from `/start-here` or prior session): skip the gate but USE the findings — Step 2 includes Build-vs-Use if existing tools were found.
+**If idea.md already has fresh scout/research output** (from `/start-vague` or prior session): skip the gate but USE the findings — Step 2 includes Build-vs-Use if existing tools were found.
 
 ---
 
@@ -307,8 +368,8 @@ Agent(
 
 0. **idea.md guarantee (30 sec):** Check if `{paths.projects_dir}/<slug>/idea.md` exists.
 
-   - **Exists** (project came from `/start-here`): read it, use as-is. Skip the synthesis below.
-   - **Missing** (direct `/build new <idea>` with no prior /start-here): synthesize one from Stage 0 answers + the original `<idea>` argument. This makes the spec-from-idea handoff uniform regardless of entry point — `## The bet`, `## Original spark`, and `## What good looks like` are the V0→V1 audit trail and must exist before Spec writes.
+   - **Exists** (project came from `/start-vague`): read it, use as-is. Skip the synthesis below. Expect any of these sections to be present and preserve them verbatim downstream: `## Original spark`, `## The problem`, `## Who it's for`, `## Scope hint`, `## What's out there`, `## The bet`, `## What this would do`, `## Wireframe (proposed)`, `## What good looks like`, `## What this is NOT`, `## Open questions`. The wireframe section in particular flows to spec.md component-boundaries at step 3 — don't drop it.
+   - **Missing** (direct `/build new <idea>` with no prior /start-vague): synthesize one from Stage 0 answers + the original `<idea>` argument. This makes the spec-from-idea handoff uniform regardless of entry point — `## The bet`, `## Original spark`, and `## What good looks like` are the V0→V1 audit trail and must exist before Spec writes.
 
    Synthesis template (write to `{paths.projects_dir}/<slug>/idea.md`):
 
@@ -345,7 +406,7 @@ Agent(
 
    **Synthesis rules:**
    - **Spark is verbatim.** Whatever string the user passed after `/build new` is the spark, unedited. If they passed nothing (e.g., `/build new` with empty arg), use the answer to Step 1 "The Job" as the spark.
-   - **Bet is a best-effort guess.** Vera generates the category claim from Stage 0 context — it's not as strong as a /start-here-captured bet (where the user picked from 3 framings), but it anchors V0 build decisions and gives /build full something to compare against. Flag in `retro.md` if the bet felt forced.
+   - **Bet is a best-effort guess.** Vera generates the category claim from Stage 0 context — it's not as strong as a /start-vague-captured bet (where the user picked from 3 framings), but it anchors V0 build decisions and gives /build full something to compare against. Flag in `retro.md` if the bet felt forced.
    - **Inference markers.** Where a field is inferred (audience, bet), include a one-word marker so /build full knows it wasn't explicitly user-stated.
 
    Once idea.md exists (either path), continue to step 1.
@@ -358,7 +419,7 @@ Agent(
    - Stack (from their answer, default SvelteKit)
    - Cut everything else aggressively. Can this ship without major architecture work? If no, cut more.
 
-3. **Spec (5 min):** Read `idea.md` to pull `## The bet` (guaranteed to exist after step 0). Then write `spec.md` (template below). **Spec is written BEFORE design artifacts** — `/frame --from-spec` reads spec.md mood signals to pick a palette from the rotation set, and reads spec.md component boundaries to scaffold wireframes. Design without spec context produces generic output.
+3. **Spec (5 min):** Read `idea.md` to pull `## The bet` (guaranteed to exist after step 0) and `## Wireframe (proposed)` (present only when `/start-vague` Step 3.5b confirmed a sketch — preserve verbatim into spec.md component-boundaries section so `/frame` can refine it). Then write `spec.md` (template below). **Spec is written BEFORE design artifacts** — `/frame --from-spec` reads spec.md mood signals to pick a palette from the rotation set, and reads spec.md component boundaries to scaffold wireframes. Design without spec context produces generic output.
 
 4. **Design artifacts (3-5 min):** Now that spec.md exists, invoke `/frame` to generate architecture diagrams, design system, and wireframes:
 
@@ -409,7 +470,7 @@ Why now: [the leverage from idea.md]
 
 Bullets, not a table — Why-Cut reasons routinely wrap and break table rendering.
 
-**The bet anchors Stage 2 build decisions.** When picking a component pattern, library, or scaffold detail, ask: *does this reach for the bet, or just satisfy the literal Job?* If a choice could go either way, lean toward the bet. Direct-`/build new` paths get a synthesized bet at Stage 1 step 0 — weaker than a /start-here-captured bet (where the user picked from 3 framings) but still a useful anchor. If the synthesized bet feels forced during Stage 2, flag in retro.md so /build full can revisit.
+**The bet anchors Stage 2 build decisions.** When picking a component pattern, library, or scaffold detail, ask: *does this reach for the bet, or just satisfy the literal Job?* If a choice could go either way, lean toward the bet. Direct-`/build new` paths get a synthesized bet at Stage 1 step 0 — weaker than a /start-vague-captured bet (where the user picked from 3 framings) but still a useful anchor. If the synthesized bet feels forced during Stage 2, flag in retro.md so /build full can revisit.
 
 **Sync point:** Wait for research/scout/framework (if running). Incorporate findings into spec.
 
@@ -460,6 +521,9 @@ supervisor (you):
     Agent(subagent_type: "validator", prompt: "Validate project at {project_path} using {method} (browser|command|tests). Contract at: {project_path}/.build/contract.md. Check each acceptance criterion. Write results to {project_path}/.build/validation.md")
     ↓
   if validator reports FAIL → fix, re-validate
+    if FAIL again on same component with same intent-mismatch → STOP fixing code.
+    Read .claude/skills/wireframe-first/SKILL.md and walk it on this screen.
+    Re-build only against the ratified spec.
   if PASS → next component
     ↓
   after core flow complete:
@@ -469,18 +533,28 @@ supervisor (you):
   fix Critical/High findings → Score
 ```
 
-**Contract format** (`.build/contract.md` — overwritten each step):
+**Contract format** (`.build/contract.md` — overwritten each step). **Acceptance criteria use EARS notation** (Mavin 2009, IEEE RE 2009) — *while/when* triggers + *shall* response. EARS makes criteria mechanically verifiable: the validator agent greps for `shall` and checks each one. The keyword is load-bearing — `shall` only, never `should/must/will/can`.
+
 ```markdown
 # Contract: [component name]
 ## What was built
 [1-2 sentences]
-## Acceptance criteria
-- [ ] [testable — e.g., "clicking Submit sends POST to /api/items"]
-- [ ] [testable — e.g., "empty state shows 'No items yet' message"]
-- [ ] [testable — e.g., "invalid input shows inline error, doesn't submit"]
+## Acceptance criteria (EARS)
+- [ ] When the user clicks Submit with a valid form, the system shall send POST /api/items and shall navigate to the list view.
+- [ ] While there are zero items in storage, the system shall render the empty-state message "No items yet — add your first."
+- [ ] When the user submits an invalid form, the system shall display "Required field" inline next to the empty field and shall not submit.
 ## Out of scope
 [what this component does NOT do yet]
 ```
+
+**EARS quick reference** (the five patterns — pick the right one per criterion):
+- **Ubiquitous:** `The <system> shall <response>.` (always-true invariant)
+- **State-driven:** `While <precondition>, the <system> shall <response>.`
+- **Event-driven:** `When <trigger>, the <system> shall <response>.`
+- **Optional:** `Where <feature is included>, the <system> shall <response>.`
+- **Complex:** `While <precondition>, when <trigger>, the <system> shall <response>.`
+
+The project-level V0→V1 handoff contract (`handoff.md` at project root, written at Stage 4b) uses EARS in its `## Invariants` and `## Observable behavior` sections for the same reason.
 
 **Validation methods** (from Stage 0 choice):
 - **Browser:** Start dev server, verify each route loads, apply design tokens as you build
@@ -516,15 +590,16 @@ V0 ships shouldn't look ugly. Token cost to do better is small. **Apply DESIGN.m
 
 **If DESIGN.md is missing or thin** (rare — `/frame --quick --from-spec` ran in Stage 1): apply a palette from the **Vera Considered Palettes rotation set** (full table in `/frame` SKILL.md "Aesthetic Floor" section). Six palettes — Warm Paper/Coral, Linen/Sage, Ivory/Indigo, Bone/Terracotta, Stone/Ochre, Cream/Plum. All share the philosophy (warm bg, soft borders, ONE accent) but rotate hues so V0s have visual variety across builds.
 
-**Pick which palette:**
-1. Match `spec.md` mood signals to the palette set: conversational/onboarding → Coral; calm/utility → Sage; thoughtful/serious → Indigo; craft/artisanal → Terracotta; documentary/archival → Ochre; soft/creative → Plum.
-2. If ambiguous, hash the slug: `sum(ord(c) for c in slug) % 6` indexes into the set deterministically.
-
-Apply the chosen palette's tokens verbatim — bg, bg-alt, text, text-secondary, border, accent. Plus: serif body (Lora) + utility sans (Inter) + heading geometric (Poppins), radius baseline `1rem`, whisper shadows.
+**Pick which palette** — match `spec.md` mood signals (conversational/onboarding → Coral; calm/utility → Sage; thoughtful/serious → Indigo; craft/artisanal → Terracotta; documentary/archival → Ochre; soft/creative → Plum), then emit the token block:
+```bash
+# matched a mood — pass the palette name:
+python3 vera-system/scripts/palette-pick.py <slug> --palette "Linen / Sage"
+# ambiguous — omit --palette and the slug hash picks deterministically:
+python3 vera-system/scripts/palette-pick.py <slug>
+```
+The script prints the verbatim `:root` token block (bg, bg-alt, text, text-secondary, border, accent + serif body Lora, utility sans Inter, heading Poppins, `1rem` radius, whisper shadow). Apply it as-is.
 
 **Implementation pattern:** Define palette tokens as CSS custom properties at `:root` (or under `@theme inline` for Tailwind v4). Layer role tokens on top (`--color-bg: var(--color-paper)`, `--color-foreground: var(--color-ink)`, etc.) so component code references roles, not raw hexes. Mirror this structure across whichever palette gets picked — only the values rotate.
-
-**Token cost note:** the floor adds ~5-10% to V0 build time. The user has explicitly authorized it — don't ship ugly to save tokens.
 
 **Don't always pick coral.** If recent V0s all landed on Warm Paper / Coral, the rotation is broken — re-check mood matching.
 
@@ -559,13 +634,19 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
 
 ---
 
-## Stage 4: Ship
+## Stage 4a: Ship
+
+Stage 4 is split into two sub-stages so the V0→V1 handoff artifact gets its own clear scope and telemetry. 4a proves V0 runs and captures evidence; 4b codifies that evidence into the V1-facing handoff contract.
 
 **Order matters.** State files (frontmatter, telemetry, any data the V0 reads) must be written BEFORE booting the dev server. Otherwise the first-paint check reads stale data and the user opens a V0 that looks broken (real failure mode from user testing 2026-05-10 — vera-dashboard rendered `Hero: 0 builds shipped` because telemetry was written after server boot).
 
 1. **Verify the core flow works end-to-end** (browser screenshot, command output, or test results — match the validation method from Stage 0).
 
-2. **Update project `CLAUDE.md` frontmatter:** `status: shipped`, `score: X.X`, `updated: <today>`. Update `run:` if it changed.
+2. **Update project `CLAUDE.md` frontmatter** (the script writes the date and preserves the lifecycle comment):
+   ```bash
+   python3 vera-system/scripts/frontmatter.py set <project>/CLAUDE.md status=shipped score=X.X updated=today
+   ```
+   Add `run="<cmd>"` to the same call if the dev command changed.
 
 3. **Update build state:**
    ```bash
@@ -583,7 +664,7 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
    - **If Playwright MCP unavailable:** record `first-paint check skipped — Playwright MCP not installed` in `.build/validation.md`, skip to step 7 (same fallback pattern as `phases.md`)
    - **For CLI / API / library projects (no UI):** skip Playwright; instead re-run the validation command and parse its output against spec.md Validation criteria with the same pass/fail rule
 
-   **On fail:** diagnose cause (race condition? broken read? missing data? wrong path?), attempt **one** self-heal — common fixes: re-run step 4 (telemetry write), force frontmatter rewrite, restart dev server, fix a path. Re-run the paint check. Pass on retry → continue to step 7 as normal. Still fail → record fail status + diagnosis + suggested fix in `.build/validation.md`, continue to step 7 (the rich summary in step 9 will surface a "Heads up" section honestly rather than papering over).
+   **On fail:** diagnose cause (race condition? broken read? missing data? wrong path?), attempt **one** self-heal — common fixes: re-run step 4 (telemetry write), force frontmatter rewrite, restart dev server, fix a path. Re-run the paint check. Pass on retry → continue to step 7 as normal. Still fail → record fail status + diagnosis + suggested fix in `.build/validation.md`, continue to step 7 (the rich summary in step 10 will surface a "Heads up" section honestly rather than papering over).
 
 7. **Spawn doc-sync as background agent.** Don't wait.
 
@@ -606,7 +687,44 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
    _Run a few, see what breaks, then:_ `/build full <slug>`
    ```
 
-9. **Print the rich 🐘 ship summary.** ONE message — leads with 🐘 so it visually pops. This replaces what used to be three fragmented prints (viewing block + retro invite + check-in); user-testing 2026-05-10 showed the fragmented version felt thin and missed the forward look.
+**Stage 4a ends here.** V0 runs, paint is verified (or honest "heads up"), v1-checklist.md captures user-facing Verified/Unverified state. Now codify the V1 contract.
+
+```bash
+python3 vera-system/scripts/build-state.py <slug> "V0 Stage 4b" --substage "handoff codification"
+```
+
+---
+
+## Stage 4b: Handoff
+
+V1-facing codification stage. Generates `handoff.md` (project-root V0→V1 contract) FROM the evidence captured during Stages 1-4a. Theoretical anchor: this artifact is a **boundary object** (Star & Griesemer 1989, *Social Studies of Science* 19:387-420) — plastic enough that V1 can adapt to local needs; robust enough that V0→V1 preserves common identity. Stevenson, Burnell & Fisher (2024, *Journal of Management*) frame MVPs as **learning instruments needing sibling codification** — the running prototype is the instrument, `handoff.md` is the codification.
+
+9. **Generate `{paths.projects_dir}/<slug>/handoff.md`** using the template at `.claude/skills/build/templates/handoff-template.md`.
+
+   **Sources to read (in this order, before writing):**
+   1. `.build/validation.md` — PASS items become `## Observable behavior ## Success states`; FAIL items inform `## Failure states V0 does NOT handle`
+   2. `.build/review.md` (if reviewer ran) — Critical/High findings inform `## Anti-patterns`
+   3. `.build/decisions.log` (if exists) — "tried X, reverted because Y" entries inform `## Anti-patterns`
+   4. `spec.md` — `## The bet` becomes `## Outcome` (one-sentence imperative); `## Out of Scope` items become candidate `## Open questions`; `## Stack` becomes `## Constraints ## Stack lock`
+   5. `idea.md` `## The bet` (canonical source if mirrored to spec.md)
+   6. Running code — introspect routes, data shapes, success states (read actual files, don't hallucinate)
+   7. Project `CLAUDE.md` frontmatter — `stack`, `run`, `score` for `## Provenance`
+
+   **Generation rules (critical — these are what make handoff.md trustworthy to V1):**
+   - **Measured, not promised.** Every `## Observable behavior` and `## What V0 proved` claim must trace to a concrete artifact (validation.md line, code path, screenshot). If you can't cite evidence, don't include the claim — move it to `## Open questions` instead.
+   - **Enumerate, don't imply.** Per Anthropic's Opus 4.7 prompting guide and Jiang et al. 2025 (arXiv:2505.07591) on constraint-following: literal-following models systematically miss mid-prompt constraints and won't infer "and similar." Every invariant gets its own bullet with concrete file path + behavior.
+   - **EARS phrasing in `## Invariants` and `## Observable behavior`** — *while/when* triggers + *shall* response. SHALL only.
+   - **`## What V0 did NOT prove` is mandatory.** For every claim in `## What V0 proved`, ask "what would have to be true elsewhere for this to generalize?" That counterfactual is a candidate for the not-proved section. Without this section, V1 risks codifying V0 accidents as invariants (Felin, Gambardella, Stern & Zenger 2024, *Journal of Management* — "misleading feedback" critique).
+   - **Anti-patterns trace to evidence.** Mine `.build/decisions.log` for "tried X, reverted because Y" entries. Empty log → 0-2 anti-patterns from `spec.md ## Out of Scope` items that V1 might be tempted to walk back into. Never invent anti-patterns.
+   - **3-7 invariants is the right density.** Fewer than 3 → V0 didn't lock enough down (probably an under-specification). More than 7 → likely codifying accidents (probably an over-specification).
+
+   ```bash
+   python3 vera-system/scripts/build-state.py <slug> "V0 Stage 4b" --substage "handoff written" --artifact "handoff=<slug>/handoff.md"
+   ```
+
+   **Fallback if template missing:** if `.claude/skills/build/templates/handoff-template.md` isn't present, fall back to the inline schema in the template's source-of-truth comment block. Skipping handoff.md entirely is a HARD_FAIL — the V0→V1 contract is the load-bearing output of Stage 4b.
+
+10. **Print the rich 🐘 ship summary.** ONE message — leads with 🐘 so it visually pops. This replaces what used to be three fragmented prints (viewing block + retro invite + check-in); user-testing 2026-05-10 showed the fragmented version felt thin and missed the forward look.
 
    **Template (dev-server / UI / static project):**
 
@@ -639,6 +757,7 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
    - <1-2 biggest unknowns from v1-checklist.md>
 
    Full V1 checklist → <slug>/v1-checklist.md
+   V1 contract → <slug>/handoff.md *(what V1 must preserve, plus what V0 did NOT prove)*
 
    When you've had a look, type `retro` and I'll ask a couple quick questions. No rush — minutes, hours, or days from now.
    ```
@@ -649,8 +768,9 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
 
    **V1 candidate ranking** (the "Top V1 candidates" section, 3 max):
    1. Items the step-6 paint check exposed as visible gaps go FIRST
-   2. Then remaining spec.md Cut List items in their existing order
-   3. Cap at 3 — if Cut List has fewer than 3 items, list what exists; if zero, drop the section entirely
+   2. Then `handoff.md ## Open questions` (V1 must resolve these — highest-signal source for what V1 should tackle)
+   3. Then remaining `spec.md` Cut List items in their existing order
+   4. Cap at 3 — if combined sources have fewer than 3 items, list what exists; if zero, drop the section entirely
 
    **If first-paint check FAILED** (and self-heal didn't recover), prepend a "Heads up" section ABOVE the "Run it" block — be honest, don't paper over:
 
@@ -673,13 +793,11 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
 
    **Voice rules:** see `vera-system/who-i-am/voice.md` "Onboarding & user-facing surfaces." Factual, observational, not performative. "V0 shipped" — not "congrats you did it!" The summary EARNS attention through detail and forward-look, not through enthusiasm.
 
-   **Why this replaced three prints with one** (2026-05-10): the old fragmented version — viewing block + retro invite + sparse check-in — left users feeling the session "didn't do much" even when artifacts were substantive. Single rich 🐘 message with run instructions, real first-paint preview, /build full forward-look, and verified/unverified delta makes the ship moment feel like a delivery, not three loose echoes.
-
-**Stage 4 Ship Phase ends here.** The user is now using V0. The retro phase below fires only when they signal back.
+**Stage 4b ends here — V0 has shipped and V1's handoff contract is on disk.** The user is now using V0. The retro phase below fires only when they signal back, and may sharpen `handoff.md` based on real-use friction (deferred — see retro phase step 6).
 
 ---
 
-## Stage 4 — Retro Phase (deferred, user-triggered)
+## Stage 4 — Retro Phase (post-ship, user-triggered)
 
 When the user later types `retro` (or any message asking about the most-recent V0 build — *"let's do the retro"*, *"I tried it"*, *"let me give you feedback on what we built"*), resume:
 

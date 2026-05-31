@@ -75,9 +75,19 @@
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Context is about to be compressed. Run /doc-sync NOW if it hasn't been run this session and files were created or edited. If doc-sync has already run, output {\"decision\":\"allow\"}. If it has NOT run and work was done, output {\"decision\":\"block\",\"reason\":\"STOP. Run /doc-sync before compact. Context is about to be lost — update state.md, conversation log, and ROADMAP.md now.\"}",
-            "statusMessage": "Checking doc-sync status before compact..."
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\""
           }
         ]
       }

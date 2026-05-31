@@ -105,23 +105,14 @@ If `--system <brand>` was passed, omit the Reference question from the AskUserQu
 **Picking logic for the picker option:**
 1. Read `spec.md` (or `idea.md`). Extract mood signals from `## The job`, `## What's out there`, and `## What good looks like`.
 2. Match against the "Mood signals" column above. First match wins.
-3. If no match (ambiguous spec) — hash the project slug: `palette_index = sum(ord(c) for c in slug) % 6`. Deterministic so the same slug always gets the same palette.
-
-**Apply this recipe verbatim in `DESIGN.md`** when this direction is picked:
-
-| Token | Value | Why |
-|-------|-------|-----|
-| `--color-bg` | (palette `bg`) | Reads as crafted, not corporate. Pure white feels like a default. |
-| `--color-bg-subtle` | (palette `bg-alt`) | Section dividers, asides — same warmth, deeper |
-| `--color-text` | (palette `text`) | Slightly off-black holds warmth across the page |
-| `--color-text-secondary` | (palette `text-secondary`) | Helper text, metadata |
-| `--color-border` | (palette `border`) | Soft, never gray-200 |
-| `--color-brand` | (palette `accent`) | Single accent. Used sparingly. |
-| `--font-serif` | Lora (or similar reading serif) | Body text. Yes, body. |
-| `--font-sans` | Inter (or similar utility sans) | UI labels, buttons, inputs |
-| `--font-heading` | Poppins (or similar geometric heading) | h1-h4 |
-| `--radius` | `1rem` (with 0.5–1.5rem scale) | Rounded but not bubbly |
-| Shadows | `0 0.25rem 1.25rem rgba(0,0,0,0.035)` | Whisper, not slap |
+3. Emit the palette's token block with the helper — it owns the hash fallback and the verbatim recipe:
+   ```bash
+   # matched a mood — pass the palette name:
+   python3 vera-system/scripts/palette-pick.py <slug> --palette "Warm Paper / Coral"
+   # no clear match — omit --palette and the slug hash picks deterministically:
+   python3 vera-system/scripts/palette-pick.py <slug>
+   ```
+   Paste the printed `:root` block into `DESIGN.md` verbatim. It carries the palette's `--color-bg` / `--color-bg-subtle` / `--color-text` / `--color-text-secondary` / `--color-border` / `--color-brand`, plus Lora serif body, Inter UI sans, Poppins headings, `1rem` radius (0.5-1.5rem scale), and the whisper shadow. The fonts are sensible defaults — swap in a similar serif/sans/geometric trio if the project's character calls for it.
 
 **Direction label format for the picker** — use the palette name as the label:
 
@@ -133,8 +124,6 @@ If `--system <brand>` was passed, omit the Reference question from the AskUserQu
 Generate 3 picker options total: (1) the picked palette from the rotation set, (2) one project-shaped variation (precision tool / bold dashboard / etc), (3) "I'll describe it" free-text escape.
 
 **Don't always pick coral.** If 5 V0s in a row land on Warm Paper / Coral because the rotation logic isn't varying, the rotation is broken — every project's mood is being read as conversational. Re-check the mood matching against the table.
-
-**Why this floor exists:** V0s built with default Tailwind grays + system-ui + bootstrap blue look like prototypes. Token cost to do better is small. The recipe — warm-paper bg, serif body, single warm accent, soft warm borders, considered radius and whisper shadows — applies the same philosophy across all 6 palettes; only the hue rotates.
 
 ---
 
@@ -431,7 +420,7 @@ Save to `{paths.projects_dir}/<slug>/`:
 - `DESIGN.md`
 - `wireframes.md`
 
-Flash summary: what was generated, key design decisions, token count.
+Flash summary: what was generated and key design decisions.
 
 If called by `/build` → return immediately. If standalone → "Adjust anything?"
 

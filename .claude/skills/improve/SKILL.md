@@ -109,7 +109,7 @@ python3 vera-system/scripts/openrouter.py \
   --prompt "SKILL.md:\n{skill_md}\n\nTEST INPUT:\n{test_input}\n\nOUTPUT:\n{actual_output}\n\nFAILED DIMENSIONS:\n{failed_dimensions}\n\nIdentify the section(s) in SKILL.md responsible. For each:\n1. Quote the relevant section\n2. How it caused the failure\n3. What it SHOULD say\n\nReturn JSON: {\"attributions\": [{\"section\": \"...\", \"problem\": \"...\", \"suggestion\": \"...\"}]}"
 ```
 
-Section-level attribution, not line-level. Community experience (HAPO, TextGrad) shows rewriting the failing section is more reliable than surgical line edits.
+Section-level attribution, not line-level — rewriting the failing section is more reliable than surgical line edits.
 
 ### Step 6: PROPOSE
 

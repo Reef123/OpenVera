@@ -1,12 +1,16 @@
 # 🐘 OpenVera
 
 <p align="center">
+  <em>A personal AI workbench that remembers your ideas, researches the space, builds a V0, captures lessons, and carries context forward to v1+.</em>
+</p>
+
+<p align="center">
   <em>Vague idea → researched → shipped → remembered</em>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <img src="https://img.shields.io/badge/Claude_Code-v2.1+-purple.svg" alt="Claude Code">
+  <img src="https://img.shields.io/badge/Claude_Code-required-purple.svg" alt="Claude Code">
   <img src="https://img.shields.io/badge/Setup-5_min-blue.svg" alt="Setup">
 </p>
 
@@ -16,21 +20,23 @@
 
 ---
 
-OpenVera is a workspace you open in [Claude Code](https://docs.anthropic.com/en/docs/claude-code). It gives Claude persistent memory, reusable skills, research tools, and behavioral patterns so that coding session 50 is actually better than session 1.
+OpenVera is a personal AI workbench you open in [Claude Code](https://docs.anthropic.com/en/docs/claude-code). It keeps a running memory of your work, researches before it builds, ships a first version you can use the same day, and carries what it learns into the next session.
+
+It runs on persistent memory, reusable skills, research tools, and behavioral patterns. Your fiftieth coding session is better than your first.
 
 **Two entry points, depending on where you are:**
 
-- **`/start-here <vague idea>`** when the idea isn't sharp yet. Walks scoping questions, scouts the space for existing tools, hands off a buildable bet.
+- **`/start-vague <vague idea>`** when the idea isn't sharp yet. Walks scoping questions, scouts the space for existing tools, hands off a buildable bet.
 - **`/build new <ready idea>`** when you know what you want. 2-4 short scoping questions, then autonomous: research → design → build loop → first-paint check → 🐘 ship summary in ~10-20 min.
 
-Most Claude Code setups are stateless. Every conversation starts cold. OpenVera changes that. What makes the build flow above keep getting better session after session:
+Most Claude Code setups are stateless. Every conversation starts cold. OpenVera doesn't. Four things keep the build flow getting better session after session:
 
 - **Running state file** that picks up where the last session ended
 - **Pattern library** that grows from real mistakes, so the same gotcha doesn't bite twice
 - **Skills that improve their own instructions** over time
 - **Standardized output** so every build produces the same files (idea, spec, working code, screenshot) and you always know where to look
 
-The model is the same. A customized harness wins.
+The model is the same. The workbench is what wins.
 
 ## Get Started
 
@@ -58,12 +64,12 @@ Either way, the bootstrap asks your name and optional API keys, fills in the tem
 
 ## Why It's Built This Way
 
-A few choices shape everything else:
+A few choices drive the rest:
 
-- **Files over chat.** State, memory, and patterns live as files on disk. Not in the conversation. If it's not in a file, it doesn't exist after a reboot, and that's the whole point.
+- **Files over chat.** State, memory, and patterns live as files on disk, not in the conversation. If it's not in a file, it doesn't survive a reboot.
 - **Three-tier context.** Core (~300 lines) loads every session. Recall loads on demand. Archival is search-only. The context window doesn't fill up with stuff that isn't relevant right now.
 - **Skills load lazy.** A skill is just a name and a one-line description in the system prompt. The full instructions only load when you invoke `/<command>`. You can have 50 skills without paying token cost for the 49 you didn't use.
-- **State on disk, not in the model.** Every skill reads and writes to the same files (`state.md`, `ROADMAP.md`, `MEMORY.md`, `patterns.md`). Session 50 sees what session 1 wrote. That's how it compounds.
+- **State on disk, not in the model.** Every skill reads and writes the same files (`state.md`, `ROADMAP.md`, `MEMORY.md`, `patterns.md`). Session 50 sees what session 1 wrote.
 - **Research before code, not as code.** Most "build it" tools start coding immediately. OpenVera runs `/scout` or `/research` first. Reddit and YouTube for what real people actually hit, multi-model synthesis via OpenRouter for blind spots a single model misses, sourced paper output so claims are checkable. Cheap when a quick recon is enough (~$0.10 scout, 2-3 min), thorough when the decision deserves it (~$0.50 research with 8 steps and a source registry). External findings are treated as untrusted data: extract techniques, not artifacts. Verify packages and env vars before adopting anything a model recommends.
 
 ## What's In Here
@@ -86,7 +92,7 @@ memory/
   patterns.md    <- decision frameworks (you curate these)
 ```
 
-`MEMORY.md` grows automatically. Claude writes down operational gotchas, your preferences, project decisions. `patterns.md` is where you put the real wisdom: "when I get excited about a feature, check for scope creep" or "external advice means verify first, implement second." These fire as guardrails during actual work.
+`MEMORY.md` grows automatically. Claude writes down operational gotchas, your preferences, project decisions. `patterns.md` is where you put the rules you want enforced: "when I get excited about a feature, check for scope creep" or "external advice means verify first, implement second." These fire as guardrails during actual work.
 
 ### Conversation History
 
@@ -107,20 +113,22 @@ Slash commands that do real things, in two kinds:
 Three layers: entry points, building blocks, and meta.
 
 <p align="center">
-  <img src="assets/skills-map.png" alt="Skills map showing entry points (start-here, build new, build full), building blocks (scout, research, consult, frame, advisor), and meta (improve, curate, doc-sync) over a shared state substrate" width="860">
+  <img src="assets/skills-map.png" alt="OpenVera skills map: entry points (start-vague, build new, build full), building blocks (scout, research, consult, frame, wireframe-first, panel, advisor, code-review), and meta (improve, curate, doc-sync), all over a shared state substrate" width="860">
 </p>
 
-Costs below are typical USD ranges per invocation. Paid skills route through OpenRouter for model calls; free skills use Claude directly (your existing Claude Code subscription).
+Costs below are typical USD ranges per invocation. Paid skills spend on OpenRouter model calls; free skills run on Claude subagents through your existing Claude Code subscription.
 
 | Command | What It Does | Cost (USD) |
 |---------|--------------|------|
-| `/start-here` | Takes a vague idea and turns it into something buildable | Free |
-| `/scout <question>` | Quick research: Reddit, YouTube, web. 2-3 minutes. | $0.08–0.18 |
+| `/start-vague` | Takes a vague idea and turns it into something buildable | Free |
+| `/scout <question>` | Quick research: Reddit, YouTube, web. 2-3 minutes. | $0.00–0.10 |
 | `/research <topic>` | Deep multi-model research. 8 steps, source registry, paper output. | $0.23–0.63 |
 | `/consult <decision>` | Simulates a panel of domain experts, gives you one recommendation | Free |
 | `/frame` | Generates a design system, architecture diagrams, wireframes | Free |
-| `/panel [path]` | Pressure-test the bet before `/build`. 2 domain reviewers (read-only, clean-context) scan for blind spots: what's stated, missing, assumed. Confirmation-bias prevention. | $0.13–0.23 |
+| `/wireframe-first` | Sketches one screen in plain text and gets your sign-off before any code | Free |
+| `/panel [path]` | Pressure-test the bet before `/build`. 2 domain reviewers (read-only, clean-context) scan for blind spots: what's stated, missing, assumed. Confirmation-bias prevention. | Free |
 | `/advisor [decision]` | Checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. | Free |
+| `/code-review [path]` | Clean-context reviewer scans a path or diff, returns tiered findings | Free |
 | `/build new <idea>` | V0: idea to working app (resumable across sessions via state file) | ~$0.12 (scoring) |
 | `/build full <project>` | Full SDLC: PRD, tech spec, arch review, phased builds, QA | Varies (research + scoring) |
 | `/improve <skill>` | Runs a skill, scores the output, proposes instruction fixes | $0.28–0.48 / cycle |
@@ -131,13 +139,15 @@ Costs below are typical USD ranges per invocation. Paid skills route through Ope
 
 ### Hooks
 
-These run mechanically, not by asking Claude to remember. Three files in `.claude/hooks/`:
+These run mechanically, not by asking Claude to remember. Five files in `.claude/hooks/`:
 
-- **`session-start.py`** validates config, checks `/curate` freshness, prints "OpenVera online"
-- **`post-compact.py`** re-injects state and patterns after context compression
+- **`session-start.py`** runs a boot health check (bootstrap state, config validity, `/curate` freshness), then prints one status line plus a rotating tip
+- **`mark-dirty.py`** fires after any harness-file write and flags the session as having unsaved work, which is what the pre-compact gate reads
+- **`pre-compact.py`** is the gate: when the session has unsaved work, it blocks context compression until you run `/doc-sync`
+- **`post-compact.py`** re-injects state, patterns, and your context after compression, so Claude doesn't lose the thread
 - **`session-end-reminder.py`** nudges you to run `/doc-sync` before you quit
 
-The pre-compact gate (blocking compression until docs are saved) is configured under `PreCompact` in `.claude/settings.json` as an inline prompt hook, not a separate script file. It calls into `/doc-sync` if work has happened and the skill hasn't run this session.
+The pre-compact gate is deterministic Python, wired under `PreCompact` in `.claude/settings.json`.
 
 ## Two Ways to Build
 
@@ -195,9 +205,9 @@ openvera/                          <- you open this in Claude Code
 
 After bootstrap, edit these:
 
-- **`who-i-am/voice.md`** sets the tone (direct, casual, formal, whatever you want)
-- **`relationships/user.md`** is who you are, so Claude can tailor responses
-- **`memory/patterns.md`** starts empty; add patterns as you discover them
+- **`vera-system/who-i-am/voice.md`** sets the tone (direct, casual, formal, whatever you want)
+- **`vera-system/relationships/user.md`** is who you are, so Claude can tailor responses
+- **`vera-system/memory/patterns.md`** starts empty; add patterns as you discover them
 
 To add a skill, create `.claude/skills/<name>/SKILL.md` with YAML frontmatter (name + description) and instructions in the body.
 
@@ -205,25 +215,26 @@ To change paths or the default LLM model, edit `vera-system/config.json`.
 
 ### Keys are Optional
 
-**After install, OpenVera makes no background network calls.** No telemetry. No phone-home. Hooks and the harness itself are local-only. Audit them yourself in `.claude/hooks/` and `vera-system/scripts/`.
+**After install, OpenVera makes no network calls on its own.** No phone-home, and nothing leaves your machine (any run logs stay local in `vera-system/runs/`). Hooks and the harness itself are local-only. Audit them yourself in `.claude/hooks/` and `vera-system/scripts/`.
 
 The only scripts that touch the network are the three you'd expect: `openrouter.py` (multi-model research), `reddit-fetch.py` (community recon), `youtube-analyze.py` (video analysis). All run only when a skill you invoked calls them.
 
-Install-time exceptions: `git clone` pulls the repo, `pip install` fetches Python deps, and if you paste an OpenRouter key into bootstrap, it does a one-shot `GET /auth/key` to verify it. Skip the prompt to skip the call.
+Install-time exceptions: `git clone` pulls the repo, `pip install` fetches Python deps, and if you paste an API key into bootstrap it gets verified with a one-shot call (OpenRouter `GET /auth/key`, Google AI `GET /v1beta/models`). Skip the prompts to skip the calls.
 
 **Works without keys:**
-`/start-here`, `/consult`, `/frame`, `/advisor`, `/curate`, `/doc-sync`. `/scout` works for Reddit + web (YouTube discovery is the only part that needs a key).
+`/start-vague`, `/consult`, `/frame`, `/advisor`, `/curate`, `/doc-sync`. `/scout` works for Reddit + web with no key. YouTube discovery needs OpenRouter; YouTube video analysis needs a Google AI key.
 
 **What degrades without keys:**
 - `/build` still ships, but the external scoring step is skipped (the rival-model quality gate). You still get validator + reviewer agents.
 - `/improve` needs OpenRouter for its scoring loop.
-- `/research` needs OpenRouter (multi-model is the whole point).
+- `/research` needs OpenRouter for its multi-model calls.
 
 Try OpenVera for a session. Decide if you trust it. Add keys later if you want the scoring gate or deep research.
 
 When you do:
 ```bash
 cp vera-system/.secrets.template vera-system/.secrets
+chmod 600 vera-system/.secrets
 # edit vera-system/.secrets
 ```
 
@@ -231,7 +242,7 @@ The `.secrets` file is gitignored and chmod 600. Permissions require Claude to a
 
 ## Recommended MCPs
 
-OpenVera's skills work without these, but they make a real difference:
+OpenVera's skills work without these, but two MCPs noticeably help:
 
 | MCP | What It Adds | Install |
 |-----|-------------|---------|

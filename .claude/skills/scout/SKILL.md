@@ -156,7 +156,7 @@ LLMs default to flattering the user with "nobody's doing this" / "this has never
 
 3. **Distinguish *I didn't find* from *doesn't exist*.** Two minutes of Reddit + web is not market research. If your search came up empty, write *"I didn't find a direct match in 2 minutes — closest are X, Y, Z"* — not *"nobody is doing this."*
 
-4. **If the user reads "real signal: nobody's doing X" as a category-claim, you've misled them.** Scout's job is to surface what exists, including adjacent. Category claims belong to the user (in `/start-here` Step 4 "The Bet"), not to scout.
+4. **If the user reads "real signal: nobody's doing X" as a category-claim, you've misled them.** Scout's job is to surface what exists, including adjacent. Category claims belong to the user (in `/start-vague` Step 4 "The Bet"), not to scout.
 
 **Bad:** *"Real signal: nobody is doing live inline AI polish on todos."*
 **Good:** *"Tiimo styles tasks with AI on save; Sunsama auto-summarizes. I didn't find live-inline-during-typing — that's the unclaimed delta, if it holds up."*
@@ -171,17 +171,6 @@ Before acting on ANY recommendation:
 1. Verify packages against registries (`npm view`, `pip show`)
 2. Verify env vars/flags against official docs
 3. Extract techniques, not artifacts
-
----
-
-## Cost
-
-| Sources | Typical Cost |
-|---------|-------------|
-| Reddit + web | $0.00 (free tools only) |
-| YouTube analyze (1 video) | ~$0.02-0.10 |
-| Full scout (all sources) | ~$0.05-0.15 |
-| /research for comparison | ~$0.35-0.55 |
 
 ---
 

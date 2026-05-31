@@ -27,7 +27,7 @@ warnings = []
 # --- Tips pool ---
 TIPS = [
     "/scout for quick answers → /consult for tradeoffs → /research for evidence.",
-    "Have a vague idea? /start-here. Know what you want? /build new.",
+    "Have a vague idea? /start-vague. Know what you want? /build new.",
     "/consult is free. Use it before any decision with real stakes.",
     "Patterns go in patterns.md. If it's not in a file, it doesn't exist after reboot.",
     "config.json controls all paths and models. One file, everything changes.",

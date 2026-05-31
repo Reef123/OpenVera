@@ -25,12 +25,12 @@ _SLUG_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
 def validate_slug(slug: str) -> str:
     """Reject slugs that could traverse out of projects_dir or contain
-    path separators. Slugs are user-supplied (CLI args, /start-here input).
+    path separators. Slugs are user-supplied (CLI args, /start-vague input).
     Without this, a tainted slug like "../../etc" would let downstream
     write_text() / mkdir() calls escape the projects directory.
 
     Pattern: lowercase alphanumeric + hyphens, must start with alphanumeric,
-    max 64 chars. Matches kebab-case norm used across /start-here scaffolding.
+    max 64 chars. Matches kebab-case norm used across /start-vague scaffolding.
 
     Returns the slug unchanged if valid; raises ValueError otherwise.
     """
@@ -43,6 +43,27 @@ def validate_slug(slug: str) -> str:
             "max 64 chars)."
         )
     return slug
+
+
+def slugify(text: str) -> str:
+    """Derive a canonical kebab-case slug from free text, matching the rule
+    validate_slug enforces (lowercase alphanumeric + hyphens, starts
+    alphanumeric, max 64 chars). Deterministic — same input always yields the
+    same slug, so generated slugs won't drift from ones already on disk.
+
+    Lowercases, collapses every run of non-alphanumerics to a single hyphen,
+    trims leading/trailing hyphens, truncates to 64. Raises ValueError if no
+    slug can be derived (empty or all-punctuation input). The returned slug is
+    re-validated through validate_slug so callers get one guarantee.
+    """
+    if not isinstance(text, str):
+        raise ValueError("slugify expects a string")
+    s = text.lower()
+    s = re.sub(r"[^a-z0-9]+", "-", s)
+    s = s.strip("-")[:64].strip("-")
+    if not s:
+        raise ValueError(f"Could not derive a slug from {text!r}")
+    return validate_slug(s)
 
 
 def safe_project_path(slug: str, *parts: str) -> Path:

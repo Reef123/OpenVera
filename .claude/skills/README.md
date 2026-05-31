@@ -5,7 +5,7 @@ Each skill is a folder with a `SKILL.md` (instructions) and optional supporting 
 ## How they fit together
 
 <p align="center">
-  <img src="../../assets/skills-map.png" alt="Vera skills map: entry points (start-here, build new, build full) call building blocks (scout, research, consult, frame, advisor); meta skills (improve, curate, doc-sync) operate on the harness itself; all skills share state via state.md, ROADMAP.md, MEMORY.md, patterns.md, conversations/." width="860">
+  <img src="../../assets/skills-map.png" alt="Vera skills map: entry points (start-vague, build new, build full) call building blocks (scout, research, consult, frame, advisor); meta skills (improve, curate, doc-sync) operate on the harness itself; all skills share state via state.md, ROADMAP.md, MEMORY.md, patterns.md, conversations/." width="860">
 </p>
 
 Three layers: **entry points** (what the user invokes), **building blocks** (called by `/build`, also runnable standalone), and **meta** (operate on the harness, not on a project). Everything reads and writes through a shared state substrate so context survives session boundaries.
@@ -16,6 +16,8 @@ Three layers: **entry points** (what the user invokes), **building blocks** (cal
 |-------|---------|---------|
 | Scout | `/scout <question>` | Quick answers — Reddit + YouTube + web, 2-3 min. **Default for most questions.** |
 | Consult | `/consult <decision>` | Decision accelerator — domain expert tradeoffs + recommendation. Free (no API calls). |
+| Code Review | `/code-review <path-or-git-range>` | Clean-context Claude subagent runs adversarial review. Critical/High/Medium/Low findings. Standalone or `--against <spec>`. |
+| Wireframe First | `/wireframe-first <screen>` | Iterative wireframing method for ONE screen — ASCII boxes, beat-by-beat, ratify before code. Prevents rebuild-loops when intent is ambiguous. |
 | Research | `/research <topic> [--quick]` | Multi-model research with paper artifact. `--quick` skips scoping + adversarial review. Use when `/scout` isn't enough. |
 | Frame | `/frame [--quick \| --deep]` | Design system (DESIGN.md), architecture diagrams, wireframes. Called by `/build` or standalone. |
 | Build | `/build new <idea>` | V0 pipeline — ship a working app, resumable across sessions. |
@@ -23,9 +25,17 @@ Three layers: **entry points** (what the user invokes), **building blocks** (cal
 | Improve | `/improve <skill>` | Autonomous skill improvement loop with rubric scoring. |
 | Curate | `/curate` | Weekly memory consolidation. |
 | Doc-Sync | `/doc-sync` | Session documentation — state, logs, alignment. **Run every session.** |
-| Start Here | `/start-here [optional: idea]` | Guided idea exploration — vague spark to buildable concept. |
+| Start Vague | `/start-vague [optional: idea]` | Front door for vague ideas. Bounded 4-round interview shapes an itch into a buildable `idea.md`. Mid-fire scout + ASCII wireframe + soft-redirect when the idea already exists. |
 | Panel | `/panel [optional: idea.md path]` | Pressure-test the bet before `/build`. 2 domain reviewers scan for blind spots (clean-context). Confirmation-bias prevention. |
 | Advisor | `/advisor [decision]` | Detached agent — checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. |
+
+### Internal-only skills
+
+These have no slash command. Other skills read their `SKILL.md` inline as context.
+
+| Skill | Read by | Purpose |
+|-------|---------|---------|
+| TDD | `/build full` Phase 5 (`phases.md`) | Red-green-refactor cycle for each test in the phase plan. Governs HOW each test gets written. |
 
 ## Cost awareness
 
