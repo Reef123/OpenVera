@@ -8,6 +8,25 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR"
 SYSTEM_DIR="$ROOT_DIR/vera-system"
 
+# --- Interactive input source ---
+# Under `curl ... | bash` (or when install.sh hands off), stdin is the download
+# pipe sitting at EOF — so a plain `read` returns nothing and every prompt fails
+# silently. The classic symptom: "Name is required" with no chance to type.
+# Read prompts from the controlling terminal (/dev/tty) instead. If there is
+# genuinely no terminal (CI / headless), fall back to non-interactive defaults
+# rather than quitting.
+#
+# Note: test by actually OPENING /dev/tty, not `[[ -r /dev/tty ]]` — the device
+# node can stat as readable yet fail to open ("Device not configured") in CI and
+# sandboxed shells, which would otherwise re-trigger the very quit we're fixing.
+if ( : < /dev/tty ) 2>/dev/null; then
+  TTY_IN=/dev/tty
+  INTERACTIVE=1
+else
+  TTY_IN=/dev/null
+  INTERACTIVE=0
+fi
+
 # Detect a Python 3 command. Linux/macOS usually have 'python3'; Windows
 # (Git Bash, installer-provided) typically ships 'python' or 'py'. Settings.json
 # hardcodes 'python3' — if that's not our command, we'll write settings.local.json
@@ -44,10 +63,15 @@ echo "  ${BROWN}╚════════════════════�
 echo ""
 
 # --- Step 1: Name ---
-read -rp "What's your name? " USER_NAME
+read -rp "What's your name? " USER_NAME < "$TTY_IN" || USER_NAME=""
 if [[ -z "$USER_NAME" ]]; then
-  echo "Name is required."
-  exit 1
+  if [[ "$INTERACTIVE" == "1" ]]; then
+    echo "Name is required."
+    exit 1
+  fi
+  # No terminal to ask — don't die; use a placeholder the user can edit later.
+  USER_NAME="Builder"
+  echo "  No terminal detected — defaulting name to '$USER_NAME' (edit vera-system/state.md to change)."
 fi
 echo ""
 
@@ -112,9 +136,9 @@ echo ""
 # -s suppresses echo so pasted secrets don't end up in terminal scrollback or
 # screen recordings. -s also eats the trailing newline from Enter, so we print
 # one ourselves after each read. Empty input still skips the key.
-read -rsp "  OpenRouter API key (paste or Enter to skip): " OPENROUTER_KEY
+read -rsp "  OpenRouter API key (paste or Enter to skip): " OPENROUTER_KEY < "$TTY_IN" || OPENROUTER_KEY=""
 echo
-read -rsp "  Google AI API key  (paste or Enter to skip): " GOOGLE_KEY
+read -rsp "  Google AI API key  (paste or Enter to skip): " GOOGLE_KEY < "$TTY_IN" || GOOGLE_KEY=""
 echo
 echo ""
 
@@ -178,9 +202,9 @@ except Exception:
     break
   else
     echo "  ✗ OpenRouter key returned HTTP $HTTP_STATUS (likely 401 invalid)."
-    read -rp "    [r]etry, [s]kip, [q]uit? " or_choice
+    read -rp "    [r]etry, [s]kip, [q]uit? " or_choice < "$TTY_IN" || or_choice="s"
     case "${or_choice:-s}" in
-      [rR]) read -rsp "    OpenRouter API key: " OPENROUTER_KEY; echo ;;
+      [rR]) read -rsp "    OpenRouter API key: " OPENROUTER_KEY < "$TTY_IN" || OPENROUTER_KEY=""; echo ;;
       [sS]) OPENROUTER_KEY=""; echo "    Skipped — features needing OpenRouter will degrade gracefully."; break ;;
       [qQ]) echo "  Bootstrap aborted."; exit 1 ;;
       *)    echo "    Choose r, s, or q." ;;
@@ -210,9 +234,9 @@ except Exception:
     break
   else
     echo "  ✗ Google AI key returned HTTP $HTTP_STATUS (likely invalid)."
-    read -rp "    [r]etry, [s]kip, [q]uit? " ga_choice
+    read -rp "    [r]etry, [s]kip, [q]uit? " ga_choice < "$TTY_IN" || ga_choice="s"
     case "${ga_choice:-s}" in
-      [rR]) read -rsp "    Google AI API key: " GOOGLE_KEY; echo ;;
+      [rR]) read -rsp "    Google AI API key: " GOOGLE_KEY < "$TTY_IN" || GOOGLE_KEY=""; echo ;;
       [sS]) GOOGLE_KEY=""; echo "    Skipped — YouTube video analysis will be unavailable."; break ;;
       [qQ]) echo "  Bootstrap aborted."; exit 1 ;;
       *)    echo "    Choose r, s, or q." ;;

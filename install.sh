@@ -16,7 +16,20 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/Reef123/OpenVera.git"
-TARGET="${1:-openvera}"
+
+# Target directory:
+#   explicit arg  -> use it
+#   empty cwd     -> install in place (user already made/entered a folder for it)
+#   non-empty cwd -> create an ./openvera subfolder
+# This avoids the surprise of `mkdir Openvera && cd Openvera && curl…` landing in
+# Openvera/openvera.
+if [[ $# -ge 1 ]]; then
+  TARGET="$1"
+elif [[ -z "$(ls -A . 2>/dev/null)" ]]; then
+  TARGET="."
+else
+  TARGET="openvera"
+fi
 
 red()   { printf "\033[31m%s\033[0m\n" "$*"; }
 green() { printf "\033[32m%s\033[0m\n" "$*"; }
@@ -43,14 +56,19 @@ if [[ ${#missing[@]} -gt 0 ]]; then
 fi
 
 # --- Target directory ---
-if [[ -e "$TARGET" ]]; then
+if [[ "$TARGET" != "." && -e "$TARGET" ]]; then
   red "  '$TARGET' already exists. Choose a different path:"
   echo "    curl -fsSL https://raw.githubusercontent.com/Reef123/OpenVera/main/install.sh | bash -s -- <path>"
   exit 1
 fi
 
 # --- Clone + bootstrap ---
-echo "  Cloning OpenVera into $TARGET..."
+if [[ "$TARGET" == "." ]]; then
+  INSTALL_PATH="$(pwd)"
+else
+  INSTALL_PATH="$(pwd)/$TARGET"
+fi
+echo "  Installing OpenVera into: $INSTALL_PATH"
 git clone --quiet "$REPO_URL" "$TARGET"
 cd "$TARGET"
 
@@ -84,5 +102,9 @@ if [[ -t 1 ]]; then
   echo ""
 fi
 
-echo "  Next:  cd $TARGET && claude"
+if [[ "$TARGET" == "." ]]; then
+  echo "  Next:  claude"
+else
+  echo "  Next:  cd $TARGET && claude"
+fi
 echo "         then run /start-vague"
