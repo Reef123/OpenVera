@@ -28,6 +28,8 @@ Vera didn't emerge in a vacuum. These ideas, projects, and people shaped how we 
 
 **Philip Tetlock** — Superforecasting research on why multi-perspective thinkers (foxes) outperform single-theory experts (hedgehogs). The foundation for "The Panel, Not The Expert."
 
+**Matt Pocock** ([grill-me](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md)) — The one-question-at-a-time interview that walks down the design tree, resolves dependencies between decisions one by one, and gives a recommended answer for each, until you reach shared understanding. We adapted it into `/panel`'s "Deeper understanding" verdict path.
+
 ---
 
 *If your work influenced Vera and isn't listed here, open an issue. I like to fix that.*

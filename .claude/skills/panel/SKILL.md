@@ -167,13 +167,17 @@ Show the work briefly in chat (not just options). One line per surfaced finding 
 
 ## Step 5: Triage with the user
 
-One AskUserQuestion call, multi-select. The labels are short concern names; descriptions show the failure type and the snippet.
+**First, print the purpose banner** — one line, so the user knows *why* this step exists. A bare checklist with no framing reads as confusing (real user feedback). Print it in chat right before the question:
+
+> 🐘 **Why this step:** I pulled in fresh eyes to spot what you might be too close to see. Check the ones you'd already thought about — the rest are the catches, and we'll look at each before any code.
+
+Then one AskUserQuestion call, multi-select. The labels are short concern names; descriptions show the failure type and the snippet.
 
 ```
 AskUserQuestion(
   questions: [
     {
-      question: "Which of these has panel surfaced that you've already considered?",
+      question: "Check the ones you'd already thought about (the unchecked ones are the panel's catches).",
       header: "Considered?",
       options: [
         {label: "[concern 1 short]",  description: "[evidence|gap|assumption]: [snippet]"},
@@ -218,9 +222,47 @@ AskUserQuestion(
       question: "Bet still V0-tight after this pass?",
       header: "Verdict",
       options: [
-        {label: "Yes — proceed",   description: "Lock the bet, continue to /build new"},
-        {label: "Revise",          description: "Update idea.md, /panel re-fires manually if you want"},
-        {label: "Kill",            description: "Back to /start-vague Step 4 to re-bet"}
+        {label: "Yes — proceed",        description: "Lock the bet, continue to /build new"},
+        {label: "Deeper understanding", description: "Sharpen the plan before building. I ask one question at a time, biggest decisions first, each with my recommended answer, until we both see the plan the same way. (Runs the Step 6b interview.)"},
+        {label: "Kill",                 description: "Back to /start-vague Step 4 to re-bet"}
+      ],
+      multiSelect: false
+    }
+  ]
+)
+```
+
+**Proceed** → write the log (Step 7), done. **Deeper understanding** → run Step 6b, then re-show this verdict. **Kill** → log + back to /start-vague Step 4.
+
+---
+
+## Step 6b: Deeper understanding (the interview)
+
+*Picked only when the user chooses "Deeper understanding" at the verdict. Adapted from Matt Pocock's `grill-me` skill (see THANKS.md) — sequential, dependency-aware questioning until shared understanding.*
+
+Goal: turn the panel's open catches into resolved decisions **before** any code, so the build runs on decisions instead of guesses. By the end, the plan and the user's head hold the same picture.
+
+**The method:**
+
+1. **Explore before asking.** For each thing you'd ask, first check `idea.md`, the `## Panel log`, `spec.md`, and any `/frame` artifacts. If the answer is already there, use it — don't make the user re-state what's on the page. (grill-me's core efficiency rule. Also Vera's "do the work, don't ask busywork.")
+2. **Walk the tree, biggest decisions first.** Resolve a parent decision before the children that depend on it, so you never settle a detail a larger call would erase. **Seed from the panel's `Unconsidered + open` items** (the known holes, e.g. "clustering underspecified") — those go first.
+3. **One question at a time.** Each is its own `AskUserQuestion` turn (open-ended ones may be plain text). Do NOT batch — the point is to let each answer reshape the next question.
+4. **Every question carries your recommended answer.** First option, labeled `(Recommended)`, plus a one-line *why*. Open-ended ones still lead with your pick. The user confirms or overrides.
+5. **~6 questions, capped.** Target six; stop early once decisions are resolved and you both share the picture, or at six to keep it bounded. Don't pad to hit the number.
+6. **Write it down.** Fold the resolved decisions into `idea.md` (`## The bet` / scope / `## What good looks like` / open questions). Show a short before/after diff. Then re-show the Step 6 verdict — usually a clean "proceed" now.
+
+Per-question shape:
+
+```
+AskUserQuestion(
+  questions: [
+    {
+      question: "<the decision, in plain words>",
+      header: "<2-3 word topic>",
+      options: [
+        {label: "<my pick> (Recommended)", description: "<why this — one line>"},
+        {label: "<alternative>",           description: "<when this is right instead>"},
+        {label: "<alternative>",           description: "<...>"}
       ],
       multiSelect: false
     }
@@ -270,11 +312,15 @@ Append to idea.md (don't overwrite earlier content):
 - **Unconsidered + addressed:** <items + verbatim user response>
 - **Unconsidered + open:** <items left unaddressed>
 
+### Deeper-understanding interview
+<!-- Only if the user picked "Deeper understanding" at the verdict. One line per question: decision → resolution (recommended-and-accepted | overridden to X). "Not run" otherwise. -->
+<resolved decisions, or "Not run">
+
 ### Scope diff
 <diff if growth detected, or "No growth — bet unchanged.">
 
 ### Verdict
-<proceed | revise | kill>
+<proceed | deeper understanding | kill>
 
 ### Outcome
 <!-- Filled later by /retro after V0 ships or kills. Tracks whether

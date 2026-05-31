@@ -16,6 +16,22 @@ Vera check-in fire points + format: see [`vera-checkins.md`](vera-checkins.md).
 
 ---
 
+## Panel gate (auto — always pressure-test the bet before building)
+
+`/build new` auto-runs `/panel` once a bet exists and before the Build Loop. Domain eyes on the bet are cheap insurance against building the wrong thing fast.
+
+**When it fires:**
+- **From `/start-vague`** (`idea.md` already has `## The bet`): run `/panel` *first*, before Stage 0's design-tree walk.
+- **Direct `/build new`** (no bet yet): the bet is synthesized at Stage 1 step 0 — run `/panel` immediately after that, before scaffold (Stage 1 step 6) and Stage 2.
+- **Skip** if `idea.md` already has a `## Panel log` whose `Bet at panel time` matches the current `## The bet` — the user just ran it manually; don't re-fire.
+
+**Verdict handling** (from `/panel` Step 6):
+- **Proceed** → continue the pipeline.
+- **Deeper understanding** → the panel runs its Step 6b interview, updates `idea.md`, and re-shows the verdict; continue once it lands on proceed. If the interview changed scope, re-derive/patch `spec.md` before Stage 2.
+- **Kill** → stop the build; route back to `/start-vague` Step 4.
+
+---
+
 ## Stage 0: Kickoff + Purpose (ONE stop — the only one before code)
 
 This is the ONLY user interaction before building starts. Combine kickoff, scoping, and purpose check into one shot. Be bold — present opinionated options based on the idea they gave you.
