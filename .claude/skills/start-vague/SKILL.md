@@ -29,6 +29,8 @@ Step 3   — Success picture     (question GENERATED from Step 1 + Step 2 audien
 Step 3.5 — Show back            (3.5a: soft-redirect inline if scout found a strong match;
    ↓                             3.5b: ASCII wireframe — "is THIS what you mean?" — one
    ↓                             retry; skip 3.5b for clearly-non-visual ideas)
+Step 3.6 — Widen check          (anti-tunnel: surface 2-3 distinct angles, recommend the
+   ↓                             core, multi-select to capture scope, push back if >2)
 Step 4   — The Bet → Idea doc → Check
                                (bet options GENERATED from spark + scout findings)
                                (Open Questions walk: ordered by dependency)
@@ -41,7 +43,7 @@ Every option list is **generated from prior steps**, never hardcoded — if Step
 
 **Scout policy:** scout runs ONCE during `/start-vague` — Step 1.5 gate fires it early (blocking) on crowded-space signals; otherwise it runs in Step 3 background. `## What's out there` is filled before Step 4 generates bet options either way.
 
-**Round structure:** Each step IS a round. WITHIN a round, questions are siblings (batchable in one `AskUserQuestion` call — Q2's options don't depend on Q1's answer). BETWEEN rounds, the next round's options are GENERATED from prior answers (the design-tree principle). Aim for 3 questions per `AskUserQuestion` batch where the surface supports it. **Hard cap: 4 rounds of new-content questions** (Steps 1, 2, 3, 4). If shape hasn't landed at Step 4, the round-4 escape hatch in Step 4 fires — re-pitch in your own words, keep going past the cap, or park to `vera-system/ideas.md`. Model judges round transitions, not a turn-counter.
+**Round structure:** Each step IS a round. WITHIN a round, questions are siblings (batchable in one `AskUserQuestion` call — Q2's options don't depend on Q1's answer). BETWEEN rounds, the next round's options are GENERATED from prior answers (the design-tree principle). Aim for 3 questions per `AskUserQuestion` batch where the surface supports it. **Hard cap: 4 rounds of new-content questions** (Steps 1, 2, 3, 4). Step 3.6 (Widen check) is a scope-confirm, not new exploratory content, so it doesn't count against the cap. If shape hasn't landed at Step 4, the round-4 escape hatch in Step 4 fires — re-pitch in your own words, keep going past the cap, or park to `vera-system/ideas.md`. Model judges round transitions, not a turn-counter.
 
 ---
 
@@ -318,6 +320,38 @@ Present, then one open-text question:
 - **"No, here's what's off"** → ONE retry with the correction. If the second sketch still misses, say plainly: *"Let's stop on the visual — Step 4 will write it in words and `/frame` can sketch it properly later."* Move on.
 
 **Skip 3.5b entirely** if the idea is clearly non-visual (a CLI tool, a cron job, a script). For "rename my downloads folder," sketching a wireframe is theater. Use judgment.
+
+---
+
+## Step 3.6: Widen check (capture scope, don't tunnel)
+
+The interview narrows fast, and it's easy to lock onto ONE angle of the idea and miss the others. This is the anti-tunnel beat (the "widen" pattern, applied up front instead of waiting for the user to ask). It widens what you SEE, then scopes what you BUILD — so V0 stays tight, but on purpose, not by accident.
+
+**Print this 🐘 tip in chat before the question:**
+
+> 🐘 *I want to make sure I'm not boxing this in too soon. Here are the angles your idea could take. Tell me which ones are actually part of the first version.*
+
+One `AskUserQuestion`, multi-select. **Generate 2-3 DISTINCT angles** the idea could span from spark + framing + success picture (genuinely different directions, not three flavors of one thing). Mark the strongest as the core.
+
+```
+AskUserQuestion(
+  questions: [
+    {
+      question: "Which of these are part of your first version?",
+      header: "Scope",
+      options: [
+        {label: "<angle A> (Recommended — the core)", description: "<why this is the heart of V0>"},
+        {label: "<angle B>",                          description: "<what it adds, and the cost of doing it now>"},
+        {label: "<angle C>",                          description: "<what it adds, and the cost of doing it now>"},
+        {label: "Just the core for now",              description: "Ship one thing; the rest goes to ## Open questions"}
+      ],
+      multiSelect: true
+    }
+  ]
+)
+```
+
+Read the picks. **If they select more than two angles, push back once** to protect V0 (the cut-to-1-2 rule): *"That's a bigger first version. Ship the core now and park the rest, or is the wider scope the actual point?"* Whatever they keep flows into Step 4's idea doc. Whatever gets cut goes to `## Open questions` so it's parked, not lost.
 
 ---
 

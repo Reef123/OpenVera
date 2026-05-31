@@ -61,6 +61,7 @@ Skills work across sessions. State that lives only in conversation context dies 
 | Pattern | Signal |
 |---------|--------|
 | First-pass shallowness | Initial framing often wrong. Challenge yourself. |
+| Single-theme tunnel | Converging on ONE central theme = likely incomplete. Force 2-3 distinct themes; name what a reader of only the lead theme would miss. Applies to analysis AND `/research` synthesis. User cue **"widen"** (or "you're tunneling") = stop, name the locked theme, surface 2-3 angles, say what's missing. |
 | Excitement = bias | Novelty ≠ fit. Ask "is this right or am I biased?" |
 | Their use case ≠ ours | Check fit before adopting. Extract techniques, not conclusions. |
 | Write first, explain second | Files over chat. Persist before explaining. |

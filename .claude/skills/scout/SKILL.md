@@ -94,10 +94,17 @@ Extract the question. Decide which sources to hit.
 Launch sources in parallel using subagents:
 
 **Reddit (if selected):**
+
+Reddit blocks unauthenticated direct fetches (HTTP 403), so search it through OpenRouter's web plugin — it reaches Reddit via search engines and returns clean results (~$0.006/search):
+```bash
+python3 vera-system/scripts/openrouter.py --model "{llm.default_model}" --search --prompt 'Search Reddit for real opinions on "<QUESTION>". Return 3-5 results, each as: subreddit, post title, one-line takeaway, and the reddit.com URL. Reddit sources only.'
+```
+If results are thin (< 3 posts), run a second search with different keywords.
+
+**No OpenRouter key configured?** Fall back to the free direct fetch (works on some networks, 403s on others):
 ```bash
 python3 vera-system/scripts/reddit-fetch.py "<question rephrased as Reddit search>"
 ```
-If results are thin (< 3 posts), try a second search with different keywords.
 
 **YouTube (if selected):**
 Use OpenRouter with --search to find videos, then analyze top result:

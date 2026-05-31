@@ -58,12 +58,14 @@ Maintain a running source table throughout Steps 3-7:
 
 ## Models (via OpenRouter)
 
-| Model | Cost | Best For |
-|-------|------|----------|
-| Gemini 2.5 Pro | ~$0.08/query | Implementation details, validation |
-| DeepSeek v3 | ~$0.003/query | Critical analysis, adversarial review |
-| Gemini Flash | ~$0.02/query | YouTube discovery with --search |
-| GLM-5 | ~$0.06/query | Community/Reddit perspective |
+| Model | ID | Role |
+|-------|-----|------|
+| **Gemini 3.1 Pro** | `google/gemini-3.1-pro-preview` | **Senior** — validates, broadens, owns final synthesis |
+| **DeepSeek V4 Pro** | `deepseek/deepseek-v4-pro` | **Mid-level** — fast, concrete, opinionated; claims get checked, not trusted |
+| Gemini Flash | `google/gemini-3-flash-preview` | YouTube discovery with `--search` |
+| GLM-4.7 | `z-ai/glm-4.7` | Community / Reddit angle |
+
+**Two seniority levels, on purpose.** Treat DeepSeek like a sharp mid-level engineer: it ships concrete, opinionated takes fast — but a mid-level's strong claim is a *hypothesis, not a verdict*. Gemini is the senior: it validates DeepSeek's opinionated claims, fills what the mid missed, and owns the final synthesis. Never let an unvalidated DeepSeek opinion land in findings as fact.
 
 **PII Warning:** Chinese models (DeepSeek, GLM, Kimi): Scrub personal info before sending.
 
@@ -206,20 +208,22 @@ Good hard questions:
 
 ### Step 6: Validate & Challenge (OpenRouter — 2 queries)
 
-**6a. Gemini 2.5 Pro — Validation (~$0.08):**
+**6a. Gemini 3.1 Pro (Senior) — Validation:**
 Prompt: "I researched [TOPIC]. Conclusions: [SUMMARY]. Decisions: [DECISIONS]. Hard questions: [HARD QUESTIONS]. 1) Missing options practitioners actually use? 2) Bias in recommendations? 3) What gotchas do forums mention? 4) What would YOU recommend for [CONTEXT]? 5) Are my hard questions actually hard? What harder question should I be asking? 6) Critical decision points I missed?"
 
-**6b. DeepSeek v3 — Adversarial Gap Finder (~$0.03, scrub PII):**
+**6b. DeepSeek V4 Pro (Mid-level) — Opinionated Analysis + Gap Finder (scrub PII):**
 
 **Skip in Standard mode.** Gemini validation (6a) is sufficient for standard research.
 
-**In Deep mode:** A different model with a different angle. Run AFTER 6a so you can include Gemini's feedback.
+**In Deep mode:** A different lineage, a different angle. Run AFTER 6a so you can include Gemini's feedback.
 
 Prompt: "You are an adversarial reviewer. Find what this research MISSED — not what it got wrong, but what it never looked for. Topic: [TOPIC]. Context: [CONTEXT]. Top 5 findings: [FINDINGS]. Decisions: [DECISIONS]. 1) What practitioner-level detail is suspiciously absent? (version numbers, failure rates, cost figures, staffing estimates) 2) Which findings rest on a single source? 3) What adjacent topic was ignored that would change the recommendation? 4) Where is the research shallow — summarizing instead of analyzing?"
 
-Two models, two angles. Gemini validates analysis. DeepSeek hunts coverage gaps. If DeepSeek finds a real gap, loop back to Step 3 (counts toward max 2 loops).
+Two models, two angles. Gemini (senior) validates analysis. DeepSeek (mid) hunts gaps and offers opinionated takes. **DeepSeek's opinionated or load-bearing claims do NOT enter findings until Gemini validates them** — if DeepSeek asserts something strong, run a short Gemini pass to confirm or refute before it counts. Gemini owns the final call. If DeepSeek finds a real gap, loop back to Step 3 (counts toward max 2 loops).
 
 ### Step 7: Document (YOU — No OpenRouter)
+
+**Breadth check (do this BEFORE writing findings).** Research fails quietly when it tunnels on ONE central theme. Force **2-3 distinct themes/angles** in Key Findings, not one idea with variations. Before finalizing, ask: *"What would someone who only read my lead theme MISS?"* — then go fill that. (Example: asked about OpenVera, the lazy answer tunnels on memory/context and misses that the research pipeline, the safety gates, and the build loop are equally the point.) If every finding orbits one idea, you tunneled — widen before documenting.
 
 **Output routing:** If invoked by `/build` or a project slug exists at `{paths.projects_dir}/<slug>/`, write to `{paths.projects_dir}/<slug>/research/<topic-slug>-research.md`. Otherwise (standalone research), write to `{paths.research_output_dir}/<topic-slug>-research.md`.
 

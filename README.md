@@ -20,23 +20,20 @@
 
 ---
 
-OpenVera is a personal AI workbench you open in [Claude Code](https://docs.anthropic.com/en/docs/claude-code). It keeps a running memory of your work, researches before it builds, ships a first version you can use the same day, and carries what it learns into the next session.
+OpenVera is a personal AI workbench you open in Claude Code.
 
-It runs on persistent memory, reusable skills, research tools, and behavioral patterns. Your fiftieth coding session is better than your first.
+Most AI coding setups forget everything between sessions. You re-explain context, lose the thread, start cold. OpenVera doesn't. It keeps your work in files on disk: state, decisions, patterns, lessons. Session fifty starts where session one left off.
 
-**Two entry points, depending on where you are:**
+It researches before it builds. /scout checks Reddit and YouTube for what real people hit. /research runs a multi-model pass with a source registry, so claims are checkable. External findings stay untrusted: extract the technique, verify before you adopt. Then a rough idea becomes a working V0 the same day. Run /start-vague with a half-formed thought, or /build new when you can name it in a sentence. The build runs in resumable slices, so you can stop for the night and run /build continue.
 
-- **`/start-vague <vague idea>`** when the idea isn't sharp yet. Walks scoping questions, scouts the space for existing tools, hands off a buildable bet.
-- **`/build new <ready idea>`** when you know what you want. 2-4 short scoping questions, then autonomous: research → design → build loop → first-paint check → 🐘 ship summary in ~10-20 min.
-
-Most Claude Code setups are stateless. Every conversation starts cold. OpenVera doesn't. Four things keep the build flow getting better session after session:
-
-- **Running state file** that picks up where the last session ended
-- **Pattern library** that grows from real mistakes, so the same gotcha doesn't bite twice
-- **Skills that improve their own instructions** over time
-- **Standardized output** so every build produces the same files (idea, spec, working code, screenshot) and you always know where to look
+Before you commit, something that isn't you pushes back. /panel reviews your plan for blind spots. Validator and reviewer agents check the code as it's built. A separate model scores the result. And when a skill underperforms, /improve scores it and rewrites that skill's own instructions. The workbench gets better the more you use it.
 
 The model is the same. The workbench is what wins.
+
+Two ways in, depending on where you are:
+
+- **`/start-vague`** when the idea isn't sharp yet. It asks a few questions, scouts for tools that already exist, and hands off something you can build.
+- **`/build new`** when you can name it in a sentence. 2-4 quick questions, then it runs on its own: research, design, build loop, first-paint check, ship summary in ~10-20 min.
 
 ## Get Started
 
@@ -60,17 +57,24 @@ cd openvera
 ./bootstrap.sh
 ```
 
-Either way, the bootstrap asks your name and optional API keys, fills in the templates, runs a health check, and prints next steps. After that, Claude boots into OpenVera automatically whenever you open this folder with `claude`.
+Either way, the bootstrap asks your name and optional API keys, fills in the templates, and runs a health check. At the end it offers to open Claude Code for you, so just press Enter. If you'd rather start it yourself:
+
+```bash
+cd openvera    # or the path you chose
+claude
+```
+
+Then run `/start-vague` or `/build new`. Once you're in, Claude boots into OpenVera automatically whenever you open this folder.
 
 ## Why It's Built This Way
 
-A few choices drive the rest:
+A few decisions that shape everything else:
 
 - **Files over chat.** State, memory, and patterns live as files on disk, not in the conversation. If it's not in a file, it doesn't survive a reboot.
-- **Three-tier context.** Core (~300 lines) loads every session. Recall loads on demand. Archival is search-only. The context window doesn't fill up with stuff that isn't relevant right now.
-- **Skills load lazy.** A skill is just a name and a one-line description in the system prompt. The full instructions only load when you invoke `/<command>`. You can have 50 skills without paying token cost for the 49 you didn't use.
+- **Three-tier context.** Core (~300 lines) loads every session. Recall loads on demand. Archival is search-only. The context window doesn't fill up with things that aren't relevant right now.
+- **Skills load lazy.** Each skill sits in the system prompt as just its name and a one-line description, a few words of context. The full instructions load only when you invoke `/<command>`. So you can keep 50 skills on hand and pay the token cost for the one you actually run, not the 49 you didn't. A big toolbox that stays cheap to carry.
 - **State on disk, not in the model.** Every skill reads and writes the same files (`state.md`, `ROADMAP.md`, `MEMORY.md`, `patterns.md`). Session 50 sees what session 1 wrote.
-- **Research before code, not as code.** Most "build it" tools start coding immediately. OpenVera runs `/scout` or `/research` first. Reddit and YouTube for what real people actually hit, multi-model synthesis via OpenRouter for blind spots a single model misses, sourced paper output so claims are checkable. Cheap when a quick recon is enough (~$0.10 scout, 2-3 min), thorough when the decision deserves it (~$0.50 research with 8 steps and a source registry). External findings are treated as untrusted data: extract techniques, not artifacts. Verify packages and env vars before adopting anything a model recommends.
+- **Research before code, not as code.** Most build tools start coding immediately. OpenVera runs `/scout` or `/research` first. `/scout` is a 2-3 minute recon (~$0.10): Reddit and YouTube for what real people hit. `/research` goes deep (~$0.50): 8 steps, multiple models for blind spots one model misses, a source registry so claims are checkable. Either way, external findings stay untrusted. Extract the technique, verify packages and env vars before you adopt.
 
 ## What's In Here
 
@@ -82,7 +86,7 @@ When Claude opens this workspace, `CLAUDE.md` loads context in three tiers:
   <img src="assets/boot-sequence.png" alt="Three-tier context loading: Core loads every session, Recall loads on demand, Archival is search-only" width="860">
 </p>
 
-Core loads every session (~300 lines). Recall loads when relevant. Archival stays on disk until you search for it. This keeps the context window from filling up with stuff Claude doesn't need right now.
+Core loads every session (~300 lines). Recall loads when relevant. Archival stays on disk until you search for it. This keeps the context window from filling up with things Claude doesn't need right now.
 
 ### Memory
 
@@ -126,7 +130,7 @@ Costs below are typical USD ranges per invocation. Paid skills spend on OpenRout
 | `/consult <decision>` | Simulates a panel of domain experts, gives you one recommendation | Free |
 | `/frame` | Generates a design system, architecture diagrams, wireframes | Free |
 | `/wireframe-first` | Sketches one screen in plain text and gets your sign-off before any code | Free |
-| `/panel [path]` | Pressure-test the bet before `/build`. 2 domain reviewers (read-only, clean-context) scan for blind spots: what's stated, missing, assumed. Confirmation-bias prevention. | Free |
+| `/panel [path]` | Pressure-test your idea before `/build`. 2 domain reviewers (read-only, clean-context) scan for blind spots: what's stated, missing, assumed. Confirmation-bias prevention. | Free |
 | `/advisor [decision]` | Checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. | Free |
 | `/code-review [path]` | Clean-context reviewer scans a path or diff, returns tiered findings | Free |
 | `/build new <idea>` | V0: idea to working app (resumable across sessions via state file) | ~$0.12 (scoring) |
@@ -224,10 +228,11 @@ The only scripts that touch the network are the three you'd expect: `openrouter.
 Install-time exceptions: `git clone` pulls the repo, `pip install` fetches Python deps, and if you paste an API key into bootstrap it gets verified with a one-shot call (OpenRouter `GET /auth/key`, Google AI `GET /v1beta/models`). Skip the prompts to skip the calls.
 
 **Works without keys:**
-`/start-vague`, `/consult`, `/frame`, `/advisor`, `/curate`, `/doc-sync`. `/scout` works for Reddit + web with no key. YouTube discovery needs OpenRouter; YouTube video analysis needs a Google AI key.
+`/start-vague`, `/consult`, `/frame`, `/wireframe-first`, `/panel`, `/advisor`, `/code-review`, `/curate`, `/doc-sync`. `/scout` covers web search with no key.
 
-**What degrades without keys:**
-- `/build` still ships, but the external scoring step is skipped (the rival-model quality gate). You still get validator + reviewer agents.
+**What needs a key:**
+- `/scout`: web search needs no key. Reddit and YouTube run through OpenRouter, so those need one. Video analysis also needs a Google AI key.
+- `/build` still ships, but the external scoring step is skipped (the rival-model quality gate). You still get the validator and reviewer agents.
 - `/improve` needs OpenRouter for its scoring loop.
 - `/research` needs OpenRouter for its multi-model calls.
 

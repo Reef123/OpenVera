@@ -747,40 +747,30 @@ V1-facing codification stage. Generates `handoff.md` (project-root V0→V1 contr
    ```markdown
    🐘 V0 shipped — <Project Name>. Score <X.X>/5.0.
 
-   **Run it:**
-     cd {paths.projects_dir}/<slug>/<scaffold-subdir>
-     <run command from CLAUDE.md>
-     → http://localhost:<port>
-
-   **What you'll see on first paint** (verified by Vera at <timestamp>):
-   - <Hero metric with REAL value from step-6 paint check — e.g. "Hero: 1 build shipped">
-   - <Primary list with REAL row count — e.g. "Project list: 6 rows, 1 shipped / 4 building / 1 stalled">
-   - <Secondary panel — e.g. "Recent builds: 1 row from today">
-
    **What got built:**
    - Stack: <one-line summary>
    - Lives at: <abs path>
 
-   **Run `/build full <slug>` next** to upgrade. Top V1 candidates:
-   - **<Cut #1>** — <one-line reason this is the top V1 add>
-   - **<Cut #2>** — <one-line>
-   - **<Cut #3>** — <one-line>
+   **First paint** (Vera checked at <timestamp>):
+   - <Hero metric with REAL value from step-6 paint check, e.g. "Hero: 1 build shipped">
+   - <Primary list with REAL row count, e.g. "Project list: 6 rows, 1 shipped / 4 building / 1 stalled">
+   - <Secondary panel, e.g. "Recent builds: 1 row from today">
 
-   **Verified in V0:**
-   - <2-3 concrete passes from .build/validation.md>
+   **Next: three things you can do.**
 
-   **Unverified — test before /build full:**
-   - <1-2 biggest unknowns from v1-checklist.md>
+   🐘 **Try it.** `cd {paths.projects_dir}/<slug>/<scaffold-subdir>`, run `<run command from CLAUDE.md>`, open it at http://localhost:<port>. Click around and see if it holds up.
 
-   Full V1 checklist → <slug>/v1-checklist.md
-   V1 contract → <slug>/handoff.md *(what V1 must preserve, plus what V0 did NOT prove)*
+   🐘 **Capture your thoughts.** Type `retro` once you've had a look, minutes or days from now. I'll ask two quick questions. That's what makes your next build smarter.
 
-   When you've had a look, type `retro` and I'll ask a couple quick questions. No rush — minutes, hours, or days from now.
+   🐘 **Take it further.** Run `/build full <slug>` to build past V0. Top candidates: <Cut #1>, <Cut #2>, <Cut #3>.
+
+   Verified in V0: <2-3 concrete passes from .build/validation.md>. Test before `/build full`: <1-2 biggest unknowns from v1-checklist.md>.
+   Full V1 checklist → <slug>/v1-checklist.md · V1 contract → <slug>/handoff.md *(what V1 must preserve, plus what V0 did NOT prove)*
    ```
 
-   **For static / CLI / API / library projects**, swap the "Run it" block to match the project shape:
-   - **Static:** `open <absolute path to index.html>` (single line)
-   - **CLI / API / library:** `cd {paths.projects_dir}/<slug>` + the run/entry command (e.g. `python -m app`, `./bin/cli`, `npm test`). Omit the localhost URL and "What you'll see on first paint" section; replace with **"What it does when you run it"** (parsed command output preview from step 6's CLI fallback).
+   **For static / CLI / API / library projects**, adapt the **Try it** bullet to the project shape:
+   - **Static:** `open <absolute path to index.html>`
+   - **CLI / API / library:** `cd {paths.projects_dir}/<slug>` + the run/entry command (e.g. `python -m app`, `./bin/cli`, `npm test`). Drop the localhost URL from the Try-it bullet and the **First paint** section; replace First paint with **"What it does when you run it"** (parsed command output preview from step 6's CLI fallback).
 
    **V1 candidate ranking** (the "Top V1 candidates" section, 3 max):
    1. Items the step-6 paint check exposed as visible gaps go FIRST

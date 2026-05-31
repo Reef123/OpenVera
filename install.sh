@@ -102,9 +102,18 @@ if [[ -t 1 ]]; then
   echo ""
 fi
 
-if [[ "$TARGET" == "." ]]; then
-  echo "  Next:  claude"
+# Offer to launch straight into OpenVera. curl|bash users aren't in the folder
+# yet, so opening it for them removes the most-missed step. Needs a real
+# terminal (test by opening /dev/tty, not [[ -r ]]) and the claude CLI.
+if [[ "$TARGET" == "." ]]; then NEXT="claude"; else NEXT="cd $TARGET && claude"; fi
+
+if ( : < /dev/tty ) 2>/dev/null && command -v claude >/dev/null 2>&1; then
+  printf "  Open OpenVera now? [Y/n] " > /dev/tty
+  read -r REPLY < /dev/tty || REPLY=""
+  case "${REPLY:-y}" in
+    [nN]*) echo "  When you're ready:  $NEXT   (then run /start-vague)" ;;
+    *)     echo "  Launching Claude Code..."; exec claude < /dev/tty ;;
+  esac
 else
-  echo "  Next:  cd $TARGET && claude"
+  echo "  Next:  $NEXT   (then run /start-vague)"
 fi
-echo "         then run /start-vague"
