@@ -33,6 +33,9 @@ jobs:
             python3 -c "import json,sys; json.load(open(sys.argv[1])); print(sys.argv[1], 'ok')" "$f"
           done
 
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+
       - name: shellcheck
         run: shellcheck install.sh bootstrap.sh
 
