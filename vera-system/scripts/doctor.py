@@ -266,7 +266,13 @@ if state_file.exists():
     else:
         note(f"state.md modified {age_days} day(s) ago")
 else:
-    error("state.md missing")
+    template = SYSTEM_DIR / "state.md.template"
+    if bootstrapped.exists():
+        error("state.md missing (harness is bootstrapped — it should exist)")
+    elif template.exists():
+        note("state.md not created yet (made from state.md.template at bootstrap)")
+    else:
+        error("state.md missing and no state.md.template to bootstrap from")
 
 
 # --- Check 7: Curate freshness ---
