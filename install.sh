@@ -25,7 +25,7 @@ REPO_URL="https://github.com/Reef123/OpenVera.git"
 # Openvera/openvera.
 if [[ $# -ge 1 ]]; then
   TARGET="$1"
-elif [[ -z "$(ls -A . 2>/dev/null)" ]]; then
+elif [[ -z "$(ls -A . 2>/dev/null | grep -vE '^(\.DS_Store|Thumbs\.db|\.localized|desktop\.ini)$')" ]]; then
   TARGET="."
 else
   TARGET="openvera"
