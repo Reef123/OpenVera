@@ -17,6 +17,20 @@ set -euo pipefail
 
 REPO_URL="https://github.com/Reef123/OpenVera.git"
 
+# True if cwd has no entries other than OS junk (Finder writes .DS_Store the moment
+# a folder is opened, so a freshly-made folder isn't empty per `ls -A`).
+# Subshell body keeps the shopt changes local; glob handles non-alphanumeric names.
+dir_is_effectively_empty() (
+  shopt -s nullglob dotglob
+  for entry in *; do
+    case "$entry" in
+      .DS_Store|Thumbs.db|.localized|desktop.ini) continue ;;
+      *) return 1 ;;
+    esac
+  done
+  return 0
+)
+
 # Target directory:
 #   explicit arg  -> use it
 #   empty cwd     -> install in place (user already made/entered a folder for it)
@@ -25,7 +39,7 @@ REPO_URL="https://github.com/Reef123/OpenVera.git"
 # Openvera/openvera.
 if [[ $# -ge 1 ]]; then
   TARGET="$1"
-elif [[ -z "$(ls -A . 2>/dev/null | grep -vE '^(\.DS_Store|Thumbs\.db|\.localized|desktop\.ini)$')" ]]; then
+elif dir_is_effectively_empty; then
   TARGET="."
 else
   TARGET="openvera"
