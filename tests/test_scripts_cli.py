@@ -82,5 +82,52 @@ class TelemetryTests(unittest.TestCase):
         self.assertIn("outcome must be", result.stderr)
 
 
+class PromotionsCliTests(unittest.TestCase):
+    """Runs against the real repo; promotions.tsv is snapshotted around any
+    test that could write it."""
+
+    LEDGER = _REPO_ROOT / "vera-system" / "memory" / "promotions.tsv"
+
+    def test_check_runs_clean_against_repo(self):
+        result = _run("curate-mode.py", "promotions", "check")
+        self.assertEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_record_missing_args_exit_2(self):
+        result = _run("curate-mode.py", "promotions", "record")
+        self.assertEqual(result.returncode, 2)  # argparse usage error
+
+    def test_record_empty_match_rejected(self):
+        before = self.LEDGER.read_text() if self.LEDGER.exists() else None
+        try:
+            result = _run("curate-mode.py", "promotions", "record",
+                          "--match", "\t\n", "--pattern", "x")
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("empty after sanitization", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+            after = self.LEDGER.read_text() if self.LEDGER.exists() else None
+            self.assertEqual(before, after)  # no row written
+        finally:
+            if before is None and self.LEDGER.exists():
+                self.LEDGER.unlink()
+
+
+class LoopReportTests(unittest.TestCase):
+    def test_runs_clean_and_prints_headline(self):
+        tsv = _REPO_ROOT / "vera-system" / "runs" / "loop-report.tsv"
+        before = tsv.read_text() if tsv.exists() else None
+        try:
+            result = _run("loop-report.py")
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("Loop report", result.stdout)
+            self.assertNotIn("Traceback", result.stderr)
+        finally:
+            if before is None:
+                if tsv.exists():
+                    tsv.unlink()
+            else:
+                tsv.write_text(before)
+
+
 if __name__ == "__main__":
     unittest.main()

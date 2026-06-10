@@ -15,6 +15,8 @@ Helper scripts called by skills, hooks, and the bootstrap.
 | `doc-sync-cascade.py` | Detect file changes and which docs need cascade updates. |
 | `doc-sync-gap.py` | Detect time gap since last session. |
 | `doc-sync-todos.py` | Surface unfinished TODOs from conversation logs. |
+| `curate-mode.py` | Deterministic /curate helpers: mode, graduation, age, sizes, promotions record/check (the promotion ledger in `memory/promotions.tsv`). |
+| `loop-report.py` | Print a learning-loop report (lessons, promotions, telemetry, harness commits) and append a trend row to `runs/loop-report.tsv`. |
 
 `bootstrap.sh` lives at the repo root, not here — it bootstraps the entire workspace, not just `vera-system/`.
 

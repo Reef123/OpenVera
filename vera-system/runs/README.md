@@ -8,4 +8,6 @@ Schema (TSV):
 timestamp	session	skill	project	sources	outcome	score	latency_s	cost_usd	failure_mode	note
 ```
 
+`loop-report.tsv` uses its own summary schema (one row per /curate run); see `scripts/loop-report.py`.
+
 `*.tsv` files in this directory are gitignored — they're your local run history, not part of the harness source.

@@ -323,6 +323,7 @@ KNOWN_SCRIPTS = {
     "doc-sync-todos.py",
     "doctor.py",
     "frontmatter.py",
+    "loop-report.py",
     "manifest-update.py",
     "openrouter.py",
     "palette-pick.py",

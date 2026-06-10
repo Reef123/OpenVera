@@ -16,7 +16,7 @@ Review memory files, clean what's stale or duplicated, report what changed.
 0. **Acquire the curate lock FIRST:** `touch .claude/.curate-running`. While it exists (and is under 60 min old), the PostToolUse mark-dirty hook skips — so curate's own writes don't re-arm the doc-sync gates for work curate commits itself. Remove it at the very end (after the timestamp write): `rm -f .claude/.curate-running`.
 1. **Git commit BEFORE making changes.** `pre-curate: save current state`. If clean, skip.
 2. **Git commit AFTER changes.** `curate: [one-line summary]`.
-3. **Never modify curated pattern files.** `patterns.md` is hand-curated. Flag issues in report only. (`lessons.md` is the machine lane — curate MAY prune it, see the Lessons Scan.)
+3. **Never modify curated pattern files.** `patterns.md` is hand-curated. Flag issues in report only. (`lessons.md` and `memory/promotions.tsv` are the machine lane — curate MAY prune lessons.md and the promotions scripts write the ledger, see the Lessons Scan.)
 4. **Never delete history.** Conversation files are archival.
 5. **Conservative by default.** When in doubt, keep the entry and flag for human review.
 6. **Stamp every doc you touch.** After any write, run `python3 vera-system/scripts/stamp.py <file> /curate`. Applies to state.md, MEMORY.md, user.md.
@@ -146,10 +146,27 @@ Do NOT auto-edit `status`. The user decides per project.
 
 ### 6.6. Lessons Promotion Scan
 
-Read `vera-system/memory/lessons.md` (machine-appended by /build failures and doc-sync course corrections):
+Read `vera-system/memory/lessons.md` (machine-appended by /build failures and doc-sync course corrections). Run the sub-steps IN THIS ORDER. The order is load-bearing: sub-step (d) deletes the lines that (a) and (b) need as evidence. Never run (d) first.
 
-- **3+ lines describing the same lesson** → add to FLAGGED FOR REVIEW: "Recurring lesson: [summary] — appeared [N] times. Promote to patterns.md?" Never auto-edit patterns.md (Safety Rule 3).
-- **Prune:** delete lines already promoted to patterns.md, and one-off lines older than ~10 sessions that never recurred. lessons.md is a capture lane, not an archive — keep it under its line cap.
+**(a) Check past promotions.** Run:
+
+```bash
+python3 vera-system/scripts/curate-mode.py promotions check
+```
+
+Fold every RECURRED and FAILED line into FLAGGED FOR REVIEW as: "Promotion FAILED: '<match>' recurred <n> times since <date>. The pattern text is not preventing recurrence; candidate for mechanical enforcement (hook, doctor check, or script gate)." CLEAN and VALIDATED lines need no action. NO_PROMOTIONS means nothing has been promoted yet; continue.
+
+**(b) Record new promotions.** For each lesson group this skill previously flagged for promotion, check whether patterns.md now covers it (the human promoted it since last run). For each one it does, run:
+
+```bash
+python3 vera-system/scripts/curate-mode.py promotions record --match "<keyword>" --pattern "<patterns.md heading>"
+```
+
+Pick the keyword with judgment: a short literal phrase (2 to 4 words) that appears verbatim in each line of the recurring group and is unlikely to appear in unrelated lessons. Avoid generic single words like "build" or "error". The script does deterministic case-insensitive substring matching from here on. If record exits nonzero, do NOT prune that group in sub-step (d); leave the lines as evidence for next run and note the failure in the report.
+
+**(c) Flag new recurrences.** 3+ lines describing the same lesson: add to FLAGGED FOR REVIEW: "Recurring lesson: [summary], appeared [N] times. Promote to patterns.md?" Never auto-edit patterns.md (Safety Rule 3).
+
+**(d) Prune, evidence-aware.** Delete lines already promoted to patterns.md ONLY if dated on or before their promotion date in promotions.tsv, and one-off lines older than ~10 sessions that never recurred. NEVER delete a line that matches a promotion keyword and is dated after the promotion date: those lines are active recurrence evidence that `promotions check` reads next run, and deleting them silently converts a FAILED promotion into a fake VALIDATED one. lessons.md is a capture lane, not an archive; keep it under its line cap.
 
 ### 7. Skill-from-Experience
 
@@ -205,6 +222,8 @@ Write current date to `.claude/last-curate-date`.
 
 ### 12. Report
 
+Run `python3 vera-system/scripts/loop-report.py` and paste its output under the LOOP heading. It appends a trend row to `vera-system/runs/loop-report.tsv` on its own.
+
 Output to console and update `vera-system/state.md`:
 
 ```
@@ -220,6 +239,9 @@ FLAGGED FOR REVIEW
   - [capability scan matches — feature X obsoletes workaround Y, both quoted]
   - [recurring patterns worth extracting as skills]
   - [user profile updates suggested]
+
+LOOP
+  [loop-report.py output: headline plus sections]
 
 HARNESS HEALTH
   [doctor summary]

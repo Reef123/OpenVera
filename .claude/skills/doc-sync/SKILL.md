@@ -69,6 +69,14 @@ Output includes the next session number.
 
 For every Course Corrections row marked "Yes", append a one-line dated lesson to `vera-system/memory/lessons.md` (shape: `- YYYY-MM-DD [context] lesson`). That file is the machine-appendable capture lane; /curate promotes lessons that recur 3+ times to patterns.md with human review. Without this write, corrections evaporate at reboot.
 
+If `patterns.md` gained an entry this session (the user approved a promotion in conversation), record it now so /curate can verify the pattern actually works:
+
+```bash
+python3 vera-system/scripts/curate-mode.py promotions record --match "<2-4 word phrase from the recurring lessons>" --pattern "<patterns.md heading>"
+```
+
+Skip for pattern entries that did not come from recurring lessons (nothing to verify against). An unrecorded promotion is invisible to validation: the ledger never learns it exists, so it can silently fail.
+
 Create `conversations/NNN-YYYY-MM-DD.md` (session number from Step 1):
 
 ```markdown
