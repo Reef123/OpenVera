@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1350" viewBox="0 0 1200 675">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#8B5A3C"/>
+    </marker>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="675" fill="#FBF8F2"/>
+
+  <!-- brand -->
+  <text x="60" y="72" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="bold" fill="#3A2418">&#128024; OpenVera</text>
+
+  <!-- title block -->
+  <text x="60" y="218" font-family="Georgia, 'Times New Roman', serif" font-size="44" font-weight="bold" fill="#3A2418">The harness loop</text>
+  <text x="60" y="262" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#3A2418" opacity="0.85">Most loops automate. Few learn.</text>
+  <text x="60" y="296" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#3A2418" opacity="0.85">The difference is whether each cycle</text>
+  <text x="60" y="324" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#3A2418" opacity="0.85">changes the loop itself.</text>
+
+  <!-- tagline pill -->
+  <rect x="60" y="370" width="238" height="40" rx="20" fill="none" stroke="#C89B3C" stroke-width="2.5"/>
+  <text x="179" y="396" font-family="Helvetica Neue, Arial, sans-serif" font-size="18" font-weight="bold" fill="#3A2418" text-anchor="middle" letter-spacing="1">capture, then curate</text>
+
+  <!-- footer link -->
+  <text x="60" y="618" font-family="Georgia, 'Times New Roman', serif" font-size="18" font-style="italic" fill="#8B5A3C">Models get replaced. The harness gets smarter.</text>
+
+  <!-- loop arcs (clockwise), center 790,360 r 215 -->
+  <path d="M 891 170 A 215 215 0 0 1 985 269" fill="none" stroke="#8B5A3C" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M 980 461 A 215 215 0 0 1 891 550" fill="none" stroke="#8B5A3C" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M 689 550 A 215 215 0 0 1 600 461" fill="none" stroke="#8B5A3C" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M 600 259 A 215 215 0 0 1 689 170" fill="none" stroke="#8B5A3C" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- center glyph -->
+  <text x="790" y="385" font-family="Helvetica Neue, Arial, sans-serif" font-size="42" text-anchor="middle">&#128024;</text>
+
+  <!-- BUILD (top) -->
+  <text x="790" y="88" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" fill="#3A2418" opacity="0.65" text-anchor="middle">real work, every session</text>
+  <rect x="695" y="109" width="190" height="62" rx="14" fill="#FFFDF7" stroke="#3A2418" stroke-width="2.5"/>
+  <text x="790" y="148" font-family="Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="bold" fill="#3A2418" text-anchor="middle" letter-spacing="2">BUILD</text>
+
+  <!-- CAPTURE (right) -->
+  <rect x="960" y="329" width="190" height="62" rx="14" fill="#FFFDF7" stroke="#3A2418" stroke-width="2.5"/>
+  <text x="1055" y="368" font-family="Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="bold" fill="#3A2418" text-anchor="middle" letter-spacing="2">CAPTURE</text>
+  <rect x="1066" y="310" width="76" height="27" rx="13.5" fill="#C89B3C"/>
+  <text x="1104" y="329" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold" fill="#3A2418" text-anchor="middle">forced</text>
+  <text x="1055" y="416" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" fill="#3A2418" opacity="0.65" text-anchor="middle">a session can't end until</text>
+  <text x="1055" y="436" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" fill="#3A2418" opacity="0.65" text-anchor="middle">lessons are written back</text>
+
+  <!-- CURATE (bottom) -->
+  <rect x="695" y="549" width="190" height="62" rx="14" fill="#FFFDF7" stroke="#3A2418" stroke-width="2.5"/>
+  <text x="790" y="588" font-family="Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="bold" fill="#3A2418" text-anchor="middle" letter-spacing="2">CURATE</text>
+  <rect x="836" y="530" width="78" height="27" rx="13.5" fill="#8B5A3C"/>
+  <text x="875" y="549" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold" fill="#FBF8F2" text-anchor="middle">judged</text>
+  <text x="790" y="637" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" fill="#3A2418" opacity="0.65" text-anchor="middle">only what recurs survives</text>
+
+  <!-- PROMOTE (left) -->
+  <rect x="430" y="329" width="190" height="62" rx="14" fill="#FFFDF7" stroke="#3A2418" stroke-width="2.5"/>
+  <text x="525" y="368" font-family="Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="bold" fill="#3A2418" text-anchor="middle" letter-spacing="2">PROMOTE</text>
+  <text x="525" y="416" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" fill="#3A2418" opacity="0.65" text-anchor="middle">lessons become patterns,</text>
+  <text x="525" y="436" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" fill="#3A2418" opacity="0.65" text-anchor="middle">patterns become code</text>
+</svg>
