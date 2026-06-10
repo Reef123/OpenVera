@@ -223,7 +223,7 @@ To change paths or the default LLM model, edit `vera-system/config.json`.
 
 **After install, OpenVera makes no network calls on its own.** No phone-home, and nothing leaves your machine (any run logs stay local in `vera-system/runs/`). Hooks and the harness itself are local-only. Audit them yourself in `.claude/hooks/` and `vera-system/scripts/`.
 
-The only scripts that touch the network are the three you'd expect: `openrouter.py` (multi-model research), `reddit-fetch.py` (community recon), `youtube-analyze.py` (video analysis). All run only when a skill you invoked calls them.
+The only scripts that touch the network are the two you'd expect: `openrouter.py` (multi-model research and web-grounded search) and `youtube-analyze.py` (video analysis). Both run only when a skill you invoked calls them.
 
 Install-time exceptions: `git clone` pulls the repo, `pip install` fetches Python deps, and if you paste an API key into bootstrap it gets verified with a one-shot call (OpenRouter `GET /auth/key`, Google AI `GET /v1beta/models`). Skip the prompts to skip the calls.
 

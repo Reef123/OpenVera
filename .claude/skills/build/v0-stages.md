@@ -46,6 +46,14 @@ Working V0 in your browser by the end of this session. Not production. 2-4 short
 
 **Voice rules:** read `relationships/user.md` for the name (fall back to "you"). Skip the opener if `voice.md`/`user.md` are missing AND the user clearly knows what /build does (referenced prior builds). On a true first-time `/build new`, always print it.
 
+**Key preflight (mechanical, no user stop):** run `python3 vera-system/scripts/openrouter.py --verify`. If it fails (no key, bad key, network), append one line to the opener so the user learns NOW, not at the end of the build:
+
+```
+Heads up: no working OpenRouter key, so this V0 ships unscored (the external judge in Stage 3 gets skipped). Add a key to vera-system/.secrets anytime to enable it.
+```
+
+Then proceed normally — nothing else about the build changes.
+
 ---
 
 ### Frame (one free-text partner check before the design tree)
@@ -536,7 +544,16 @@ supervisor (you):
   spawn validator agent:
     Agent(subagent_type: "validator", prompt: "Validate project at {project_path} using {method} (browser|command|tests). Contract at: {project_path}/.build/contract.md. Check each acceptance criterion. Write results to {project_path}/.build/validation.md")
     ↓
-  if validator reports FAIL → fix, re-validate
+  if validator reports FAIL → check memory FIRST, then fix, re-validate
+    BEFORE diagnosing from scratch: grep vera-system/memory/lessons.md and
+    vera-system/memory/patterns.md for the error signature (the failing
+    criterion, the error text, the component type). A past build may have
+    already paid for this fix — apply the known fix first.
+    AFTER the fix lands: if the cause was non-obvious or could recur, append
+    one dated line to vera-system/memory/lessons.md
+    (shape: - YYYY-MM-DD [build/<slug>] <one-line lesson>).
+    Five builds hitting the same bug should produce one pattern, not five
+    isolated diagnoses — this line is what compounds.
     if FAIL again on same component with same intent-mismatch → STOP fixing code.
     Read .claude/skills/wireframe-first/SKILL.md and walk it on this screen.
     Re-build only against the ratified spec.

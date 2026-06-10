@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.py\""
+            "command": "if command -v python3 >/dev/null 2>&1; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.py\"; elif command -v python >/dev/null 2>&1; then python \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.py\"; else py \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.py\"; fi"
           }
         ]
       }
@@ -56,7 +56,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-end-reminder.py\""
+            "command": "if command -v python3 >/dev/null 2>&1; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-end-reminder.py\"; elif command -v python >/dev/null 2>&1; then python \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-end-reminder.py\"; else py \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-end-reminder.py\"; fi"
           }
         ]
       }
@@ -66,7 +66,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\""
+            "command": "if command -v python3 >/dev/null 2>&1; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\"; elif command -v python >/dev/null 2>&1; then python \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\"; else py \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\"; fi"
           }
         ]
       }
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\""
+            "command": "if command -v python3 >/dev/null 2>&1; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\"; elif command -v python >/dev/null 2>&1; then python \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\"; else py \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\"; fi"
           }
         ]
       }
@@ -87,7 +87,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\""
+            "command": "if command -v python3 >/dev/null 2>&1; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\"; elif command -v python >/dev/null 2>&1; then python \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\"; else py \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\"; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v python3 >/dev/null 2>&1; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-doc-sync-gate.py\"; elif command -v python >/dev/null 2>&1; then python \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-doc-sync-gate.py\"; else py \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-doc-sync-gate.py\"; fi"
           }
         ]
       }

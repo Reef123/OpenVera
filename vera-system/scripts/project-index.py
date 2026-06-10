@@ -24,14 +24,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SYSTEM_DIR = SCRIPT_DIR.parent
 REPO_ROOT = SYSTEM_DIR.parent
 
-# Load config for paths
-config_path = SYSTEM_DIR / "config.json"
-if config_path.exists():
-    with open(config_path) as f:
-        config = json.load(f)
-    PROJECTS_DIR = REPO_ROOT / config["paths"]["projects_dir"]
-else:
-    PROJECTS_DIR = REPO_ROOT / "vera-projects" / "projects"
+# vera_config.load_config never raises — malformed or partial config.json
+# falls back to defaults instead of crashing the index build.
+sys.path.insert(0, str(SCRIPT_DIR))
+from vera_config import get_path  # noqa: E402
+
+PROJECTS_DIR = REPO_ROOT / get_path("projects_dir")
 
 RUNS_DIR = SYSTEM_DIR / "runs"
 

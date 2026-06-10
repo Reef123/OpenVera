@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-If you find a security issue in Vera — prompt injection vector, a skill that can exfiltrate secrets, a script that takes unvalidated input into a shell — open a [GitHub private vulnerability report](https://github.com/Reef123/OpenVera/security/advisories/new) or DM [@shareefatwork](https://x.com/shareefatwork).
+If you find a security issue in Vera (a prompt injection vector, a skill that can exfiltrate secrets, a script that takes unvalidated input into a shell), open a [GitHub private vulnerability report](https://github.com/Reef123/OpenVera/security/advisories/new) or DM [@shareefatwork](https://x.com/shareefatwork).
 
 I'll respond within a week. For anything time-sensitive, say so in the report.
 

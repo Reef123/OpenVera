@@ -328,7 +328,6 @@ KNOWN_SCRIPTS = {
     "palette-pick.py",
     "panel-score.py",
     "project-index.py",
-    "reddit-fetch.py",
     "stamp.py",
     "telemetry.py",
     "vera_config.py",
@@ -363,11 +362,61 @@ if not bootstrap_sh.exists():
     warn("bootstrap.sh missing at repo root")
 
 
+# --- Check 10: Runtime readiness ---
+print("\n[Runtime]")
+
+# Python version — scripts target 3.8+; hooks carry future-imports for 3.9.
+if sys.version_info < (3, 8):
+    warn(f"Python {sys.version_info.major}.{sys.version_info.minor} — scripts need 3.8+; expect failures")
+else:
+    note(f"Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+
+# vera_config importable — most scripts and the hooks' config reads depend on
+# it. An import failure here means the harness is broken everywhere at once.
+sys.path.insert(0, str(SCRIPT_DIR))
+try:
+    import vera_config  # noqa: F401
+    note("vera_config imports")
+except Exception as exc:
+    error(f"vera_config failed to import: {exc} — most scripts will fail. Restore vera-system/scripts/vera_config.py.")
+
+# runs/ writable — telemetry soft-fails when it isn't, so builds keep working,
+# but the run history silently stops accumulating. Surface it here.
+runs_dir = SYSTEM_DIR / "runs"
+try:
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    probe = runs_dir / ".doctor-write-probe"
+    probe.touch()
+    probe.unlink()
+    note("runs/ writable")
+except OSError as exc:
+    warn(f"runs/ not writable ({exc}) — telemetry rows will be dropped")
+
+
+# --- Check 11: Boot-tier file sizes ---
+print("\n[File sizes]")
+try:
+    from vera_config import check_file_sizes
+
+    oversized = check_file_sizes(REPO_ROOT)
+    if not oversized:
+        note("All boot-tier files within line caps")
+    for rel, lines, cap in oversized:
+        if rel.endswith("memory/MEMORY.md"):
+            # Claude Code loads roughly the first 200 lines of MEMORY.md —
+            # past the cap, older entries silently vanish from every boot.
+            error(f"{rel} is {lines} lines (cap {cap}) — entries past the cap are silently truncated at load. Trim or archive now.")
+        else:
+            warn(f"{rel} is {lines} lines (cap {cap}) — archive completed items or promote rarely-used content.")
+except Exception as exc:
+    warn(f"File-size check skipped: {exc}")
+
+
 # --- Summary ---
 print("\n" + "=" * 50)
 if errors:
     print(f"  {len(errors)} error(s), {len(warnings)} warning(s)")
-    print("  Fix errors before using the harness.")
+    print("  Fix errors before using the harness. See RECOVERY.md for fix paths.")
     sys.exit(1)
 elif warnings:
     print(f"  All clear. {len(warnings)} warning(s) to review.")

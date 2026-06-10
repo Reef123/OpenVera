@@ -26,6 +26,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SYSTEM_DIR = SCRIPT_DIR.parent
 REPO_ROOT = SYSTEM_DIR.parent
 
+sys.path.insert(0, str(SCRIPT_DIR))
+from vera_config import validate_slug  # noqa: E402
+
 # Runs directory at repo root (not inside vera-system)
 RUNS_DIR = REPO_ROOT / "vera-system" / "runs"
 
@@ -52,13 +55,16 @@ def main():
         print(f"ERROR: outcome must be one of {VALID_OUTCOMES}", file=sys.stderr)
         sys.exit(1)
 
-    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    # The skill name lands in a filename (runs/<skill>-telemetry.tsv) and
+    # skills auto-approve Bash(scripts/*) — validate it like any slug so a
+    # tainted value can't write outside runs/.
+    try:
+        validate_slug(args.skill)
+    except ValueError as exc:
+        print(f"ERROR: bad skill name: {exc}", file=sys.stderr)
+        sys.exit(1)
+
     tsv_path = RUNS_DIR / f"{args.skill}-telemetry.tsv"
-
-    # Create with header if missing
-    if not tsv_path.exists():
-        tsv_path.write_text(HEADER + "\n")
-
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
     row = "\t".join([
@@ -75,8 +81,17 @@ def main():
         args.note,
     ])
 
-    with open(tsv_path, "a") as f:
-        f.write(row + "\n")
+    # Telemetry is optional — an unwritable runs/ must never abort the skill
+    # that called us (e.g. a build's ship step). Warn and exit 0.
+    try:
+        RUNS_DIR.mkdir(parents=True, exist_ok=True)
+        if not tsv_path.exists():
+            tsv_path.write_text(HEADER + "\n")
+        with open(tsv_path, "a") as f:
+            f.write(row + "\n")
+    except OSError as exc:
+        print(f"WARNING: telemetry not logged ({exc}) — continuing", file=sys.stderr)
+        sys.exit(0)
 
     print(f"Logged: {args.skill} {args.outcome} → {tsv_path.name}")
 

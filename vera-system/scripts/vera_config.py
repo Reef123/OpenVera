@@ -112,6 +112,42 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+# Line caps for the boot-tier files. Claude Code loads roughly the first
+# 200 lines / 25KB of memory files automatically — anything past that is
+# silently truncated, which is worse than bloat. These were advisory prose
+# in .claude/rules/file-size-guard.md; they're enforced here so doctor.py
+# and curate-mode.py share one table. Keys are repo-root-relative paths.
+SIZE_THRESHOLDS = {
+    "vera-system/CLAUDE.md": 150,
+    "vera-system/state.md": 100,
+    "vera-system/memory/patterns.md": 200,
+    "vera-system/memory/MEMORY.md": 200,
+    "vera-system/memory/lessons.md": 150,
+    "vera-system/ROADMAP.md": 150,
+}
+
+
+def check_file_sizes(root: Path = None) -> list:
+    """Check boot-tier files against SIZE_THRESHOLDS.
+
+    Returns a list of (rel_path, line_count, cap) tuples for files OVER
+    their cap. Missing files are skipped (fresh installs). Never raises.
+    """
+    base = root if root is not None else repo_root()
+    over = []
+    for rel, cap in SIZE_THRESHOLDS.items():
+        path = base / rel
+        try:
+            if not path.is_file():
+                continue
+            lines = path.read_text().count("\n") + 1
+        except (OSError, UnicodeDecodeError):
+            continue
+        if lines > cap:
+            over.append((rel, lines, cap))
+    return over
+
+
 def config_path() -> Path:
     return repo_root() / "vera-system" / "config.json"
 

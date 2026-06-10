@@ -48,6 +48,24 @@ user_file = SYSTEM_DIR / "relationships" / "user.md"
 if user_file.exists():
     sections.append(user_file.read_text().strip())
 
+# --- Memory index: what you know (pointers, not content) ---
+# Without this, memory is write-only after compaction — lessons exist on disk
+# but nothing tells the fresh context they're there. The index is capped at
+# 200 lines by the size guard, so this stays cheap.
+memory_index = SYSTEM_DIR / "memory" / "MEMORY.md"
+if memory_index.exists():
+    sections.append(memory_index.read_text().strip())
+
+# --- Latest conversation log (pointer only) ---
+conversations_dir = SYSTEM_DIR / "conversations"
+if conversations_dir.exists():
+    logs = sorted(conversations_dir.glob("[0-9]*.md"))
+    if logs:
+        sections.append(
+            f"LATEST SESSION LOG: {logs[-1]} — decision history; read it if "
+            "you're resuming work that isn't covered by state.md or an active build."
+        )
+
 # --- Active build state (pointer only) ---
 if PROJECTS_DIR.exists():
     build_states = sorted(

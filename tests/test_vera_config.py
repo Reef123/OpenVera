@@ -132,5 +132,57 @@ class SafeProjectPathTests(unittest.TestCase):
             vera_config.safe_project_path("myproj", "..", "..", "..", "etc", "passwd")
 
 
+class ConfigIOTests(unittest.TestCase):
+    """load_config's contract is 'never raises, always falls back to DEFAULTS'.
+    Scripts (project-index, hooks) lean on that — a regression here turns a
+    typo in config.json into a crash everywhere at once."""
+
+    def _with_config(self, content):
+        """Run load_config against a temp config file (or a missing one)."""
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            if content is not None:
+                path.write_text(content)
+            with mock.patch.object(vera_config, "config_path", return_value=path):
+                return vera_config.load_config()
+
+    def test_missing_file_returns_defaults(self):
+        cfg = self._with_config(None)
+        self.assertEqual(cfg, vera_config.DEFAULTS)
+        self.assertIsNot(cfg, vera_config.DEFAULTS)  # a copy, not the shared dict
+
+    def test_malformed_json_returns_defaults(self):
+        cfg = self._with_config("{not json")
+        self.assertEqual(cfg, vera_config.DEFAULTS)
+
+    def test_partial_config_merges_over_defaults(self):
+        cfg = self._with_config('{"llm": {"default_model": "custom/model"}}')
+        # Override wins...
+        self.assertEqual(cfg["llm"]["default_model"], "custom/model")
+        # ...sibling defaults survive the nested merge...
+        self.assertEqual(cfg["llm"]["provider"], vera_config.DEFAULTS["llm"]["provider"])
+        # ...and untouched sections are intact.
+        self.assertEqual(cfg["paths"], vera_config.DEFAULTS["paths"])
+
+    def test_unknown_top_level_keys_pass_through(self):
+        cfg = self._with_config('{"integrations": {"firecrawl": true}}')
+        self.assertEqual(cfg["integrations"], {"firecrawl": True})
+
+    def test_get_path_unknown_key_raises_keyerror(self):
+        with self.assertRaises(KeyError):
+            vera_config.get_path("not_a_real_path_key")
+
+    def test_get_llm_model_unknown_key_raises_keyerror(self):
+        with self.assertRaises(KeyError):
+            vera_config.get_llm_model("not_a_real_model_key")
+
+    def test_get_llm_model_falls_back_to_default(self):
+        # Against the real repo config — must return a non-empty string either way.
+        model = vera_config.get_llm_model("default_model")
+        self.assertTrue(isinstance(model, str) and model)
+
+
 if __name__ == "__main__":
     unittest.main()

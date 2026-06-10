@@ -13,9 +13,10 @@ Review memory files, clean what's stale or duplicated, report what changed.
 
 ## Safety Rules
 
+0. **Acquire the curate lock FIRST:** `touch .claude/.curate-running`. While it exists (and is under 60 min old), the PostToolUse mark-dirty hook skips — so curate's own writes don't re-arm the doc-sync gates for work curate commits itself. Remove it at the very end (after the timestamp write): `rm -f .claude/.curate-running`.
 1. **Git commit BEFORE making changes.** `pre-curate: save current state`. If clean, skip.
 2. **Git commit AFTER changes.** `curate: [one-line summary]`.
-3. **Never modify curated pattern files.** `patterns.md` is hand-curated. Flag issues in report only.
+3. **Never modify curated pattern files.** `patterns.md` is hand-curated. Flag issues in report only. (`lessons.md` is the machine lane — curate MAY prune it, see the Lessons Scan.)
 4. **Never delete history.** Conversation files are archival.
 5. **Conservative by default.** When in doubt, keep the entry and flag for human review.
 6. **Stamp every doc you touch.** After any write, run `python3 vera-system/scripts/stamp.py <file> /curate`. Applies to state.md, MEMORY.md, user.md.
@@ -53,7 +54,7 @@ For MEMORY.md entries:
 ### 3. Update MEMORY.md Index
 
 - Remove lines pointing to deleted files
-- Verify line count stays under 200
+- Run `python3 vera-system/scripts/curate-mode.py sizes` — if MEMORY.md prints OVER, trim until it passes. **Do not commit a curate that leaves MEMORY.md over its cap** — entries past the cap are silently truncated at load time, which is invisible context loss.
 
 ### 4. Git Commit + Timestamp
 
@@ -143,6 +144,13 @@ It prints one line per `live`-candidate: projects with `commits ≥ 3` AND `buil
 
 Do NOT auto-edit `status`. The user decides per project.
 
+### 6.6. Lessons Promotion Scan
+
+Read `vera-system/memory/lessons.md` (machine-appended by /build failures and doc-sync course corrections):
+
+- **3+ lines describing the same lesson** → add to FLAGGED FOR REVIEW: "Recurring lesson: [summary] — appeared [N] times. Promote to patterns.md?" Never auto-edit patterns.md (Safety Rule 3).
+- **Prune:** delete lines already promoted to patterns.md, and one-off lines older than ~10 sessions that never recurred. lessons.md is a capture lane, not an archive — keep it under its line cap.
+
 ### 7. Skill-from-Experience
 
 Read the last 5 conversation logs. Look for multi-step patterns that appeared 3+ times:
@@ -185,7 +193,7 @@ user.md is gitignored — safe for personal observations.
 - Remove lines pointing to deleted files
 - Update descriptions for modified files
 - Reorder by relevance
-- Verify line count stays under 200
+- Run `python3 vera-system/scripts/curate-mode.py sizes` — if MEMORY.md prints OVER, trim until it passes. **Do not commit a curate that leaves MEMORY.md over its cap** (silent truncation at load time). Other OVER files go in FLAGGED FOR REVIEW.
 
 ### 11. Git Commit + Timestamp
 

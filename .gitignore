@@ -40,6 +40,7 @@ vera-system/conversations/*
 vera-system/relationships/user.md
 vera-system/state.md
 vera-system/memory/MEMORY.md
+vera-system/memory/lessons.md
 vera-system/ideas.md
 vera-system/ROADMAP.md
 
@@ -47,12 +48,15 @@ vera-system/ROADMAP.md
 **/.claude/last-curate-date
 **/.claude/last-dream-date
 **/.claude/bootstrapped
-# Machine-local settings override (written by bootstrap when python3 isn't the local Python command)
+# Machine-local settings (user-owned; legacy bootstrap-generated copies get parked as .bak)
 .claude/settings.local.json
-# Runtime markers (PreCompact gate state — set/cleared by hooks and /doc-sync)
+.claude/settings.local.json.bak
+# Runtime markers (PreCompact/Stop gate state — set/cleared by hooks, /doc-sync, /curate)
 .claude/session-dirty
 .claude/last-doc-sync
 .claude/.doc-sync-running
+.claude/.session-ending
+.claude/.curate-running
 
 # Runtime telemetry + signal logs (appended by scripts/telemetry.py and skills)
 vera-system/runs/*

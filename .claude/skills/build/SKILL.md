@@ -120,6 +120,8 @@ Format + fire points: see [`vera-checkins.md`](vera-checkins.md) "Full SDLC" sec
 python3 vera-system/scripts/build-state.py <slug> "Full Stage 0" --substage "kickoff"
 ```
 
+**Key preflight (mechanical):** run `python3 vera-system/scripts/openrouter.py --verify`. On failure, tell the user in the kickoff message that this upgrade ships unscored (Stage 2's external judge gets skipped) and that adding a key to `vera-system/.secrets` enables it. Surfacing this at kickoff beats discovering it after the sprint.
+
 Read the project's existing artifacts first, in this order:
 
 1. **`handoff.md`** (if exists — V0→V1 contract from Stage 4b). **Read this FIRST.** Outcome, Invariants (DO NOT MODIFY), Anti-patterns, Observable behavior (what V0 demonstrably does), What V0 proved / did NOT prove, Open questions (V1 must resolve), Constraints. This is the codification of V0 evidence. Treat ## Invariants as hard constraints — do not modify without ADR. Treat ## What V0 did NOT prove as the explicit guard against codifying V0 accidents as V1 requirements.

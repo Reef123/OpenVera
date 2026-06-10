@@ -24,6 +24,20 @@ except (json.JSONDecodeError, ValueError):
 errors = []
 warnings = []
 
+# --- Check 0: Clear stale runtime markers from a prior session ---
+# Solo-user assumption: nothing from a previous session is legitimately still
+# running at boot. A crashed doc-sync/curate leaves lockfiles that would make
+# mark-dirty.py skip; a leftover .session-ending would mis-arm the Stop gate
+# on the first turn. session-dirty is intentionally NOT cleared — unsynced
+# edits stay unsynced across reboots until /doc-sync runs.
+for _stale in (".session-ending", ".doc-sync-running", ".curate-running"):
+    try:
+        (REPO_ROOT / ".claude" / _stale).unlink()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        pass
+
 # --- Tips pool ---
 TIPS = [
     "/scout for quick answers → /consult for tradeoffs → /research for evidence.",
@@ -136,6 +150,7 @@ if errors:
     output = "\n".join(errors)
     if warnings:
         output += "\n" + "\n".join(warnings)
+    output += "\nTell the user: fixes for common breakage are in RECOVERY.md at the repo root."
     print(json.dumps({"additionalContext": output}))
     sys.exit(0)
 
@@ -146,6 +161,17 @@ else:
     header = f"OpenVera online. Last curate: {curate_age}d ago." if curate_age is not None else "OpenVera online. First session, curate triggers in 7 days."
 
 parts = [header, f"TIP: {tip}"]
+
+# First real session (bootstrapped, but no session logs yet) — one clear
+# next action beats the rotating tip for someone who just installed.
+conversations_dir = SYSTEM_DIR / "conversations"
+has_logs = conversations_dir.is_dir() and any(conversations_dir.glob("[0-9]*.md"))
+if not has_logs:
+    parts.append(
+        "FIRST BUILD: suggest /start-vague (vague idea) or /build new <idea> (clear one) "
+        "if the user seems unsure where to start."
+    )
+
 if state_summary:
     parts.append("---")
     parts.append(state_summary)

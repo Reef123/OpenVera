@@ -75,7 +75,11 @@ def main() -> None:
     ap.add_argument("--top", type=int, default=4, help="how many to surface (default 4)")
     args = ap.parse_args()
 
-    raw = open(args.file).read() if args.file else sys.stdin.read()
+    try:
+        raw = open(args.file).read() if args.file else sys.stdin.read()
+    except OSError as exc:
+        print(f"panel-score: cannot read {args.file}: {exc}", file=sys.stderr)
+        sys.exit(1)
     try:
         findings = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -85,7 +89,14 @@ def main() -> None:
         print("panel-score: expected a JSON array of findings", file=sys.stderr)
         sys.exit(1)
 
-    scored = score_findings(findings)
+    # Findings are model-generated JSON. Missing keys are fine (score_findings
+    # defaults them), but non-dict entries (a bare string in the array) would
+    # otherwise traceback. Name the problem instead.
+    try:
+        scored = score_findings(findings)
+    except (AttributeError, TypeError, ValueError) as exc:
+        print(f"panel-score: malformed finding (every entry must be an object): {exc}", file=sys.stderr)
+        sys.exit(1)
     print(json.dumps({"top": scored[: args.top], "rest": scored[args.top:]}, indent=2))
 
 

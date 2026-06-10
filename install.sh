@@ -15,7 +15,9 @@
 
 set -euo pipefail
 
-REPO_URL="https://github.com/Reef123/OpenVera.git"
+# OPENVERA_REPO_URL override exists for CI smoke tests (point at a local
+# checkout via file://) and forks. Default is the canonical repo.
+REPO_URL="${OPENVERA_REPO_URL:-https://github.com/Reef123/OpenVera.git}"
 
 # True if cwd has no entries other than OS junk (Finder writes .DS_Store the moment
 # a folder is opened, so a freshly-made folder isn't empty per `ls -A`).

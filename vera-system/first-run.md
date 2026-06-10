@@ -1,4 +1,4 @@
-# First Run — Manual Fallback (if you skipped `bootstrap.sh`)
+# First Run: Manual Fallback (if you skipped `bootstrap.sh`)
 
 The recommended setup path is to run `./bootstrap.sh` from the repo root once after cloning. It does the same steps below, plus key validation and a health check.
 
@@ -12,18 +12,19 @@ Welcome the user, then set up their harness:
 
 > "Welcome to Vera! Let me set things up real quick."
 
-Ask their name (plain text, not AskUserQuestion — keep it casual):
+Ask their name (plain text, not AskUserQuestion; keep it casual):
 
 > "What's your name?"
 
 Then:
 
-1. **Copy templates → working files** (only if missing — don't overwrite personalizations):
+1. **Copy templates → working files** (only if missing; don't overwrite personalizations):
    ```bash
    for tmpl in \
      vera-system/relationships/user.md.template \
      vera-system/state.md.template \
      vera-system/memory/MEMORY.md.template \
+     vera-system/memory/lessons.md.template \
      vera-system/ideas.md.template \
      vera-system/ROADMAP.md.template; do
      [ ! -f "${tmpl%.template}" ] && cp "$tmpl" "${tmpl%.template}"
@@ -44,10 +45,10 @@ Then:
    echo "bootstrapped" > .claude/bootstrapped
    ```
 7. **Tell them about API keys** (optional, don't push):
-   > "You're set up. If you want multi-model research later, copy `vera-system/.secrets.template` to `vera-system/.secrets` and add your OpenRouter key."
+   > "You're set up. Everything works without keys: /build just ships unscored and /scout's Reddit angle falls back to lower-fidelity snippets. If you want the scoring gate or multi-model research later, copy `vera-system/.secrets.template` to `vera-system/.secrets` and add your OpenRouter key."
 
 8. **Welcome message:**
-   > "Vera is ready. Try `/start-vague` — it'll help you figure out what to build and show you around. Or if you already know what you want: `/build new <your idea>`."
+   > "Vera is ready. Try `/start-vague`. It'll help you figure out what to build and show you around. Or if you already know what you want: `/build new <your idea>`."
 
 ---
 

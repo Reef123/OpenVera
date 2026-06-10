@@ -22,6 +22,17 @@ do freehand (and the path resolution it routinely got wrong):
       build-state.md is >= 30 days stale (the "real use without /build full"
       signal). Read-only — never edits status; the user decides per project.
 
+  age
+      Print AGE_DAYS=<n> — days since .claude/last-curate-date. -1 if the
+      file is missing or unparseable. Used by /doc-sync to decide whether to
+      spawn a background /curate (> 7 = overdue).
+
+  sizes
+      Check boot-tier files against the line caps in vera_config.SIZE_THRESHOLDS.
+      Prints OK, or one "OVER file=<f> lines=<n> cap=<c>" line per breach.
+      MEMORY.md over cap means silent truncation at load time — /curate must
+      not commit while it's over.
+
 The judgment in /curate (what to prune, dedupe, promote) stays in the skill.
 """
 from __future__ import annotations
@@ -33,7 +44,7 @@ import sys
 import time
 from pathlib import Path
 
-from vera_config import repo_root, get_path
+from vera_config import repo_root, get_path, check_file_sizes
 
 GRADUATION_COMMITS = 3
 GRADUATION_STALE_DAYS = 30
@@ -117,7 +128,10 @@ def cmd_graduation(_args) -> None:
                 cwd=str(repo_root()), capture_output=True, text=True, timeout=15,
             )
             commits = sum(1 for line in out.stdout.splitlines() if line.strip())
-        except Exception:
+        except (subprocess.SubprocessError, OSError) as exc:
+            # Narrow catch: a real bug (TypeError etc.) should surface, not
+            # masquerade as "no commits."
+            print(f"graduation: git log failed for {pd.name}: {exc} — treating as 0 commits", file=sys.stderr)
             commits = 0
         build_state = pd / "build-state.md"
         age_days = int((now - build_state.stat().st_mtime) // 86400) if build_state.exists() else 0
@@ -133,11 +147,37 @@ def cmd_graduation(_args) -> None:
         print("No V0-graduation candidates.", file=sys.stderr)
 
 
+def cmd_age(_args) -> None:
+    curate_file = repo_root() / ".claude" / "last-curate-date"
+    age = -1
+    if curate_file.exists():
+        try:
+            from datetime import datetime
+            curate_date = datetime.strptime(curate_file.read_text().strip(), "%Y-%m-%d")
+            age = (datetime.now() - curate_date).days
+        except (ValueError, OSError):
+            age = -1
+    print(f"AGE_DAYS={age}")
+
+
+def cmd_sizes(_args) -> None:
+    over = check_file_sizes()
+    if not over:
+        print("OK")
+        return
+    for rel, lines, cap in over:
+        print(f"OVER file={rel} lines={lines} cap={cap}")
+    # Nonzero exit so skill steps and CI can gate on it mechanically.
+    sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Deterministic /curate helpers")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("mode", help="count memory files -> LIGHT/FULL").set_defaults(func=cmd_mode)
     sub.add_parser("graduation", help="flag shipped projects in real use").set_defaults(func=cmd_graduation)
+    sub.add_parser("age", help="days since last curate -> AGE_DAYS=<n>").set_defaults(func=cmd_age)
+    sub.add_parser("sizes", help="boot-tier file line caps -> OK or OVER lines").set_defaults(func=cmd_sizes)
     args = parser.parse_args()
     args.func(args)
 

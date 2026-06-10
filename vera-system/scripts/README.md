@@ -6,7 +6,6 @@ Helper scripts called by skills, hooks, and the bootstrap.
 |--------|---------|
 | `vera_config.py` | Shared config loader — paths, LLM defaults. Used by hooks and other scripts. |
 | `openrouter.py` | Multi-model queries via OpenRouter API. Reads default model from `config.json`. Supports `--search` for web grounding and `--verify` to check your key. |
-| `reddit-fetch.py` | Reddit content fetcher — no API key needed. |
 | `youtube-analyze.py` | Analyze YouTube videos via native Gemini API. Reads video model from `config.json`. |
 | `doctor.py` | Self-audit — config, dirs, skill drift, secrets, state freshness. |
 | `telemetry.py` | Append a row to `vera-system/runs/<skill>-telemetry.tsv`. |

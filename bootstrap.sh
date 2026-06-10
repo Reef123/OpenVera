@@ -27,10 +27,10 @@ else
   INTERACTIVE=0
 fi
 
-# Detect a Python 3 command. Linux/macOS usually have 'python3'; Windows
-# (Git Bash, installer-provided) typically ships 'python' or 'py'. Settings.json
-# hardcodes 'python3' — if that's not our command, we'll write settings.local.json
-# later to override per-machine.
+# Detect a Python 3 command for bootstrap's own use (pip, doctor). Linux/macOS
+# usually have 'python3'; Windows (Git Bash, installer-provided) typically
+# ships 'python' or 'py'. The hooks in settings.json carry their own
+# interpreter-fallback chain, so no per-machine override file is needed.
 PYTHON_CMD=""
 for cand in python3 python py; do
   if command -v "$cand" >/dev/null 2>&1; then
@@ -41,6 +41,15 @@ done
 if [[ -z "$PYTHON_CMD" ]]; then
   echo "  ✗ No Python 3 interpreter found (tried: python3, python, py)." >&2
   echo "    Install Python 3.8+ from https://www.python.org/downloads/ and rerun." >&2
+  exit 1
+fi
+
+# Existence is not enough — Python 3.6 would pass the check above and die
+# mid-skill weeks later. Gate the version up front.
+if ! "$PYTHON_CMD" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' 2>/dev/null; then
+  FOUND_VERSION=$("$PYTHON_CMD" --version 2>&1 || echo "unknown")
+  echo "  ✗ $PYTHON_CMD is too old ($FOUND_VERSION). OpenVera needs Python 3.8+." >&2
+  echo "    Install a newer Python from https://www.python.org/downloads/ and rerun." >&2
   exit 1
 fi
 
@@ -120,12 +129,13 @@ echo "  keys are only used by scripts you explicitly trigger."
 echo ""
 echo "  Works without keys:"
 echo "    /start-vague, /consult, /frame, /advisor, /curate, /doc-sync"
-echo "    /scout (Reddit + web)"
+echo "    /scout (web search; Reddit falls back to lower-fidelity snippets)"
+echo "    /build (ships fine, just unscored: the external judge is skipped)"
 echo ""
 echo "  Keys unlock:"
 echo "    OpenRouter (openrouter.ai/keys)  /research, /improve scoring,"
 echo "                                     /build's external scoring gate,"
-echo "                                     /scout YouTube discovery"
+echo "                                     /scout Reddit + YouTube discovery"
 echo "    Google AI (aistudio.google.com/apikey, free)"
 echo "                                     YouTube video analysis"
 echo ""
@@ -160,6 +170,7 @@ copy_template_if_missing() {
 copy_template_if_missing "$SYSTEM_DIR/relationships/user.md.template"
 copy_template_if_missing "$SYSTEM_DIR/state.md.template"
 copy_template_if_missing "$SYSTEM_DIR/memory/MEMORY.md.template"
+copy_template_if_missing "$SYSTEM_DIR/memory/lessons.md.template"
 copy_template_if_missing "$SYSTEM_DIR/ideas.md.template"
 copy_template_if_missing "$SYSTEM_DIR/ROADMAP.md.template"
 
@@ -298,56 +309,17 @@ echo "$TODAY" > "$ROOT_DIR/.claude/last-curate-date"
 # Bootstrap marker — tells CLAUDE.md to skip first-run.md
 echo "bootstrapped" > "$ROOT_DIR/.claude/bootstrapped"
 
-# Per-machine hook override — .claude/settings.json hardcodes 'python3', which
-# doesn't exist on Windows (where the interpreter is usually 'python' or 'py').
-# If our detected PYTHON_CMD is anything else, write a settings.local.json that
-# overrides the hook commands. Standard Claude Code convention: settings.local.json
-# is machine-local and gitignored.
-if [[ "$PYTHON_CMD" != "python3" ]]; then
-  cat > "$ROOT_DIR/.claude/settings.local.json" <<EOF
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.py\"" }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/session-end-reminder.py\"" }
-        ]
-      }
-    ],
-    "PostCompact": [
-      {
-        "hooks": [
-          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.py\"" }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.py\"" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
-        "hooks": [
-          { "type": "command", "command": "$PYTHON_CMD \"\$CLAUDE_PROJECT_DIR/.claude/hooks/mark-dirty.py\"" }
-        ]
-      }
-    ]
-  }
-}
-EOF
-  echo "  Detected Python as '$PYTHON_CMD' — wrote .claude/settings.local.json to override hook commands"
+# Migration: earlier bootstraps wrote a settings.local.json duplicating every
+# hook with the detected interpreter. Claude Code MERGES hooks across the two
+# settings files (no override mechanism), so keeping the old file would run
+# every hook twice now that settings.json carries its own interpreter-fallback
+# chain. If the file looks bootstrap-generated (only touches our hooks dir),
+# park it as .bak instead of deleting — reversible, and user-authored settings
+# survive untouched.
+LOCAL_SETTINGS="$ROOT_DIR/.claude/settings.local.json"
+if [[ -f "$LOCAL_SETTINGS" ]] && grep -q '\.claude/hooks/' "$LOCAL_SETTINGS"; then
+  mv "$LOCAL_SETTINGS" "$LOCAL_SETTINGS.bak"
+  echo "  Retired legacy settings.local.json (hooks now self-select an interpreter); saved as settings.local.json.bak"
 fi
 
 # --- Health check ---

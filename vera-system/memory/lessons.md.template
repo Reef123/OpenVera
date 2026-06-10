@@ -1,0 +1,10 @@
+# Lessons
+
+<!-- Machine-appendable capture lane. /build failures and doc-sync course
+     corrections land here as one dated line each. /curate reads this file:
+     lessons that recur 3+ times get flagged for promotion to patterns.md
+     (human decision); promoted and stale one-off lines get pruned.
+     Shape: - YYYY-MM-DD [context] one-line lesson
+     Example: - 2026-06-09 [build/recipe-app] Vite dev server caches .env — restart after key changes
+     Keep under 150 lines — /curate enforces this. patterns.md stays
+     hand-curated; this file is where lessons earn their way in. -->

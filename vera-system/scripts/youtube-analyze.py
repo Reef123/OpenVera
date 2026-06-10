@@ -25,6 +25,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 try:
@@ -153,17 +154,34 @@ def analyze_video(url, prompt=None, model="gemini-2.5-flash", max_tokens=8192):
 
     api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
-    try:
-        response = requests.post(
-            api_url,
-            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
-            json=payload,
-            timeout=300  # Videos can take a while
-        )
-    except requests.ConnectionError:
-        raise Exception("Cannot reach Google AI API. Check your internet connection.")
-    except requests.Timeout:
-        raise Exception("Google AI API timed out after 300s. The video may be too long — try a shorter one.")
+    # Retry transient failures (network blips, rate limits, upstream 5xx)
+    # before giving up. Permanent failures (400/403) fall through immediately.
+    response = None
+    last_transient = None
+    for attempt, delay in ((1, 1), (2, 4), (3, None)):
+        try:
+            response = requests.post(
+                api_url,
+                headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+                json=payload,
+                timeout=300  # Videos can take a while
+            )
+        except requests.ConnectionError:
+            last_transient = "Cannot reach Google AI API. Check your internet connection."
+            response = None
+        except requests.Timeout:
+            last_transient = "Google AI API timed out after 300s. The video may be too long — try a shorter one."
+            response = None
+        if response is not None and not (response.status_code == 429 or response.status_code >= 500):
+            break
+        if response is not None:
+            last_transient = f"Gemini API error {response.status_code}: {response.text[:200]}"
+        if delay is None:
+            raise Exception(f"{last_transient} (after 3 attempts)")
+        print(f"youtube-analyze: transient failure (attempt {attempt}/3), retrying in {delay}s...", file=sys.stderr)
+        time.sleep(delay)
+    if response is None:
+        raise Exception(f"{last_transient} (after 3 attempts)")
 
     if response.status_code == 400:
         try:

@@ -1,7 +1,7 @@
 ---
 name: doc-sync
 description: "Session documentation sync — update state, log conversation, check alignment, surface missed TODOs. Run at session end or before context compression. If it's not in a file, it doesn't exist after reboot."
-allowed-tools: Bash(python3 vera-system/scripts/*) Bash(git *) Bash(touch .claude/.doc-sync-running) Bash(rm -f .claude/session-dirty .claude/.doc-sync-running) Bash(echo * > .claude/last-doc-sync)
+allowed-tools: Bash(python3 vera-system/scripts/*) Bash(git *) Bash(touch .claude/.doc-sync-running) Bash(rm -f .claude/session-dirty .claude/.doc-sync-running .claude/.session-ending) Bash(echo * > .claude/last-doc-sync)
 ---
 
 # Doc-Sync
@@ -12,10 +12,16 @@ Update docs based on session changes. Delta-based — only touch what changed.
 
 ## Runtime marker contract (read first)
 
-This skill participates in the PreCompact safety gate. Two markers in `.claude/`:
+This skill participates in the PreCompact and Stop safety gates. Four markers in `.claude/`:
 
-- `session-dirty` — set by the PostToolUse hook on harness writes; cleared at the end of doc-sync. PreCompact reads it.
-- `.doc-sync-running` — lockfile set at Step 0 / cleared at Step 10. While present, the PostToolUse hook (`.claude/hooks/mark-dirty.py`) skips so doc-sync's own writes don't re-dirty the marker it's about to clear.
+| Marker | Set by | Cleared on success | Cleared on crash/staleness |
+|---|---|---|---|
+| `session-dirty` | `mark-dirty.py` (PostToolUse, harness writes) | doc-sync Step 10 | Never auto-cleared — unsynced edits stay flagged across reboots |
+| `.doc-sync-running` | doc-sync Step 0 | doc-sync Step 10 | `mark-dirty.py` ignores + removes when older than 60 min; `session-start.py` removes at boot |
+| `.session-ending` | `session-end-reminder.py` (UserPromptSubmit end-pattern) | Stop gate when it blocks (one-nag rule), or doc-sync Step 10 | `session-start.py` removes at boot |
+| `.curate-running` | /curate at start | /curate at end | Same 60-min TTL + boot cleanup as `.doc-sync-running` |
+
+While a fresh lockfile (`.doc-sync-running` / `.curate-running`) is present, `mark-dirty.py` skips so the skill's own writes don't re-dirty the marker it's about to clear. The Stop gate (`stop-doc-sync-gate.py`) blocks the turn end when `.session-ending` AND `session-dirty` are both present — that's what makes running this skill enforced rather than suggested.
 
 The lockfile MUST be touched BEFORE the first Write/Edit in this skill (Step 0 below) and removed only at Step 10. Solo-user assumption: one Claude Code session per repo at a time.
 
@@ -61,6 +67,8 @@ Output includes the next session number.
 
 ### 3. Conversation Log
 
+For every Course Corrections row marked "Yes", append a one-line dated lesson to `vera-system/memory/lessons.md` (shape: `- YYYY-MM-DD [context] lesson`). That file is the machine-appendable capture lane; /curate promotes lessons that recur 3+ times to patterns.md with human review. Without this write, corrections evaporate at reboot.
+
 Create `conversations/NNN-YYYY-MM-DD.md` (session number from Step 1):
 
 ```markdown
@@ -75,7 +83,7 @@ Create `conversations/NNN-YYYY-MM-DD.md` (session number from Step 1):
 ## Course Corrections
 | What Went Wrong | What Changed | Generalizable? |
 |----------------|-------------|----------------|
-| [wrong assumption] | [correction] | Yes → patterns.md / No |
+| [wrong assumption] | [correction] | Yes → lessons.md / No |
 
 ## Files Changed
 | File | Action |
@@ -120,20 +128,44 @@ python3 vera-system/scripts/stamp.py <file> /doc-sync
 
 Apply to every file you wrote in steps 2-6: state.md, ROADMAP.md, the new conversation log, and any cascade targets. Idempotent — safe to run.
 
+Then check boot-tier file sizes:
+
+```bash
+python3 vera-system/scripts/curate-mode.py sizes
+```
+
+If any `OVER` line prints, surface it to the user with the remediation (state.md: archive completed items; MEMORY.md/patterns.md: consolidate or promote to secondary files; ROADMAP.md: archive done milestones). MEMORY.md over its cap is urgent — entries past the cap are silently truncated at load time.
+
 ### 9. Bridge Skills (optional)
 
 If bridge skills exist in `.claude/skills/`, invoke them. Skip silently if none.
 
-### 10. Clear Runtime Markers (Bash only — last step)
+### 10. Clear Runtime Markers (Bash only)
 
 ```bash
 echo "$(date -u +%FT%T)" > .claude/last-doc-sync
-rm -f .claude/session-dirty .claude/.doc-sync-running
+rm -f .claude/session-dirty .claude/.doc-sync-running .claude/.session-ending
 ```
 
-Use Bash redirection (`>`) and `rm`, NOT Write/Edit, for these two operations. Write/Edit would re-fire PostToolUse and re-dirty the marker after we just cleared it. The lockfile prevents the same re-dirty during Steps 1-9; this step releases it last.
+Use Bash redirection (`>`) and `rm`, NOT Write/Edit, for these two operations. Write/Edit would re-fire PostToolUse and re-dirty the marker after we just cleared it. The lockfile prevents the same re-dirty during Steps 1-9; this step releases it last. `.session-ending` may already be gone (the Stop gate deletes it when it fires) — the `rm -f` is harmless either way.
 
 Order matters: write `last-doc-sync` BEFORE removing the markers, so a crash between commands leaves the system in a recoverable state (timestamp present, marker still set = next session knows to retry).
+
+### 11. Curate Trigger (after markers are clear)
+
+```bash
+python3 vera-system/scripts/curate-mode.py age
+```
+
+If `AGE_DAYS` is greater than 7 (or -1 with a populated memory dir), spawn curate in the background — do not run it inline and do not block the user:
+
+```
+Agent(subagent_type="general-purpose", description="weekly curate",
+      prompt="Run /curate per .claude/skills/curate/SKILL.md. Background mode — do not engage the user.",
+      run_in_background=true)
+```
+
+This runs AFTER Step 10 on purpose: curate makes its own git commits, and spawning it before doc-sync's writes finish would race them. If the session closes before the background curate completes, `last-curate-date` stays old and the boot-time directive catches it next session.
 
 ---
 

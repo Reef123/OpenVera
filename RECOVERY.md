@@ -19,9 +19,25 @@ CONFIG BROKEN: ... is invalid JSON ...
 Open `vera-system/config.json`, fix the JSON, save.
 
 ```
-Curate overdue (N days) — spawn /curate as background agent.
+Curate overdue (N days). BEFORE responding ... spawn this as your first action ...
 ```
-Not an error — informational. Run `/curate` when convenient.
+Not an error, just the overdue nudge. Claude normally spawns `/curate` in the background on its own (at boot, or after the next `/doc-sync`). Run `/curate` yourself if you want it now.
+
+---
+
+## The Stop gate keeps firing ("Session is ending with unsynced harness edits")
+
+The turn-end gate fires when you signal an ending while `.claude/session-dirty` exists. Normally one `/doc-sync` clears it. If it keeps coming back:
+
+```bash
+# See if the marker is real (harness files actually changed?)
+git status vera-system .claude
+
+# Synced already but the marker survived (crashed doc-sync)? Clear by hand:
+rm -f .claude/session-dirty .claude/.session-ending
+```
+
+If `/doc-sync` itself crashes partway, its lockfile recovers automatically (ignored after 60 minutes, cleaned at next boot). Re-run `/doc-sync` to finish the sync.
 
 ---
 

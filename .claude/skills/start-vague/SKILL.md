@@ -47,6 +47,18 @@ Every option list is **generated from prior steps**, never hardcoded — if Step
 
 ---
 
+## Step 0: Orientation (print first, then fire Step 1)
+
+First-time users can't tell if this is a form, an interview, or a free-text chat. Print this before anything else so they know the shape of what's coming:
+
+```
+**🐘 Quick orientation:** this is a short interview — 4 rounds max. You answer
+loosely, I do the shaping, and at the end you get an idea.md that /build new
+can run with. Bail anytime; whatever we've shaped is saved.
+```
+
+**Skip the orientation when:** the user arrived here from a `/build new` redirect or another skill's hand-off (already oriented), or they've clearly run /start-vague before (idea docs exist in the projects dir).
+
 ## Step 1: The Spark
 
 **If they passed an argument**, treat it as the Step 1 spark — skip the open-text question and the 1-2 follow-ups, but **still evaluate Step 1.5 (Scout gate) before continuing to Step 2.** A passed argument is just an inline answer to Step 1; the scout-gate signals fire the same way (crowded category, named platform, "alternative to X"). Don't skip the gate.

@@ -51,3 +51,66 @@ jobs:
           fi
           echo "doctor.py exit $rc — fail"
           exit "$rc"
+
+  install-smoke:
+    name: Install + bootstrap smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # install.sh git-clones this checkout via file:// — cloning FROM a
+          # shallow repo fails, so fetch full history for this job.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Run install.sh end-to-end (headless)
+        run: |
+          set -euo pipefail
+          # install.sh requires the claude CLI; CI has none. Stub a shim so
+          # the prereq check passes — nothing in the headless path invokes it.
+          mkdir -p /tmp/shim
+          printf '#!/bin/sh\nexit 0\n' > /tmp/shim/claude
+          chmod +x /tmp/shim/claude
+          export PATH="/tmp/shim:$PATH"
+
+          # Point the installer at this checkout instead of GitHub and run it
+          # in an empty dir. No TTY in CI, so bootstrap's /dev/tty detection
+          # falls back to headless defaults (name "Builder", keys skipped) —
+          # the exact path a `curl | bash` user hits.
+          mkdir /tmp/smoke
+          cd /tmp/smoke
+          OPENVERA_REPO_URL="file://$GITHUB_WORKSPACE" bash "$GITHUB_WORKSPACE/install.sh" < /dev/null
+
+      - name: Assert installed state
+        run: |
+          set -euo pipefail
+          cd /tmp/smoke
+          test -f .claude/bootstrapped || { echo "FAIL: .claude/bootstrapped missing"; exit 1; }
+          test -f vera-system/relationships/user.md || { echo "FAIL: user.md missing"; exit 1; }
+          if grep -q '{{USER_NAME}}' vera-system/relationships/user.md; then
+            echo "FAIL: USER_NAME placeholder not replaced"; exit 1
+          fi
+          test -f vera-system/memory/lessons.md || { echo "FAIL: lessons.md not copied from template"; exit 1; }
+          test -f vera-system/state.md || { echo "FAIL: state.md missing"; exit 1; }
+          python3 -c "import json; json.load(open('vera-system/config.json'))"
+          echo "All install artifacts present"
+
+      - name: Doctor inside the installed copy
+        run: |
+          set +e
+          cd /tmp/smoke
+          python3 vera-system/scripts/doctor.py
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ] || [ "$rc" -eq 2 ]; then
+            echo "doctor.py exit $rc — pass"
+            exit 0
+          fi
+          echo "doctor.py exit $rc — fail"
+          exit "$rc"
