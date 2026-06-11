@@ -16,14 +16,14 @@ This skill participates in the PreCompact and Stop safety gates. Four markers in
 
 | Marker | Set by | Cleared on success | Cleared on crash/staleness |
 |---|---|---|---|
-| `session-dirty` | `mark-dirty.py` (PostToolUse, harness writes) | doc-sync Step 10 | Never auto-cleared — unsynced edits stay flagged across reboots |
-| `.doc-sync-running` | doc-sync Step 0 | doc-sync Step 10 | `mark-dirty.py` ignores + removes when older than 60 min; `session-start.py` removes at boot |
-| `.session-ending` | `session-end-reminder.py` (UserPromptSubmit end-pattern) | Stop gate when it blocks (one-nag rule), or doc-sync Step 10 | `session-start.py` removes at boot |
+| `session-dirty` | `mark-dirty.py` (PostToolUse, harness writes) | doc-sync Step 11 | Never auto-cleared — unsynced edits stay flagged across reboots |
+| `.doc-sync-running` | doc-sync Step 0 | doc-sync Step 11 | `mark-dirty.py` ignores + removes when older than 60 min; `session-start.py` removes at boot |
+| `.session-ending` | `session-end-reminder.py` (UserPromptSubmit end-pattern) | Stop gate when it blocks (one-nag rule), or doc-sync Step 11 | `session-start.py` removes at boot |
 | `.curate-running` | /curate at start | /curate at end | Same 60-min TTL + boot cleanup as `.doc-sync-running` |
 
 While a fresh lockfile (`.doc-sync-running` / `.curate-running`) is present, `mark-dirty.py` skips so the skill's own writes don't re-dirty the marker it's about to clear. The Stop gate (`stop-doc-sync-gate.py`) blocks the turn end when `.session-ending` AND `session-dirty` are both present — that's what makes running this skill enforced rather than suggested.
 
-The lockfile MUST be touched BEFORE the first Write/Edit in this skill (Step 0 below) and removed only at Step 10. Solo-user assumption: one Claude Code session per repo at a time.
+The lockfile MUST be touched BEFORE the first Write/Edit in this skill (Step 0 below) and removed only at Step 11. Solo-user assumption: one Claude Code session per repo at a time.
 
 ---
 
@@ -41,7 +41,7 @@ Then detect changes:
 python3 vera-system/scripts/doc-sync-cascade.py
 ```
 
-Returns JSON: changed files and which docs need cascade updates. Use this output to drive Step 5.
+Returns JSON: changed files and which docs need cascade updates. Use this output to drive Step 7.
 
 ## Step 1: Check for Gap
 
@@ -108,7 +108,22 @@ Continuing after compact: update existing file with "Continuation" subsection.
 
 Move completed items to Done. Update Sprint if work shifted. Add new items discovered.
 
-### 5. Missed TODO Scan
+### 5. Project Version Check
+
+Continued sessions (post-compact) often resume project work directly, without `/build continue` — so the version bump that lives inside the build flow never fires. Doc-sync is the net. **The version trigger is the work, not the command.**
+
+If this session shipped a meaningful increment to any project under `{paths.projects_dir}/<slug>/` (new feature, behavior change, public ship — not typo fixes):
+
+1. Bump the version in the project's build-state:
+   ```bash
+   python3 vera-system/scripts/build-state.py <slug> "<current stage>" --substage "V1.4 shipped — <one-line description>"
+   ```
+2. App `package.json` (if one exists) — keep `version` in step with build-state.
+3. Project changelog, if the project keeps one.
+
+Ask: "If `/build continue` were running, would it have bumped the version here?" If yes, bump it now. Cosmetic-only sessions skip this step.
+
+### 6. Missed TODO Scan
 
 Pipe a summary of this session's work into the scanner:
 
@@ -118,15 +133,15 @@ echo "<session summary — paste key actions, decisions, and promises>" | python
 
 The script greps for action patterns ("need to", "blocked on", "I'll create..."), checks referenced files exist, and cross-references against state.md NEXT. Surface anything it finds.
 
-### 6. Cascade Updates
+### 7. Cascade Updates
 
 Apply every cascade from Step 0's output. Read the target file, find the section, edit.
 
-### 7. Task Tracker Sync (if configured)
+### 8. Task Tracker Sync (if configured)
 
-If a task tracker is configured (Todoist, Linear, etc.), sync follow-ups from Step 5. **Check existing tasks before creating** — search for keywords from each TODO. Don't duplicate. Report: "Tasks: closed N, created N, already tracked N."
+If a task tracker is configured (Todoist, Linear, etc.), sync follow-ups from Step 6. **Check existing tasks before creating** — search for keywords from each TODO. Don't duplicate. Report: "Tasks: closed N, created N, already tracked N."
 
-### 8. Stamp Touched Docs
+### 9. Stamp Touched Docs
 
 After every write, stamp the file so its freshness + source are visible:
 
@@ -134,7 +149,7 @@ After every write, stamp the file so its freshness + source are visible:
 python3 vera-system/scripts/stamp.py <file> /doc-sync
 ```
 
-Apply to every file you wrote in steps 2-6: state.md, ROADMAP.md, the new conversation log, and any cascade targets. Idempotent — safe to run.
+Apply to every file you wrote in steps 2-7: state.md, ROADMAP.md, the new conversation log, and any cascade targets. Idempotent — safe to run.
 
 Then check boot-tier file sizes:
 
@@ -144,22 +159,22 @@ python3 vera-system/scripts/curate-mode.py sizes
 
 If any `OVER` line prints, surface it to the user with the remediation (state.md: archive completed items; MEMORY.md/patterns.md: consolidate or promote to secondary files; ROADMAP.md: archive done milestones). MEMORY.md over its cap is urgent — entries past the cap are silently truncated at load time.
 
-### 9. Bridge Skills (optional)
+### 10. Bridge Skills (optional)
 
 If bridge skills exist in `.claude/skills/`, invoke them. Skip silently if none.
 
-### 10. Clear Runtime Markers (Bash only)
+### 11. Clear Runtime Markers (Bash only)
 
 ```bash
 echo "$(date -u +%FT%T)" > .claude/last-doc-sync
 rm -f .claude/session-dirty .claude/.doc-sync-running .claude/.session-ending
 ```
 
-Use Bash redirection (`>`) and `rm`, NOT Write/Edit, for these two operations. Write/Edit would re-fire PostToolUse and re-dirty the marker after we just cleared it. The lockfile prevents the same re-dirty during Steps 1-9; this step releases it last. `.session-ending` may already be gone (the Stop gate deletes it when it fires) — the `rm -f` is harmless either way.
+Use Bash redirection (`>`) and `rm`, NOT Write/Edit, for these two operations. Write/Edit would re-fire PostToolUse and re-dirty the marker after we just cleared it. The lockfile prevents the same re-dirty during Steps 1-10; this step releases it last. `.session-ending` may already be gone (the Stop gate deletes it when it fires) — the `rm -f` is harmless either way.
 
 Order matters: write `last-doc-sync` BEFORE removing the markers, so a crash between commands leaves the system in a recoverable state (timestamp present, marker still set = next session knows to retry).
 
-### 11. Curate Trigger (after markers are clear)
+### 12. Curate Trigger (after markers are clear)
 
 ```bash
 python3 vera-system/scripts/curate-mode.py age
@@ -173,7 +188,7 @@ Agent(subagent_type="general-purpose", description="weekly curate",
       run_in_background=true)
 ```
 
-This runs AFTER Step 10 on purpose: curate makes its own git commits, and spawning it before doc-sync's writes finish would race them. If the session closes before the background curate completes, `last-curate-date` stays old and the boot-time directive catches it next session.
+This runs AFTER Step 11 on purpose: curate makes its own git commits, and spawning it before doc-sync's writes finish would race them. If the session closes before the background curate completes, `last-curate-date` stays old and the boot-time directive catches it next session.
 
 ---
 

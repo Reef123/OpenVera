@@ -6,7 +6,7 @@ Block decision (all three must hold):
   1. .claude/.session-ending exists  — the user signaled an ending this turn
      (set by session-end-reminder.py on UserPromptSubmit pattern match)
   2. .claude/session-dirty exists    — harness edits not yet doc-synced
-     (set by mark-dirty.py, cleared by /doc-sync Step 10)
+     (set by mark-dirty.py, cleared by /doc-sync Step 11)
   3. stop_hook_active is false       — not already continuing from this gate
      (Claude Code's loop-prevention flag; it also force-overrides after 8
      consecutive blocks as a backstop)

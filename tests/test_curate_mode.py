@@ -2,7 +2,7 @@
 """Tests for curate-mode.py's deterministic subcommands and the size-cap
 checker in vera_config.
 
-check_file_sizes backs three enforcement points (doctor.py, /doc-sync Step 8,
+check_file_sizes backs three enforcement points (doctor.py, /doc-sync Step 9,
 /curate's MEMORY.md hard rule). MEMORY.md over its cap means silent
 truncation at load time, so a checker regression is invisible context loss.
 
