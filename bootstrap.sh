@@ -325,10 +325,20 @@ fi
 # --- Health check ---
 echo ""
 echo "  Running health check..."
-"$PYTHON_CMD" "$SYSTEM_DIR/scripts/doctor.py" || true
+# Capture the exit code without aborting bootstrap (doctor: 0 = clean, 2 = warnings only).
+DOCTOR_RC=0
+"$PYTHON_CMD" "$SYSTEM_DIR/scripts/doctor.py" || DOCTOR_RC=$?
 
-sleep 1
-[[ -t 1 && -n ${TERM:-} ]] && clear
+if [[ "$DOCTOR_RC" -eq 0 || "$DOCTOR_RC" -eq 2 ]]; then
+  # Healthy (or warnings only): clear to the clean "ready" screen.
+  sleep 1
+  [[ -t 1 && -n ${TERM:-} ]] && clear
+else
+  # Real failure: keep the doctor output on screen so the user can act on it.
+  echo ""
+  echo "  Health check reported a problem (exit $DOCTOR_RC). Review the output above before continuing."
+  echo ""
+fi
 echo ""
 echo "  ${GOLD}🐘  Your harness is ready, $USER_NAME.${RESET}"
 echo ""

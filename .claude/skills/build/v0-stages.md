@@ -44,7 +44,7 @@ This is the ONLY user interaction before building starts. Combine kickoff, scopi
 Working V0 in your browser by the end of this session. Not production. 2-4 short decisions next, then I run ~10-20 min and surface when V0 is ready.
 ```
 
-**Voice rules:** read `relationships/user.md` for the name (fall back to "you"). Skip the opener if `voice.md`/`user.md` are missing AND the user clearly knows what /build does (referenced prior builds). On a true first-time `/build new`, always print it.
+**Voice rules:** read `vera-system/relationships/user.md` for the name (fall back to "you"). Skip the opener if `voice.md`/`user.md` are missing AND the user clearly knows what /build does (referenced prior builds). On a true first-time `/build new`, always print it.
 
 **Key preflight (mechanical, no user stop):** run `python3 vera-system/scripts/openrouter.py --verify`. If it fails (no key, bad key, network), append one line to the opener so the user learns NOW, not at the end of the build:
 

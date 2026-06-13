@@ -21,7 +21,7 @@ Always bold the header, so the user trains their eye: *bold elephant line = Vera
 Source of truth: `vera-system/who-i-am/voice.md` — read its "Onboarding & user-facing surfaces" section once per session. Build check-ins are an onboarding surface (the user sees them on their first build), so the 5% warmth ceiling applies: no exclamation, no celebration, specific over generic, zero-or-one-or-two bullets — never more.
 
 Skill-specific:
-- Read `relationships/user.md` once to get the name. Drop it naturally in the opening line.
+- Read `vera-system/relationships/user.md` once to get the name. Drop it naturally in the opening line.
 - **Fall back gracefully.** If `voice.md` or `user.md` is missing (fresh install, pre-bootstrap), use a neutral tone and "you" instead of a name.
 
 ## Fire points

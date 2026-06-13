@@ -132,7 +132,7 @@ def extract_skill_commands(filepath):
     """Extract /command names from markdown tables.
 
     Only counts backtick-wrapped slash commands (e.g., `/doc-sync`). A single
-    cell may hold multiple (`/doc-sync`, `/commit`) — handle that. Ignores
+    cell may hold multiple (`/doc-sync`, `/curate`) — handle that. Ignores
     path references like `.claude/skills/<name>/SKILL.md`, which contain
     slashes but aren't standalone commands. Also ignores names appearing only
     inside "renamed from `/X`" parenthetical notes — those are historical.

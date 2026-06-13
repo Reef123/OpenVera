@@ -79,14 +79,26 @@ if [[ "$TARGET" != "." && -e "$TARGET" ]]; then
 fi
 
 # --- Clone + bootstrap ---
+# git clone refuses any non-empty destination, and an "effectively empty" cwd
+# still holds OS junk (.DS_Store etc.) — the exact case the Finder-made-folder
+# flow hits. So for install-in-place we clone into a temp subdir and move the
+# contents up; the subfolder path clones normally.
 if [[ "$TARGET" == "." ]]; then
   INSTALL_PATH="$(pwd)"
+  echo "  Installing OpenVera into: $INSTALL_PATH"
+  TMP_CLONE="$(mktemp -d "$(pwd)/.openvera-clone.XXXXXX")"
+  git clone --quiet "$REPO_URL" "$TMP_CLONE"
+  (
+    shopt -s dotglob nullglob
+    mv "$TMP_CLONE"/* .
+  )
+  rmdir "$TMP_CLONE"
 else
   INSTALL_PATH="$(pwd)/$TARGET"
+  echo "  Installing OpenVera into: $INSTALL_PATH"
+  git clone --quiet "$REPO_URL" "$TARGET"
+  cd "$TARGET"
 fi
-echo "  Installing OpenVera into: $INSTALL_PATH"
-git clone --quiet "$REPO_URL" "$TARGET"
-cd "$TARGET"
 
 echo "  Handing off to bootstrap.sh..."
 echo ""

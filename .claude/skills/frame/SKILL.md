@@ -38,6 +38,16 @@ cat vera-system/config.json
 
 All design decisions here. No stopping mid-flow.
 
+**Autonomous path — `--from-spec` with a `spec.md` present:** do NOT ask. Infer all three decisions from `spec.md` and proceed. This is the path `/build` Stage 1 uses, where the user already answered everything in Stage 0 and the stage is declared non-interactive, so a question here would break that contract.
+- **Direction:** pick the trait bundle that best fits the project type (density/tone/shape/contrast), using the same logic as the generated options below.
+- **Mode:** read `spec.md` mood signals; default Light unless the spec implies dark (developer tool, mission-control, media).
+- **Reference:** none, unless `--system <brand>` was passed.
+- **Palette:** from the Vera Considered Palettes rotation set by `spec.md` mood, hashing the slug when mood is ambiguous (see Aesthetic Floor below).
+
+Record the inferred choices at the top of `DESIGN.md` so they stay visible. Fall through to the questions below only when `--from-spec` was NOT passed, or when `spec.md` is missing.
+
+**Interactive path — no `--from-spec`, or `spec.md` missing:**
+
 ```
 AskUserQuestion(
   questions: [

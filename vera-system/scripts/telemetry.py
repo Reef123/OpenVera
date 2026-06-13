@@ -37,6 +37,18 @@ VALID_OUTCOMES = {"PASS", "SOFT_FAIL", "HARD_FAIL", "WIN", "LOSS", "SKIP"}
 HEADER = "timestamp\tsession\tskill\tproject\tsources\toutcome\tscore\tlatency_s\tcost_usd\tfailure_mode\tnote"
 
 
+def clean_field(value) -> str:
+    """Collapse any tabs/newlines in a model-supplied field to single spaces.
+    A raw tab or newline in --note/--sources/etc. would otherwise split the row
+    into extra columns or extra lines and corrupt the TSV that loop-report.py reads."""
+    text = str(value)
+    # split()/join collapses every whitespace run (incl. tabs/newlines) to single
+    # spaces. `or "-"` guards the whitespace-only case: text.split() is then empty,
+    # so without it a field of pure tabs/newlines would pass through raw and still
+    # break the row. Empty/whitespace-only collapses to the "-" sentinel.
+    return " ".join(text.split()) or "-"
+
+
 def main():
     parser = argparse.ArgumentParser(description="Log telemetry for a skill run")
     parser.add_argument("skill", help="Skill name (scout, research, build, improve)")
@@ -69,16 +81,16 @@ def main():
 
     row = "\t".join([
         timestamp,
-        args.session,
-        args.skill,
-        args.project,
-        args.sources,
-        args.outcome,
-        str(args.score),
-        str(args.latency),
-        str(args.cost),
-        args.failure,
-        args.note,
+        clean_field(args.session),
+        args.skill,  # already slug-validated above
+        clean_field(args.project),
+        clean_field(args.sources),
+        args.outcome,  # already enum-checked above
+        clean_field(args.score),
+        clean_field(args.latency),
+        clean_field(args.cost),
+        clean_field(args.failure),
+        clean_field(args.note),
     ])
 
     # Telemetry is optional — an unwritable runs/ must never abort the skill

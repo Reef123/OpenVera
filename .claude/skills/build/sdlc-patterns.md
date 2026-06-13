@@ -64,7 +64,7 @@ Reference material for all phases of the Build Full pipeline. Covers enterprise 
 
 ## Code Review Checklist
 
-Use during Phase 6 (Code Review). Check in this order — stop at first Critical finding.
+Use during Phase 6 (Code Review). Check in this order, and report every finding across the whole checklist (don't stop at the first Critical).
 
 ### 1. Correctness (Most Important)
 

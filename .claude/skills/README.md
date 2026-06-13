@@ -1,6 +1,6 @@
 # Skills
 
-Each skill is a folder with a `SKILL.md` (instructions) and optional supporting files. Skills load their full body only when invoked via `/<command>` — the system prompt sees only the name and description.
+Each skill is a folder with a `SKILL.md` (instructions) and optional supporting files. Skills load their full body only when invoked via `/<command>`. The system prompt sees only the name and description.
 
 ## How they fit together
 
@@ -14,20 +14,20 @@ Three layers: **entry points** (what the user invokes), **building blocks** (cal
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
-| Scout | `/scout <question>` | Quick answers — Reddit + YouTube + web, 2-3 min. **Default for most questions.** |
-| Consult | `/consult <decision>` | Decision accelerator — domain expert tradeoffs + recommendation. Free (no API calls). |
+| Scout | `/scout <question>` | Quick answers: Reddit + YouTube + web, 2-3 min. **Default for most questions.** |
+| Consult | `/consult <decision>` | Decision accelerator: domain expert tradeoffs + recommendation. Free (no API calls). |
 | Code Review | `/code-review <path-or-git-range>` | Clean-context Claude subagent runs adversarial review. Critical/High/Medium/Low findings. Standalone or `--against <spec>`. |
-| Wireframe First | `/wireframe-first <screen>` | Iterative wireframing method for ONE screen — ASCII boxes, beat-by-beat, ratify before code. Prevents rebuild-loops when intent is ambiguous. |
+| Wireframe First | `/wireframe-first <screen>` | Iterative wireframing method for ONE screen: ASCII boxes, beat-by-beat, ratify before code. Prevents rebuild-loops when intent is ambiguous. |
 | Research | `/research <topic> [--quick]` | Multi-model research with paper artifact. `--quick` skips scoping + adversarial review. Use when `/scout` isn't enough. |
 | Frame | `/frame [--quick \| --deep]` | Design system (DESIGN.md), architecture diagrams, wireframes. Called by `/build` or standalone. |
-| Build | `/build new <idea>` | V0 pipeline — ship a working app, resumable across sessions. |
-| Build Full | `/build full <project>` | Full SDLC — PRD → tech spec → arch review → build → QA → ship. |
+| Build | `/build new <idea>` | V0 pipeline: ship a working app, resumable across sessions. |
+| Build Full | `/build full <project>` | Full SDLC: PRD → tech spec → arch review → build → QA → ship. |
 | Improve | `/improve <skill>` | Autonomous skill improvement loop with rubric scoring. |
 | Curate | `/curate` | Weekly memory consolidation. |
-| Doc-Sync | `/doc-sync` | Session documentation — state, logs, alignment. **Run every session.** |
+| Doc-Sync | `/doc-sync` | Session documentation: state, logs, alignment. **Run every session.** |
 | Start Vague | `/start-vague [optional: idea]` | Front door for vague ideas. Bounded 4-round interview shapes an itch into a buildable `idea.md`. Mid-fire scout + ASCII wireframe + soft-redirect when the idea already exists. |
 | Panel | `/panel [optional: idea.md path]` | Pressure-test the bet before `/build`. 2 domain reviewers scan for blind spots (clean-context). Confirmation-bias prevention. |
-| Advisor | `/advisor [decision]` | Detached agent — checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. |
+| Advisor | `/advisor [decision]` | Detached agent (defined in `.claude/agents/advisor.md`): checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. |
 
 ### Internal-only skills
 
@@ -41,14 +41,15 @@ These have no slash command. Other skills read their `SKILL.md` inline as contex
 
 | Skill | Typical Cost |
 |-------|-------------|
-| `/research` | $0.23-0.33 (`--quick`) / $0.43-0.63 (deep) |
-| `/improve` | $0.28-0.48 per cycle |
+| `/research` | $0.15–0.55 (light to deep) |
+| `/improve` | ~$0.20–0.40 per cycle |
 | `/build` (scoring) | ~$0.12 per score |
-| `/scout` | $0.08-0.18 (depends on YouTube usage) |
-| `/panel` | $0.13-0.23 (2 Explore subagents reading idea.md) |
-| `/curate`, `/consult`, `/doc-sync`, `/build full` (excluding research/scoring) | Free |
+| `/scout` | $0.00–0.10 (depends on YouTube usage) |
+| `/panel`, `/consult`, `/curate`, `/doc-sync`, `/build full` (excluding research/scoring) | Free |
 
-**Rule:** Don't call Claude via OpenRouter — you ARE Claude.
+`/panel` and `/consult` are free because they run Explore subagents inside the Claude Code session, not paid OpenRouter calls.
+
+**Rule:** Don't call Claude via OpenRouter. You ARE Claude.
 
 ## Adding your own skills
 
@@ -70,11 +71,11 @@ Restart Claude Code (or run `/skills`) so the new skill registers.
 
 ## Bridge skills (external tool integrations)
 
-Want to mirror Vera state to Obsidian, sync ROADMAP.md with Notion, or post to Slack? Build a regular skill that does it. No special infrastructure needed — a skill is a skill.
+Want to mirror Vera state to Obsidian, sync ROADMAP.md with Notion, or post to Slack? Build a regular skill that does it. No special infrastructure needed: a skill is a skill.
 
 **Pattern:** Create `.claude/skills/<tool>-bridge/SKILL.md` with instructions for what to read, where to write, and when to run. Add it to `/doc-sync` or `/curate` as a post-completion step if you want it to fire automatically.
 
-**Example — Obsidian state mirror:**
+**Example (Obsidian state mirror):**
 ```
 .claude/skills/obsidian-mirror/SKILL.md:
   Read vera-system/state.md, copy to $OBSIDIAN_VAULT_PATH/Vera/state.md.

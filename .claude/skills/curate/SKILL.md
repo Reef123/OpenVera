@@ -181,7 +181,7 @@ Don't auto-create skills. Flag for the user.
 
 ### 8. User Profile
 
-Two passes on `relationships/user.md`:
+Two passes on `vera-system/relationships/user.md`:
 
 **Pass A — Pattern detection inside user.md.** Read the `What I've Learned` section. Look for clusters of 3+ entries pointing at the same theme (tone preference, decision style, value, recurring constraint). For each cluster:
 - Promote a one-line summary into the right section (`How We Work` / `What They Value` / `Context`)

@@ -28,11 +28,13 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from vera_config import get_path, safe_project_path, validate_slug  # noqa: E402
 
 V0_STAGES = [
-    "V0 Stage 0",   # Kickoff + Purpose
-    "V0 Stage 1",   # Parallel Sprint
-    "V0 Stage 2",   # Build Loop
-    "V0 Stage 3",   # Score
-    "V0 Stage 4",   # Ship
+    "V0 Stage 0",    # Kickoff + Purpose
+    "V0 Stage 1",    # Parallel Sprint
+    "V0 Stage 2",    # Build Loop
+    "V0 Stage 3",    # Score
+    "V0 Stage 4",    # Ship (4a)
+    "V0 Stage 4a",   # Ship (explicit alias for the 4a/4b split in v0-stages.md)
+    "V0 Stage 4b",   # Handoff codification (writes handoff.md)
     "complete",
 ]
 

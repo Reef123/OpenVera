@@ -9,7 +9,7 @@ Complete software development lifecycle. PRD to shipped product with test-first 
 **Supporting files:**
 - [phases.md](phases.md) — detailed instructions for each SDLC phase
 - [sdlc-patterns.md](sdlc-patterns.md) — anti-patterns and review checklists
-- [templates/](templates/) — 9 artifact templates (PRD, tech spec, arch review, etc.)
+- [templates/](templates/) — 10 artifact templates (PRD, tech spec, arch review, etc.)
 
 ---
 
@@ -23,6 +23,7 @@ Phase 4: Phase Planning    → break into ordered phases with test specs
 Phase 5: Build Phase N     → test-first: write tests, then code
 Phase 6: Code Review N     → adversarial code review
 Phase 6.5: Simplification  → remove accidental complexity (after last build phase)
+Phase 6.7: Security Review → OWASP Top 10 audit of the attack surface
 Phase 7: Integration & QA  → end-to-end verification
 Phase 8: Ship              → deploy, verify, document
 ```
@@ -49,7 +50,7 @@ Each phase has:
 
 3. **Build phases loop.** Phase 5 (Build) and Phase 6 (Code Review) repeat for each planned build phase:
    ```
-   Build Phase 1 → Code Review 1 → Build Phase 2 → Code Review 2 → ... → Simplification → QA → Ship
+   Build Phase 1 → Code Review 1 → Build Phase 2 → Code Review 2 → ... → Simplification → Security Review → QA → Ship
    ```
 
 4. **Continue across sessions.** MANIFEST tracks state. After context compression or new session:
@@ -70,6 +71,7 @@ Each phase has:
 | Build Phase N | All tests passing |
 | Code Review N | No Critical findings |
 | Simplification | Reviewed all files, removed or justified |
+| Security Review | No Critical/High OWASP findings open |
 | QA | All acceptance criteria tested and passing |
 | Ship | Deployed, smoke-tested, docs updated |
 

@@ -353,7 +353,7 @@ Agent(
 
 3. **Run the review checklist** from [sdlc-patterns.md](sdlc-patterns.md):
    - Correctness → Design → Security → Reliability → Maintainability
-   - Stop at first Critical finding (don't keep reviewing)
+   - Report ALL findings across the full checklist; don't stop at the first Critical (matches the reviewer agent, and avoids fix-one-rerun-find-the-next churn)
 
 4. **Check test-first compliance.** The build spec should show tests written before code. If it doesn't, flag as a finding.
 
@@ -490,7 +490,7 @@ Write to `.build/security-review.md`:
    | **Edge Cases** | Robustness | Malformed input, empty states, API failures, race conditions, boundary values |
    | **Security** | Safety + alignment | Auth bypass, injection, data leaks, OWASP top 10 surface scan |
 
-   **Nested worktree base.** Phase 7 runs inside the Stage 1 worktree (`build-full-<slug>-*`). Each QA agent's worktree must branch off the CURRENT branch (the Stage 1 worktree branch), not main — otherwise the QA agent reviews the wrong code. Use `EnterWorktree` with `base: HEAD` (or equivalent) so the new worktree forks from the in-flight build state. QA agents are read-only by design (they write findings only, not source) — no merge-back step at exit; just discard the QA worktrees after merging results into the Phase 7 report.
+   **Nested worktree base.** Phase 7 runs inside the Stage 1 worktree (`build-full-<slug>-*`). Each QA agent's worktree must branch off the CURRENT branch (the Stage 1 worktree branch), not main, otherwise the QA agent reviews the wrong code. `EnterWorktree` has no per-call base argument (its base ref is the `worktree.baseRef` setting), so fork from the in-flight build state explicitly: `git worktree add <path> HEAD`, then `EnterWorktree(path: <path>)`. QA agents are read-only by design (they write findings only, not source), so there's no merge-back step at exit; remove the QA worktrees with `git worktree remove` after merging results into the Phase 7 report.
 
    Each agent writes a short findings list (Critical/High/Medium/Low). Merge results.
 

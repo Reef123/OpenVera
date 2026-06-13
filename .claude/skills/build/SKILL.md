@@ -64,7 +64,7 @@ Use `paths.projects_dir` for project workspace (plans and research live inside e
 Find most recent `build-state.md` across `{paths.projects_dir}/*/`. Read it to recover: slug, mode, current stage, substage, artifacts, and decision log.
 
 **Worktree detection (mode=full only).** Before resuming, run `git worktree list` and grep for `build-full-<slug>-*`:
-- **Match found** — call `EnterWorktree(branch: <matched-branch>)` to re-enter. Then read MANIFEST.md (which lives inside the worktree) for current phase. This handles all `/build full` runs uniformly — Targeted, Structured, and Major — without depending on MANIFEST being readable from main.
+- **Match found** — call `EnterWorktree(path: <matched-worktree-path>)` (the path from `git worktree list`, not the branch name) to re-enter. Then read MANIFEST.md (which lives inside the worktree) for current phase. This handles all `/build full` runs uniformly — Targeted, Structured, and Major — without depending on MANIFEST being readable from main.
 - **No match** — either a legacy run started before worktree-by-default, or the worktree was already merged/discarded. Continue on the current branch. If `build-state.md` is on main, resume from main; if it was inside a now-discarded worktree, `build-state.md` won't be found by the glob and the project will appear absent (user should re-run `/build full <project>`).
 
 After worktree entry (or skip), read [full-sdlc.md](full-sdlc.md) and resume at the phase recorded in MANIFEST/build-state.md. mode=new uses no worktree — resume V0 pipeline at the recorded stage directly.
@@ -201,10 +201,10 @@ The user can also invoke `/advisor` manually at any decision point — the slash
 **0. Enter worktree.** Before any agents launch:
 
 ```
-EnterWorktree(branch: "build-full-<slug>-<YYYYMMDD>")
+EnterWorktree(name: "build-full-<slug>-<YYYYMMDD>")
 ```
 
-All Stage 1 work — SDLC artifacts, code, MANIFEST, `.build/` files, build-state.md updates from this point on — lives on this branch. Main stays clean until Stage 2 merges. The Stage 0 `build-state.md` already exists on main from the kickoff step, so `/build continue` can still find the project slug by globbing main. From the slug, `git worktree list` reveals any active `build-full-<slug>-*` branch for re-entry. If the run is abandoned mid-flight, discard the worktree; no rollback needed.
+This creates a worktree under `.claude/worktrees/` on a new branch of the same name and switches the session into it. (Base ref follows the repo's `worktree.baseRef` setting: `head` includes your local Stage 0 commit, `fresh` branches from origin. Set `head` if the kickoff `build-state.md` isn't pushed.) All Stage 1 work — SDLC artifacts, code, MANIFEST, `.build/` files, build-state.md updates from this point on — lives on this branch. Main stays clean until Stage 2 merges. The Stage 0 `build-state.md` already exists on main from the kickoff step, so `/build continue` can still find the project slug by globbing main. From the slug, `git worktree list` reveals any active `build-full-<slug>-*` worktree for re-entry (`EnterWorktree(path: ...)`). If the run is abandoned mid-flight, discard it with `ExitWorktree(action: "remove", discard_changes: true)`; no rollback needed.
 
 ```bash
 python3 vera-system/scripts/build-state.py <slug> "Full Stage 1" --substage "autonomous sprint"
@@ -249,9 +249,22 @@ Same as Structured but with ONE extra stop after research completes: present the
    python3 vera-system/scripts/build-state.py <slug> "complete" --artifact "Build score=X.X/5.0"
    python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug> --score X.X --latency <seconds> --cost <usd> --note "<project> full"
    ```
-4. **Exit worktree.** Decide merge vs. preserve, then exit so subsequent doc-sync writes land on main:
-   - **Score ≥ 3.5 OR user accepts ship-with-caveat** → `ExitWorktree(merge: true)`. All Stage 1/2 commits land on main as one atomic merge.
-   - **Score < 3.5 AND user declines to ship** → `ExitWorktree(merge: false)`. Branch stays in `git worktree list` for `/build continue` to find on re-entry. Main stays clean.
+4. **Exit worktree, then merge.** `ExitWorktree` only keeps or removes a worktree — it does not merge. So the merge is an explicit git step, and it must run AFTER exiting (merging from inside the worktree would land on the build branch, not your launch branch). First commit any uncommitted Stage 1/2 work on the build branch (guard the commit so a clean index, e.g. when phases already committed, doesn't abort the flow):
+   ```bash
+   git add -A
+   git diff --cached --quiet || git commit -m "build full <slug>: V1 (score X.X)"
+   ```
+   Then branch on the ship decision:
+   - **Score ≥ 3.5 OR user accepts ship-with-caveat** → exit, then merge into the branch you launched from, then clean up:
+     1. `ExitWorktree(action: "keep")` — returns the session to the original directory (the branch `/build full` was launched from, normally `main`) with the build branch intact.
+     2. Confirm a safe merge target before merging: you must be on a branch (not detached HEAD) with a clean working tree. If `git symbolic-ref -q HEAD` fails (detached) or `git status --porcelain` is non-empty, stop and surface it rather than merging into a bad state.
+     3. ```bash
+        git merge --no-ff build-full-<slug>-<YYYYMMDD> -m "build full <slug>: merge V1"
+        git worktree remove .claude/worktrees/build-full-<slug>-<YYYYMMDD>
+        git branch -d build-full-<slug>-<YYYYMMDD>
+        ```
+        (Remove the worktree before deleting the branch — git refuses to delete a branch still checked out in a worktree.) All Stage 1/2 commits now land on the launch branch.
+   - **Score < 3.5 AND user declines to ship** → `ExitWorktree(action: "keep")`. No merge. The worktree and branch stay on disk; `git worktree list` shows them for `/build continue` to re-enter via `EnterWorktree(path: ...)`. The launch branch stays clean.
 5. **Spawn doc-sync as background agent.** Don't wait. Doc-sync writes to `conversations/`, `state.md`, and MANIFEST on main — those reflect ship state (or paused state if merge:false).
 6. Update state file, report summary.
 7. **Surface what's next.** Mine SDLC artifacts (PRD non-goals, Tech Spec rejected alternatives, Arch/Code Review deferred issues, Cut List, scout/research signals not acted on) for unfinished business. Output format:

@@ -223,9 +223,9 @@ USER                          SUPERVISOR (main thread)                    AGENTS
  │                                    │  build-state.py "complete"             │
  │                                    │  telemetry.py build PASS               │
  │                                    │                                        │
- │                                    ├─ ExitWorktree(merge: true/false)       │
+ │                                    ├─ ExitWorktree(keep), then git merge    │
  │                                    │  score ≥ 3.5 or ship-accepted → merge  │
- │                                    │  declined → preserve branch for review │
+ │                                    │  declined → keep branch for review     │
  │                                    │                                        │
  │                                    ├─ SURFACE WHAT'S NEXT                   │
  │                                    │  (mine PRD, Cut List, research)        │

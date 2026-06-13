@@ -324,12 +324,13 @@ Append to idea.md (don't overwrite earlier content):
 <proceed | deeper understanding | kill>
 
 ### Outcome
-<!-- Filled later by /retro after V0 ships or kills. Tracks whether
-     panel concerns proved real, false-positive, or unaddressed. -->
+<!-- Filled later by the build Retro Phase (writes retro.md) after V0 ships
+     or kills. Tracks whether panel concerns proved real, false-positive,
+     or unaddressed. -->
 [blank]
 ```
 
-The `### Outcome` block stays blank until `/retro` populates it post-V0.
+The `### Outcome` block stays blank until the build Retro Phase populates it post-V0 (the `retro` step in `v0-stages.md`).
 
 ---
 

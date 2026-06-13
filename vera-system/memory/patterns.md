@@ -182,7 +182,7 @@ If it's not in a file, it doesn't exist after reboot.
 
 **Blockers go in state.md `**BLOCKED:**` line.** What's stuck + who/what unblocks it. Omit the line when nothing's blocked. Delete when cleared — don't archive.
 
-**User-profile signals go in `relationships/user.md` `What I've Learned`.** Append a one-line dated entry the moment a working-style preference, value, or correction is revealed. Gitignored — safe for personal info. /curate promotes patterns weekly.
+**User-profile signals go in `vera-system/relationships/user.md` `What I've Learned`.** Append a one-line dated entry the moment a working-style preference, value, or correction is revealed. Gitignored — safe for personal info. /curate promotes patterns weekly.
 
 **Automation stamp.** Any automation that writes a harness doc must stamp it: `python3 vera-system/scripts/stamp.py <file> <tool-name>`. Inserts/replaces `_Last update: YYYY-MM-DD HH:MM — By: <tool>_` under the H1. Applies to /curate, /doc-sync, and any future tool that touches state.md, ROADMAP.md, MEMORY.md, user.md, or conversation logs.
 

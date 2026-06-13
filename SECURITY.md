@@ -20,5 +20,5 @@ I'll respond within a week. For anything time-sensitive, say so in the report.
 
 ## What Vera does with untrusted input
 
-- `/scout` and `/research` fetch external pages and wrap them in `<!-- UNTRUSTED EXTERNAL CONTENT -->` delimiters before the model reads them. If you see prompt injection succeed, that's a bug.
+- `/scout` and `/research` fetch external content through two paths with different guarantees. The `youtube-analyze.py` and `openrouter.py --search` scripts wrap their output in `<!-- UNTRUSTED EXTERNAL CONTENT -->` delimiters programmatically, so injection attempts arrive clearly fenced as data. The `WebFetch`, `WebSearch`, and Firecrawl paths have no programmatic wrapper: the skills instruct the model to treat fetched content as data rather than instructions, but on those paths the boundary is model-enforced, not mechanically guaranteed. Report any injection that gets through so the boundary can be tightened.
 - Hooks and scripts pass secrets via environment variables, not shell interpolation.
