@@ -27,12 +27,13 @@ Skip if: you're in pure /scout / exploration mode, or the bet is genuinely throw
 
 If `$ARGUMENTS` is a path, use it. Otherwise find the most recently updated `idea.md` under `{paths.projects_dir}/<slug>/idea.md`.
 
-Read the file. Required sections for /panel to run:
-- `## The bet` (the category claim from /start-vague Step 4)
-- `## Who it's for` (audience)
-- `## The problem`
+Check the required sections (`## The bet`, `## Who it's for`, `## The problem`) are present and non-empty — deterministically, so a missing or hollow section can't slip through:
 
-If any are missing or empty, halt with: *"Panel needs the bet, audience, and problem locked first. Run `/start-vague` to fill them in."*
+```bash
+python3 vera-system/scripts/artifact-lint.py --profile idea <path-to-idea.md>
+```
+
+If it exits nonzero (prints `MISSING`/`EMPTY`/`NO_FILE` lines), halt with: *"Panel needs the bet, audience, and problem locked first. Run `/start-vague` to fill them in."* Otherwise read the file and continue.
 
 ---
 

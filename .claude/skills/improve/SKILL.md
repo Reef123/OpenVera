@@ -130,11 +130,17 @@ One atomic change per cycle:
 
 Re-run **ALL** tests against the modified SKILL.md — not just failures. A fix for one test can degrade another (the Langfuse lesson: optimizers cut anything not covered by tests).
 
-Compute:
-- **Target delta:** `new_score - old_score` for the originally-failed test
-- **Regression check:** Any previously-passing test dropping > 0.5 = regression (accounts for LLM judge variance ~0.3)
+Apply the WIN/LOSS rule deterministically — collect the target's before/after and every previously-passing test's before/after into JSON, and let `score-gate.py` decide (so a hand-computed delta or an overlooked regression can't flip the verdict):
 
-Regression detected → LOSS, even if the target test improved.
+```bash
+python3 vera-system/scripts/score-gate.py improve --file .improve/delta.json
+# delta.json: {"target":{"old":N,"new":N},"previously_passing":[{"name":"...","old":N,"new":N}, ...]}
+# prints TARGET_DELTA=±N  BAND=0.50  [REGRESSION test="..." drop=N]  VERDICT=WIN|LOSS  [PLATEAU=1]
+```
+
+- `VERDICT=WIN` → the target improved and nothing previously-passing dropped past the variance band (default 0.5, ~LLM judge noise).
+- `VERDICT=LOSS` → no target improvement, or a `REGRESSION` line fired. A regression loses even when the target improved.
+- `PLATEAU=1` → the target delta is below the band; in `--batch`, two consecutive plateau cycles is the stop signal.
 
 ### Step 9: GATE
 

@@ -94,14 +94,16 @@ Let them talk. Listen for:
 
 After Step 1 finishes, evaluate the Spark text for signals that warrant running `/scout` **before** Step 2's reframings. If a strong existing tool already dominates the space, framings generated cold will miss it — Step 2 ends up offering reframings of a problem the user could solve by downloading something tonight.
 
-**Signals (any one fires the gate):**
-- Spark names a crowded category — "todo", "notes", "dashboard", "habit tracker", "journal", "kanban", "note-taking", "reading list", "bookmark manager"
-- Spark names a specific external platform/API — "Notion", "Linear", "Slack", "GitHub", "Stripe", "Obsidian", "Roam", any named SaaS or API
-- Spark framed as "alternative to <existing tool>" or "X but better" or "<tool> for <use case>"
+**Run the signal scan** (the keyword list lives in one place — `gate-scan.py` — so `/start-vague` and `/build` fire on exactly the same spaces; they used to drift):
+
+```bash
+python3 vera-system/scripts/gate-scan.py scout "<Spark text>"
+# prints FIRE lines (crowded_category / named_platform / alternative_pattern) then RESULT=FIRE|PASS
+```
 
 **Gate logic:**
-- No signals fire → skip the gate. Continue to Step 2. Scout still runs in Step 3 background as the default.
-- ≥1 signal fires → fire the gate. Plain text, single yes/no recommendation:
+- `RESULT=PASS` and no judgment override (the Spark names a SaaS/API the list doesn't enumerate) → skip the gate. Continue to Step 2. Scout still runs in Step 3 background as the default.
+- `RESULT=FIRE` (or your override) → fire the gate. Plain text, single yes/no recommendation:
 
 ```
 🔍 Quick check before I shape this: <one-line reason — e.g., "todo apps are a crowded space — there might already be a tool that does what you described"</one-line>. Running `/scout` (~2-3 min, ~free) now would tell me what's out there so I can shape framings around the real gap, not generic angles.

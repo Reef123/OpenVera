@@ -2,19 +2,34 @@
 """
 build-state.py — Manage build-state.md transitions deterministically.
 
-Usage:
+Usage (set — the default form):
     python3 vera-system/scripts/build-state.py <slug> <stage> [--substage STEP] [--mode MODE] [--artifact KEY=PATH] [--decision TEXT]
+
+Usage (resume helpers — first arg is a command word):
+    python3 vera-system/scripts/build-state.py status            # summary table of every build-state.md
+    python3 vera-system/scripts/build-state.py continue [<slug>] # resume context for one project
 
 Examples:
     python3 vera-system/scripts/build-state.py my-app "V0 Stage 0" --mode new
     python3 vera-system/scripts/build-state.py my-app "V0 Stage 2" --substage "build component 3"
     python3 vera-system/scripts/build-state.py my-app "V0 Stage 3" --artifact "Build score=3.8/5.0"
     python3 vera-system/scripts/build-state.py my-app "complete"
+    python3 vera-system/scripts/build-state.py status
+    python3 vera-system/scripts/build-state.py continue my-app
+
+`continue` is the wrong-branch-resume guard: after a compact it deterministically
+recovers the active project's mode/stage/substage AND, for mode=full, greps
+`git worktree list` for the matching `build-full-<slug>-*` worktree and prints the
+exact `EnterWorktree(path: ...)` to re-enter — instead of the model globbing and
+grepping by hand (which landed resumes on the wrong branch).
 
 Reads config.json for projects_dir. Creates file if missing. Validates stage transitions.
 """
+from __future__ import annotations
 
 import argparse
+import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -68,7 +83,9 @@ def read_state(path: Path) -> dict:
         return state
 
     section = None
-    for line in path.read_text().splitlines():
+    # errors="replace": one corrupt/non-UTF-8 state file (OneDrive sync can
+    # produce them) must not traceback `status`, which walks every project.
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         line_stripped = line.strip()
         if line_stripped.startswith("**Mode:**"):
             state["mode"] = line_stripped.split("**Mode:**")[1].strip()
@@ -113,7 +130,143 @@ def write_state(path: Path, state: dict, slug: str):
     path.write_text(content.strip() + "\n")
 
 
-def main():
+def projects_root() -> Path:
+    return REPO_ROOT / get_path("projects_dir")
+
+
+def find_state_files() -> list:
+    """Every {projects_dir}/<slug>/build-state.md, newest first by mtime."""
+    root = projects_root()
+    if not root.is_dir():
+        return []
+    files = list(root.glob("*/build-state.md"))
+    files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return files
+
+
+def git_lines(args: list) -> list:
+    """Run a read-only git command at the repo root. Returns stdout lines, or
+    [] on any failure (no git, not a repo, timeout) — resume must never crash
+    on a git hiccup."""
+    try:
+        out = subprocess.run(
+            ["git", *args], cwd=str(REPO_ROOT),
+            capture_output=True, text=True, timeout=15,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return []
+    return [line for line in out.stdout.splitlines() if line.strip()]
+
+
+def git_ok() -> bool:
+    """True if git is usable here. Used to distinguish "no matching worktree"
+    from "worktree detection couldn't run" — the latter must not be reported as
+    a confident "resume on current branch" for a full build."""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--git-dir"], cwd=str(REPO_ROOT),
+            capture_output=True, text=True, timeout=15,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return False
+    return out.returncode == 0
+
+
+def current_branch() -> str:
+    """Active branch name, or 'DETACHED' if HEAD is detached, '?' if unknown."""
+    lines = git_lines(["symbolic-ref", "--short", "-q", "HEAD"])
+    if lines:
+        return lines[0].strip()
+    # symbolic-ref fails (rc 1) on detached HEAD; distinguish from no-git.
+    return "DETACHED" if git_lines(["rev-parse", "HEAD"]) else "?"
+
+
+def worktree_for(slug: str) -> str | None:
+    """Path of an active `build-full-<slug>-<date>` worktree, or None. Parses
+    `git worktree list --porcelain` (stable, machine-readable) so a worktree
+    path with spaces can't confuse the grep the prose used to do by hand.
+
+    The branch is `build-full-<slug>-<YYYYMMDD>`, so the slug must be followed
+    by a hyphen and a DIGIT — otherwise slug `demo` would match the worktree of
+    `demo-app` (its prefix), re-entering the wrong project."""
+    pattern = re.compile(r"^build-full-" + re.escape(slug) + r"-\d")
+    current_path = None
+    for line in git_lines(["worktree", "list", "--porcelain"]):
+        if line.startswith("worktree "):
+            current_path = line[len("worktree "):]
+        elif line.startswith("branch ") and current_path:
+            branch = line[len("branch "):].rsplit("/", 1)[-1]
+            if pattern.match(branch):
+                return current_path
+    return None
+
+
+def cmd_status() -> None:
+    """Summary table of every build-state.md (the old glob-and-eyeball step)."""
+    files = find_state_files()
+    if not files:
+        print("No build-state.md files found.")
+        return
+    print(f"{'SLUG':<28} {'MODE':<6} {'STAGE':<16} SUBSTAGE")
+    for path in files:
+        state = read_state(path)
+        slug = path.parent.name
+        print(f"{slug:<28} {state['mode']:<6} {state['stage']:<16} {state['substage']}")
+
+
+def cmd_continue(slug: str | None) -> None:
+    """Recover resume context for one project (most-recent if slug omitted).
+    Prints a RESUME block plus, for mode=full, the exact worktree to re-enter."""
+    if slug:
+        try:
+            validate_slug(slug)
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            sys.exit(1)
+        path = state_file_path(slug)
+        if not path.exists():
+            print(f"ERROR: no build-state.md for '{slug}' under {projects_root()}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        files = find_state_files()
+        if not files:
+            print(f"ERROR: no build-state.md found under {projects_root()}", file=sys.stderr)
+            sys.exit(1)
+        path = files[0]
+        slug = path.parent.name
+
+    state = read_state(path)
+    print(f"SLUG={slug}")
+    print(f"MODE={state['mode']}")
+    print(f"STAGE={state['stage']}")
+    print(f"SUBSTAGE={state['substage']}")
+    print(f"STATE_FILE={path}")
+    for artifact in state["artifacts"]:
+        if artifact != "(none yet)":  # the write_state placeholder, not a real artifact
+            print(f"ARTIFACT={artifact}")
+
+    # Only an explicit mode=new skips worktree detection. An empty/corrupt mode
+    # is treated as full (worktree-checking) — resuming a full build on the
+    # wrong branch is the exact failure continue exists to prevent.
+    if state["mode"] == "new":
+        print("WORKTREE=n/a (mode=new uses no worktree)")
+        print(f"ACTION=resume V0 pipeline at '{state['stage']}' on current branch ({current_branch()})")
+    else:
+        if state["mode"] != "full":
+            print(f"WARN=mode is '{state['mode']}' (expected new|full); treating as full and checking for a worktree")
+        wt = worktree_for(slug)
+        if wt:
+            print(f"WORKTREE={wt}")
+            print(f"ACTION=EnterWorktree(path: \"{wt}\")  # re-enter, then read MANIFEST.md")
+        elif not git_ok():
+            print("WORKTREE=unknown")
+            print(f"ACTION=worktree detection could not run (git unavailable) — verify the branch before resuming {slug}")
+        else:
+            print("WORKTREE=none")
+            print(f"ACTION=resume on current branch ({current_branch()}); no build-full-{slug}-* worktree found")
+
+
+def cmd_set():
     parser = argparse.ArgumentParser(description="Manage build-state.md transitions")
     parser.add_argument("slug", help="Project slug (kebab-case)")
     parser.add_argument("stage", help="Target stage (e.g., 'V0 Stage 2', 'Phase 5', 'complete')")
@@ -182,6 +335,26 @@ def main():
     else:
         print(f"Created: {args.stage} (mode={state['mode']})")
     print(f"State file: {path}")
+
+
+def main():
+    # Route the resume commands (`status`, `continue`) before argparse so the
+    # legacy `<slug> <stage>` set form keeps working unchanged. A project
+    # literally named "status" or "continue" would be shadowed here — an
+    # accepted edge (kebab slugs are rarely bare command words).
+    argv = sys.argv[1:]
+    if argv and argv[0] == "status":
+        if len(argv) > 1:
+            print("ERROR: status takes no arguments", file=sys.stderr)
+            sys.exit(2)
+        cmd_status()
+    elif argv and argv[0] == "continue":
+        if len(argv) > 2:
+            print("ERROR: continue takes at most one slug", file=sys.stderr)
+            sys.exit(2)
+        cmd_continue(argv[1] if len(argv) > 1 else None)
+    else:
+        cmd_set()
 
 
 if __name__ == "__main__":

@@ -10,8 +10,11 @@ Helper scripts called by skills, hooks, and the bootstrap.
 | `doctor.py` | Self-audit — config, dirs, skill drift, secrets, state freshness. |
 | `telemetry.py` | Append a row to `vera-system/runs/<skill>-telemetry.tsv`. |
 | `project-index.py` | Build a JSON index of `vera-projects/projects/` for the dashboard. |
-| `build-state.py` | State machine for `/build` (Stage 0 → Ship). |
+| `build-state.py` | State machine for `/build` (Stage 0 → Ship). `status` lists every build-state.md; `continue [<slug>]` recovers resume context and the worktree to re-enter. |
 | `manifest-update.py` | Edit `MANIFEST.md` files in `/build full` projects. |
+| `artifact-lint.py` | Mandatory-section check for build artifacts (`--profile idea|handoff|contract`). Exit 1 on a missing or empty required section so the skill HARD_FAILs. |
+| `score-gate.py` | Deterministic ship/regression verdict from judge JSON. `build` recomputes the composite vs the floor (catches an inflated composite); `improve` applies the WIN/LOSS + regression-band rule. |
+| `gate-scan.py` | Canonical scout-gate keyword scan (`scout`). One keyword list so `/build` and `/start-vague` fire identically. |
 | `doc-sync-cascade.py` | Detect file changes and which docs need cascade updates. |
 | `doc-sync-gap.py` | Detect time gap since last session. |
 | `doc-sync-todos.py` | Surface unfinished TODOs from conversation logs. |

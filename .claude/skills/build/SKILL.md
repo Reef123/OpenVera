@@ -61,16 +61,27 @@ Use `paths.projects_dir` for project workspace (plans and research live inside e
 5. Begin Upgrade pipeline (below)
 
 ### `continue`
-Find most recent `build-state.md` across `{paths.projects_dir}/*/`. Read it to recover: slug, mode, current stage, substage, artifacts, and decision log.
+Recover resume context deterministically — the glob, the state parse, and the worktree grep are done by the script, not by hand (doing them by hand landed resumes on the wrong branch after a compact):
 
-**Worktree detection (mode=full only).** Before resuming, run `git worktree list` and grep for `build-full-<slug>-*`:
-- **Match found** — call `EnterWorktree(path: <matched-worktree-path>)` (the path from `git worktree list`, not the branch name) to re-enter. Then read MANIFEST.md (which lives inside the worktree) for current phase. This handles all `/build full` runs uniformly — Targeted, Structured, and Major — without depending on MANIFEST being readable from main.
-- **No match** — either a legacy run started before worktree-by-default, or the worktree was already merged/discarded. Continue on the current branch. If `build-state.md` is on main, resume from main; if it was inside a now-discarded worktree, `build-state.md` won't be found by the glob and the project will appear absent (user should re-run `/build full <project>`).
+```bash
+python3 vera-system/scripts/build-state.py continue [<slug>]
+```
 
-After worktree entry (or skip), read [full-sdlc.md](full-sdlc.md) and resume at the phase recorded in MANIFEST/build-state.md. mode=new uses no worktree — resume V0 pipeline at the recorded stage directly.
+Omit `<slug>` to resume the most-recently-touched project. The script prints `SLUG`, `MODE`, `STAGE`, `SUBSTAGE`, `STATE_FILE`, each `ARTIFACT`, and a resume `ACTION`:
+
+- **mode=full with an active worktree** — the output includes `WORKTREE=<path>` and `ACTION=EnterWorktree(path: "<path>")`. Call that `EnterWorktree(path: ...)` exactly as printed (the path, not the branch name), then read MANIFEST.md (inside the worktree) for the current phase. This handles Targeted, Structured, and Major runs uniformly without depending on MANIFEST being readable from main.
+- **mode=full with no worktree** (`WORKTREE=none`) — legacy run or already merged/discarded. Resume on the current branch per the printed `ACTION`. If the glob found no state file at all, the project will appear absent (re-run `/build full <project>`).
+- **mode=full, detection failed** (`WORKTREE=unknown`) — git couldn't run, so the branch is uncertain. Do NOT assume the current branch; verify (`git worktree list`, `git status`) before resuming.
+- **mode=new** (`WORKTREE=n/a`) — no worktree; resume the V0 pipeline at the printed `STAGE` directly.
+- A `WARN=...` line means the state file's mode was empty or unrecognized; the script fell back to worktree detection. Check the state file is intact before trusting the resume point.
+
+Then resume by mode: **mode=full** → read [full-sdlc.md](full-sdlc.md) and pick up at the recorded phase (after entering the worktree). **mode=new** → read [v0-stages.md](v0-stages.md) and pick up at the recorded V0 stage. Do not send a mode=new project into the full SDLC.
 
 ### `status`
-Show all build state files. Summary table.
+```bash
+python3 vera-system/scripts/build-state.py status
+```
+Prints a summary table (slug, mode, stage, substage) of every `build-state.md`. Read-only.
 
 ---
 

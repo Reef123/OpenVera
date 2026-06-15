@@ -129,5 +129,128 @@ class LoopReportTests(unittest.TestCase):
                 tsv.write_text(before)
 
 
+class BuildStateResumeTests(unittest.TestCase):
+    """status/continue route before argparse; the legacy set form must be
+    untouched. Uses a clearly-scratch slug under the real projects_dir and
+    removes it afterward."""
+
+    SLUG = "zzz-cli-resume-test"
+
+    def _project_dir(self):
+        import sys as _sys
+        _sys.path.insert(0, str(_SCRIPTS_DIR))
+        import vera_config
+        return _REPO_ROOT / vera_config.get_path("projects_dir") / self.SLUG
+
+    def tearDown(self):
+        import shutil
+        pd = self._project_dir()
+        if pd.exists():
+            shutil.rmtree(pd)
+
+    def test_set_then_continue_roundtrip(self):
+        created = _run("build-state.py", self.SLUG, "V0 Stage 2", "--mode", "new",
+                       "--substage", "build loop")
+        self.assertEqual(created.returncode, 0)
+        cont = _run("build-state.py", "continue", self.SLUG)
+        self.assertEqual(cont.returncode, 0)
+        self.assertIn(f"SLUG={self.SLUG}", cont.stdout)
+        self.assertIn("STAGE=V0 Stage 2", cont.stdout)
+        self.assertIn("MODE=new", cont.stdout)
+        self.assertIn("WORKTREE=n/a", cont.stdout)  # mode=new uses no worktree
+
+    def test_status_lists_the_project(self):
+        _run("build-state.py", self.SLUG, "V0 Stage 0", "--mode", "new")
+        result = _run("build-state.py", "status")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn(self.SLUG, result.stdout)
+
+    def test_continue_unknown_slug_clean_exit(self):
+        result = _run("build-state.py", "continue", "definitely-not-a-real-project-xyz")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("no build-state.md", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_status_extra_arg_rejected(self):
+        result = _run("build-state.py", "status", "extra")
+        self.assertEqual(result.returncode, 2)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_corrupt_state_file_does_not_crash_status(self):
+        # A non-UTF-8 build-state.md must not traceback the whole status table.
+        pd = self._project_dir()
+        pd.mkdir(parents=True, exist_ok=True)
+        (pd / "build-state.md").write_bytes(b"\xff\xfe**Mode:** new\n")
+        result = _run("build-state.py", "status")
+        self.assertEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_unknown_mode_continue_checks_worktree(self):
+        # An empty/corrupt Mode must not silently route a build to the no-worktree
+        # path; it should warn and attempt worktree detection (fail-safe).
+        pd = self._project_dir()
+        pd.mkdir(parents=True, exist_ok=True)
+        (pd / "build-state.md").write_text(
+            "# Build State: x\n**Mode:**\n**Stage:** Phase 5\n**Sub-stage:**\n")
+        result = _run("build-state.py", "continue", self.SLUG)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("WARN=", result.stdout)
+        self.assertNotIn("WORKTREE=n/a", result.stdout)
+
+
+class ArtifactLintCliTests(unittest.TestCase):
+    def test_missing_section_exits_1(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "idea.md"
+            path.write_text("# Idea\n## The bet\nx\n")  # missing two sections
+            result = _run("artifact-lint.py", "--profile", "idea", str(path))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("MISSING", result.stdout)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_clean_artifact_exits_0(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "idea.md"
+            path.write_text("# Idea\n## The bet\nx\n## Who it's for\ny\n## The problem\nz\n")
+            result = _run("artifact-lint.py", "--profile", "idea", str(path))
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("OK", result.stdout)
+
+
+class ScoreGateCliTests(unittest.TestCase):
+    def _stdin(self, payload, *args):
+        return subprocess.run(
+            [sys.executable, str(_SCRIPTS_DIR / "score-gate.py"), *args],
+            input=payload, capture_output=True, text=True, timeout=30,
+        )
+
+    def test_build_ships_above_floor(self):
+        result = self._stdin(
+            '{"dimensions":[{"score":4},{"score":4},{"score":4},{"score":3},{"score":4}]}',
+            "build")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("VERDICT=SHIP", result.stdout)
+
+    def test_bad_json_clean_exit(self):
+        result = self._stdin("not json", "build")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("cannot read JSON", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+
+class GateScanCliTests(unittest.TestCase):
+    def test_fires_on_crowded_category(self):
+        result = _run("gate-scan.py", "scout", "a better todo app")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("RESULT=FIRE", result.stdout)
+
+    def test_passes_on_empty_space(self):
+        result = _run("gate-scan.py", "scout", "a RAW to JPEG converter CLI")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("RESULT=PASS", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

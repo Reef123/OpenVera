@@ -177,16 +177,21 @@ AskUserQuestion(
 
 After Step 1 answers come back, evaluate Job + Pain + 30s test for signals that warrant `/scout` even when the user picked "No — I know what I want" in Research depth. The gate is Vera's catch for crowded spaces the user didn't anticipate.
 
-**Signals (any one fires the gate):**
-- Job names a crowded category — "todo", "notes", "dashboard", "habit tracker", "journal", "kanban", "note-taking"
-- Specific external platform/API named in Job or Pain — "Notion", "Linear", "Slack", "GitHub", "Stripe", any named API or SaaS
-- Pain framed as "alternative to <existing tool>" or "X but better"
-- `/start-vague` Step 4 left "What's out there" as `[pending]` AND Job is in a category where existing tools are likely
+**Run the signal scan** (the keyword list lives in one place — `gate-scan.py` — so this fires identically from `/build` and `/start-vague`):
+
+```bash
+python3 vera-system/scripts/gate-scan.py scout "<Job + Pain + 30s-test text>"
+# prints FIRE lines (crowded_category / named_platform / alternative_pattern) then RESULT=FIRE|PASS
+```
+
+Pass all three (Job, Pain, and the 30-second test) so a tool named only in the 30s test still triggers the gate.
+
+A `RESULT=FIRE` is sufficient to fire the gate. `RESULT=PASS` is not proof the space is empty — also fire the gate if `/start-vague` Step 4 left "What's out there" as `[pending]` AND the Job is in a category where existing tools are likely, or if the Job/Pain names a SaaS or API the list doesn't enumerate (the list covers the common ones; your judgment covers the rest).
 
 **Gate logic:**
 - If user picked **"Quick scout"** or **"Full research"** in Step 1 → gate is moot (already running in Stage 1). Skip.
-- If user picked **"No"** AND no signals fire → skip. Trust their pre-emptive choice.
-- If user picked **"No"** AND ≥1 signal fires → fire the gate. Plain text, single yes/no recommendation:
+- If user picked **"No"** AND the scan passes (and no judgment override) → skip. Trust their pre-emptive choice.
+- If user picked **"No"** AND the gate fires → recommend scout. Plain text, single yes/no recommendation:
 
 ```
 🔍 Quick check before I lock the build path: <one-line reason — e.g., "todo apps are a crowded space — there might already be a tool that does what you described"</one-line>. Running `/scout` (~2-3 min, ~free) would tell me if there's an existing tool worth using vs. building from scratch.
@@ -580,6 +585,14 @@ supervisor (you):
 [what this component does NOT do yet]
 ```
 
+**Check the contract before validating** — it must have its mandatory sections and at least one EARS `shall` clause (no `shall` = nothing the validator can grep):
+
+```bash
+python3 vera-system/scripts/artifact-lint.py --profile contract .build/contract.md
+```
+
+Nonzero exit (`MISSING`/`EMPTY`/`NO_SHALL`) means the contract isn't verifiable yet — fix it before spawning the validator.
+
 **EARS quick reference** (the five patterns — pick the right one per criterion):
 - **Ubiquitous:** `The <system> shall <response>.` (always-true invariant)
 - **State-driven:** `While <precondition>, the <system> shall <response>.`
@@ -657,8 +670,18 @@ python3 vera-system/scripts/openrouter.py \
 - 4.0-4.5 = polished (strong V1)
 - 4.5-5.0 = exceptional (rare — means design, code, AND UX are all strong)
 
-- Composite >= 3.5 → ship
-- Composite < 3.5 → fix outputs (max 2 rounds), then ship imperfect. V0 ships imperfect.
+**Gate on the composite deterministically.** Save the judge's JSON and pass it to `score-gate.py`, which recomputes the composite from the dimension scores (so a judge that returns an inflated `composite` can't ship a sub-floor build) and prints the verdict:
+
+```bash
+python3 vera-system/scripts/score-gate.py build --expect-dims 5 --file .build/score.json
+# COMPOSITE=<n>  FLOOR=3.50  VERDICT=SHIP|FIX  [MISCOUNT reported=<r> computed=<c>]
+```
+
+`--expect-dims 5` matches the five scored dimensions above, so a truncated judge response can't average a high subset past the floor.
+
+- `VERDICT=SHIP` → ship.
+- `VERDICT=FIX` → fix outputs (max 2 rounds), then ship imperfect. V0 ships imperfect.
+- A `MISCOUNT` line means the judge's own composite disagreed with its dimension math — gate on the computed value (which the script already did) and treat the judge as unreliable for this run.
 
 ```bash
 python3 vera-system/scripts/build-state.py <slug> "V0 Stage 3" --artifact "Build score=X.X/5.0"
@@ -750,6 +773,14 @@ V1-facing codification stage. Generates `handoff.md` (project-root V0→V1 contr
    - **`## What V0 did NOT prove` is mandatory.** For every claim in `## What V0 proved`, ask "what would have to be true elsewhere for this to generalize?" That counterfactual is a candidate for the not-proved section. Without this section, V1 risks codifying V0 accidents as invariants (Felin, Gambardella, Stern & Zenger 2024, *Journal of Management* — "misleading feedback" critique).
    - **Anti-patterns trace to evidence.** Mine `.build/decisions.log` for "tried X, reverted because Y" entries. Empty log → 0-2 anti-patterns from `spec.md ## Out of Scope` items that V1 might be tempted to walk back into. Never invent anti-patterns.
    - **3-7 invariants is the right density.** Fewer than 3 → V0 didn't lock enough down (probably an under-specification). More than 7 → likely codifying accidents (probably an over-specification).
+
+   **Verify the handoff has its mandatory sections** (the HARD_FAIL gets teeth — a handoff missing `## What V0 did NOT prove` or shipping a hollow section is the exact failure this catches):
+
+   ```bash
+   python3 vera-system/scripts/artifact-lint.py --profile handoff {paths.projects_dir}/<slug>/handoff.md
+   ```
+
+   Nonzero exit means the contract is incomplete — fix the flagged sections before completing the stage. Then record it:
 
    ```bash
    python3 vera-system/scripts/build-state.py <slug> "V0 Stage 4b" --substage "handoff written" --artifact "handoff=<slug>/handoff.md"

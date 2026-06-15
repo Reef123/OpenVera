@@ -316,6 +316,7 @@ else:
 # Any unexpected script in this directory runs WITHOUT user approval.
 print("\n[Script Inventory]")
 KNOWN_SCRIPTS = {
+    "artifact-lint.py",
     "build-state.py",
     "curate-mode.py",
     "doc-sync-cascade.py",
@@ -323,12 +324,14 @@ KNOWN_SCRIPTS = {
     "doc-sync-todos.py",
     "doctor.py",
     "frontmatter.py",
+    "gate-scan.py",
     "loop-report.py",
     "manifest-update.py",
     "openrouter.py",
     "palette-pick.py",
     "panel-score.py",
     "project-index.py",
+    "score-gate.py",
     "stamp.py",
     "telemetry.py",
     "vera_config.py",
