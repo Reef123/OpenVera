@@ -124,7 +124,7 @@ if [[ -t 1 ]]; then
   G='\033[32m'; R='\033[0m'
   echo ""
   printf '%b\n' "  ${G}╔═══════════════════════════════════════════════╗${R}"
-  printf '%b\n' "  ${G}║  Open Vera                                    ║${R}"
+  printf '%b\n' "  ${G}║  OpenVera                                     ║${R}"
   printf '%b\n' "  ${G}╠═══════════════════════════════════════════════╣${R}"
   printf '%b\n' "  ${G}║                                               ║${R}"
   printf '%b\n' "  ${G}║  > VAGUE IDEA                                 ║${R}"
@@ -141,18 +141,15 @@ if [[ -t 1 ]]; then
   echo ""
 fi
 
-# Offer to launch straight into OpenVera. curl|bash users aren't in the folder
-# yet, so opening it for them removes the most-missed step. Needs a real
-# terminal (test by opening /dev/tty, not [[ -r ]]) and the claude CLI.
+# Tell the user how to start Claude Code in the harness. We deliberately do NOT
+# auto-launch it: exec-ing an interactive TUI straight out of a `curl | bash`
+# pipe can leave it unable to receive keystrokes (Claude Code's trust prompt
+# then looks frozen). Printing the command is reliable and keeps the terminal
+# clean — the user starts Claude themselves.
 if [[ "$TARGET" == "." ]]; then NEXT="claude"; else NEXT="cd $TARGET && claude"; fi
 
-if ( : < /dev/tty ) 2>/dev/null && command -v claude >/dev/null 2>&1; then
-  printf "  Open OpenVera now? [Y/n] " > /dev/tty
-  read -r REPLY < /dev/tty || REPLY=""
-  case "${REPLY:-y}" in
-    [nN]*) echo "  When you're ready:  $NEXT   (then run /start-vague)" ;;
-    *)     echo "  Launching Claude Code..."; exec claude < /dev/tty ;;
-  esac
-else
-  echo "  Next:  $NEXT   (then run /start-vague)"
-fi
+echo ""
+echo "  To get started, start Claude Code in the harness:"
+echo "      $NEXT"
+echo ""
+echo "  Then run:  /start-vague"

@@ -129,7 +129,7 @@ else
 fi
 
 # --- Step 2: API Keys (optional) ---
-echo "  API keys are optional. Open Vera makes no external calls on its own;"
+echo "  API keys are optional. OpenVera makes no external calls on its own;"
 echo "  keys are only used by scripts you explicitly trigger."
 echo ""
 echo "  Works without keys:"
