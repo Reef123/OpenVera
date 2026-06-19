@@ -284,7 +284,7 @@ Boundaries are enforced in `.claude/settings.json` and the hooks, not promised i
 - `/research` and `/improve` need OpenRouter for their multi-model calls.
 - `/build`'s external scoring gate needs OpenRouter.
 
-Install-time exceptions: `git clone` pulls the repo, `pip install` fetches Python deps, and if you paste an API key into bootstrap it gets verified with a one-shot call (OpenRouter `GET /auth/key`, Google AI `GET /v1beta/models`). Skip the prompts to skip the calls.
+Install-time exceptions: `git clone` pulls the repo, and if you paste an API key into bootstrap it gets verified with a one-shot call (OpenRouter `GET /auth/key`, Google AI `GET /v1beta/models`). Skip the prompts to skip the calls. There is no `pip install` step: OpenVera runs on the Python standard library alone.
 
 Try OpenVera for a session. Decide if you trust it. Add keys later if you want the scoring gate or deep research.
 

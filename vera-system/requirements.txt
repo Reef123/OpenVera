@@ -1,1 +1,7 @@
-requests>=2.32.2
+# OpenVera runs on the Python standard library alone — no third-party packages.
+# That's deliberate: the installer needs no pip, no PyPI access, and can't trip
+# over PEP-668 "externally-managed environment" or a broken pip.
+#
+# If you add a runtime dependency later, list it here (one per line, e.g.
+# "somepkg>=1.2"); bootstrap.sh installs anything listed here best-effort and
+# will not fail the install if it can't.

@@ -27,31 +27,40 @@ else
   INTERACTIVE=0
 fi
 
-# Detect a Python 3 command for bootstrap's own use (pip, doctor). Linux/macOS
-# usually have 'python3'; Windows (Git Bash, installer-provided) typically
-# ships 'python' or 'py'. The hooks in settings.json carry their own
-# interpreter-fallback chain, so no per-machine override file is needed.
+# Detect a WORKING Python 3.8+ interpreter for bootstrap's own use (config
+# regen, key checks, doctor). "Exists" is not enough: a broken install — e.g. a
+# Homebrew python whose stdlib C-extensions fail to load — passes a bare
+# `command -v` and then dies later with a raw traceback. So for each candidate
+# we (1) confirm the version and (2) smoke-test that it can import the stdlib
+# modules OpenVera actually uses, falling back to the next one if not. We also
+# try common absolute paths (e.g. macOS's /usr/bin/python3) because PATH may
+# shadow a working interpreter with a broken one of the same name. Windows
+# (Git Bash) typically ships 'python' or 'py' rather than 'python3'.
 PYTHON_CMD=""
-for cand in python3 python py; do
-  if command -v "$cand" >/dev/null 2>&1; then
-    PYTHON_CMD="$cand"
-    break
+PY_DIAG=""
+for cand in python3 python py /usr/bin/python3 /usr/local/bin/python3; do
+  command -v "$cand" >/dev/null 2>&1 || continue
+  if ! "$cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' 2>/dev/null; then
+    [[ -z "$PY_DIAG" ]] && PY_DIAG="$cand is too old ($("$cand" --version 2>&1)); OpenVera needs Python 3.8+."
+    continue
   fi
+  if ! "$cand" -c 'import json, ssl, urllib.request' 2>/dev/null; then
+    [[ -z "$PY_DIAG" ]] && PY_DIAG="$cand ($("$cand" --version 2>&1)) can't load its own standard library — likely a broken Python install."
+    continue
+  fi
+  PYTHON_CMD="$cand"
+  break
 done
 if [[ -z "$PYTHON_CMD" ]]; then
-  echo "  ✗ No Python 3 interpreter found (tried: python3, python, py)." >&2
+  echo "  ✗ No working Python 3.8+ interpreter found (tried: python3, python, py)." >&2
+  [[ -n "$PY_DIAG" ]] && echo "    $PY_DIAG" >&2
   echo "    Install Python 3.8+ from https://www.python.org/downloads/ and rerun." >&2
   exit 1
 fi
 
-# Existence is not enough — Python 3.6 would pass the check above and die
-# mid-skill weeks later. Gate the version up front.
-if ! "$PYTHON_CMD" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' 2>/dev/null; then
-  FOUND_VERSION=$("$PYTHON_CMD" --version 2>&1 || echo "unknown")
-  echo "  ✗ $PYTHON_CMD is too old ($FOUND_VERSION). OpenVera needs Python 3.8+." >&2
-  echo "    Install a newer Python from https://www.python.org/downloads/ and rerun." >&2
-  exit 1
-fi
+# Record which interpreter won so we can show it to the user (see banner below).
+PYTHON_VERSION="$("$PYTHON_CMD" --version 2>&1 | awk '{print $2}')"
+PYTHON_PATH="$(command -v "$PYTHON_CMD")"
 
 # ANSI colors (degrade gracefully on non-TTY)
 if [[ -t 1 ]]; then
@@ -70,6 +79,8 @@ echo "  ${BROWN}╔════════════════════�
 echo "  ${BROWN}║${RESET}       ${GOLD}🐘  OpenVera Bootstrap${RESET}         ${BROWN}║${RESET}"
 echo "  ${BROWN}╚══════════════════════════════════════╝${RESET}"
 echo ""
+echo "  ${DIM}Using Python ${PYTHON_VERSION}  (${PYTHON_PATH})${RESET}"
+echo ""
 
 # --- Step 1: Name ---
 read -rp "What's your name? " USER_NAME < "$TTY_IN" || USER_NAME=""
@@ -85,41 +96,35 @@ fi
 echo ""
 
 # --- Pre-flight: Python dependencies ---
-# bootstrap.sh itself uses 'requests' (OpenRouter key verification below) and
-# /scout, /research, YouTube analysis all import it too. Install up front and
-# fail loudly if pip can't reach a working state — better than letting the user
-# discover broken skills weeks later.
+# OpenVera runs on the Python standard library alone, so normally there's
+# nothing to install here — no pip, no PyPI, no PEP-668 wall, no broken-pip
+# surprise. If a future requirements.txt lists real packages we install them
+# BEST-EFFORT: a missing optional package degrades one skill, so it must never
+# hard-fail the whole install (every other step in this script degrades too).
 REQ_FILE="$SYSTEM_DIR/requirements.txt"
+REAL_REQS=""
 if [[ -f "$REQ_FILE" ]]; then
-  PIP_BIN="$(command -v pip3 || command -v pip || true)"
-  if [[ -z "$PIP_BIN" ]]; then
-    echo "  ✗ pip not found — install Python 3 + pip and rerun bootstrap." >&2
-    exit 1
-  fi
-  echo "  Installing Python dependencies..."
-  # --break-system-packages was added in pip 23 (PEP 668). Older pip (e.g. the
-  # macOS Xcode toolchain ships pip 21) rejects it as an unknown option and
-  # dumps its full usage help — looks like a failure to the user. Detect the
-  # version and only pass the flag when supported.
-  PIP_VERSION=$("$PIP_BIN" --version 2>/dev/null | awk '{print $2}' | cut -d. -f1)
+  REAL_REQS="$(grep -vE '^[[:space:]]*(#|$)' "$REQ_FILE" 2>/dev/null || true)"
+fi
+if [[ -z "$REAL_REQS" ]]; then
+  echo "  ✓ No third-party packages needed — OpenVera uses only the Python standard library."
+  echo ""
+else
+  echo "  Installing Python packages with '$PYTHON_CMD -m pip' (best-effort):"
+  echo "        ${REAL_REQS//$'\n'/$'\n        '}"
+  # --break-system-packages was added in pip 23 (PEP 668). Older pip rejects it
+  # as unknown, so only pass it when supported.
   PIP_FLAGS=(install --user -q)
-  if [[ "$PIP_VERSION" =~ ^[0-9]+$ ]] && [[ "$PIP_VERSION" -ge 23 ]]; then
+  PIP_MAJOR="$("$PYTHON_CMD" -m pip --version 2>/dev/null | awk '{print $2}' | cut -d. -f1)"
+  if [[ "$PIP_MAJOR" =~ ^[0-9]+$ ]] && [[ "$PIP_MAJOR" -ge 23 ]]; then
     PIP_FLAGS=(install --user --break-system-packages -q)
   fi
-  set -o pipefail
-  if ! "$PIP_BIN" "${PIP_FLAGS[@]}" -r "$REQ_FILE" 2>&1 | tail -5; then
-    echo "  ✗ pip install failed." >&2
-    echo "    Debian/Ubuntu (PEP 668):  $PIP_BIN install --user --break-system-packages -r $REQ_FILE" >&2
-    echo "    macOS without Python:     brew install python3 && rerun bootstrap.sh" >&2
-    set +o pipefail
-    exit 1
+  if "$PYTHON_CMD" -m pip "${PIP_FLAGS[@]}" -r "$REQ_FILE" >/dev/null 2>&1; then
+    echo "  ✓ Python packages installed"
+  else
+    echo "  ⚠ Couldn't install some packages — skills that need them will say so when you run them."
+    echo "    To try manually:  $PYTHON_CMD -m pip install -r $REQ_FILE"
   fi
-  set +o pipefail
-  "$PYTHON_CMD" -c "import requests" 2>/dev/null || {
-    echo "  ✗ 'requests' not importable after install — Python env broken." >&2
-    exit 1
-  }
-  echo "  ✓ Python dependencies ready"
   echo ""
 fi
 
@@ -194,13 +199,14 @@ SECRETS_FILE="$SYSTEM_DIR/.secrets"
 # OpenRouter — loop until verified, network error, or user skips.
 while [[ -n "$OPENROUTER_KEY" ]]; do
   echo "  Verifying OpenRouter key..."
-  HTTP_STATUS=$(OPENROUTER_KEY="$OPENROUTER_KEY" "$PYTHON_CMD" -c "
-import os
+  HTTP_STATUS=$(OPENROUTER_KEY="$OPENROUTER_KEY" SYSTEM_DIR="$SYSTEM_DIR" "$PYTHON_CMD" -c "
+import os, sys
+sys.path.insert(0, os.path.join(os.environ['SYSTEM_DIR'], 'scripts'))
 try:
-    import requests
+    import http_util
     key = os.environ['OPENROUTER_KEY']
-    r = requests.get('https://openrouter.ai/api/v1/auth/key',
-        headers={'Authorization': f'Bearer {key}'}, timeout=10)
+    r = http_util.get('https://openrouter.ai/api/v1/auth/key',
+        headers={'Authorization': 'Bearer ' + key}, timeout=10)
     print(r.status_code)
 except Exception:
     print('0')
@@ -226,12 +232,13 @@ done
 # Google AI — same retry pattern. Hits /v1beta/models which is free and 200-on-valid.
 while [[ -n "$GOOGLE_KEY" ]]; do
   echo "  Verifying Google AI key..."
-  HTTP_STATUS=$(GOOGLE_KEY="$GOOGLE_KEY" "$PYTHON_CMD" -c "
-import os
+  HTTP_STATUS=$(GOOGLE_KEY="$GOOGLE_KEY" SYSTEM_DIR="$SYSTEM_DIR" "$PYTHON_CMD" -c "
+import os, sys
+sys.path.insert(0, os.path.join(os.environ['SYSTEM_DIR'], 'scripts'))
 try:
-    import requests
+    import http_util
     key = os.environ['GOOGLE_KEY']
-    r = requests.get('https://generativelanguage.googleapis.com/v1beta/models',
+    r = http_util.get('https://generativelanguage.googleapis.com/v1beta/models',
         params={'key': key}, timeout=10)
     print(r.status_code)
 except Exception:

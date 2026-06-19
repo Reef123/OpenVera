@@ -56,9 +56,20 @@ bold "  OpenVera installer"
 bold ""
 
 # --- Prereq checks ---
+# Just confirm the tools EXIST here; bootstrap.sh does the authoritative
+# working-interpreter selection (version + stdlib smoke-test + fallback). Accept
+# any of python3/python/py so we don't wrongly reject Windows (Git Bash), which
+# often ships only 'python' or 'py'.
+have_python() {
+  local c
+  for c in python3 python py; do
+    command -v "$c" >/dev/null 2>&1 && return 0
+  done
+  return 1
+}
 missing=()
 command -v git      >/dev/null 2>&1 || missing+=("git")
-command -v python3  >/dev/null 2>&1 || missing+=("python3")
+have_python                         || missing+=("python3")
 command -v claude   >/dev/null 2>&1 || missing+=("claude (Claude Code CLI)")
 
 if [[ ${#missing[@]} -gt 0 ]]; then

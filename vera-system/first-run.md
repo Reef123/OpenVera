@@ -30,22 +30,18 @@ Then:
      [ ! -f "${tmpl%.template}" ] && cp "$tmpl" "${tmpl%.template}"
    done
    ```
-2. **Install Python dependencies.** `/scout`, `/research`, YouTube analysis, and OpenRouter key verification all import `requests` (from `vera-system/requirements.txt`). `bootstrap.sh` does this step; the manual path must too, or those skills fail later with `ModuleNotFoundError`.
+2. **No Python packages to install.** OpenVera runs on the Python standard library alone (no `requests`, no pip step, nothing in `vera-system/requirements.txt`). Just confirm a working Python 3.8+ is available, the same way `bootstrap.sh` does: existence is not enough, since a broken install (e.g. a Homebrew python whose stdlib C-extensions fail to load) can be present yet unusable.
    ```bash
-   PIP_BIN="$(command -v pip3 || command -v pip || true)"
-   if [[ -z "$PIP_BIN" ]]; then
-     echo "pip not found — install Python 3 + pip (macOS: brew install python3), then rerun this step"
-   else
-     PIP_VERSION=$("$PIP_BIN" --version 2>/dev/null | awk '{print $2}' | cut -d. -f1)
-     if [[ "$PIP_VERSION" =~ ^[0-9]+$ && "$PIP_VERSION" -ge 23 ]]; then
-       "$PIP_BIN" install --user --break-system-packages -q -r vera-system/requirements.txt
-     else
-       "$PIP_BIN" install --user -q -r vera-system/requirements.txt
-     fi
-     python3 -c "import requests" && echo "deps OK"
-   fi
+   PY=""
+   for cand in python3 python py /usr/bin/python3 /usr/local/bin/python3; do
+     command -v "$cand" >/dev/null 2>&1 || continue
+     "$cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3,8) else 1)' 2>/dev/null || continue
+     "$cand" -c 'import json, ssl, urllib.request' 2>/dev/null || continue
+     PY="$cand"; break
+   done
+   [ -n "$PY" ] && echo "Python OK: $PY" || echo "No working Python 3.8+ found"
    ```
-   If `pip` is missing or the import still fails, tell the user their Python environment needs attention (install Python 3 + pip, or on macOS `brew install python3`) before `/scout`, `/research`, or scored builds will work. The rest of setup can still proceed.
+   If nothing prints "Python OK", the user needs a working Python 3.8+ (install from python.org; on macOS the system `/usr/bin/python3` works) before `/scout`, `/research`, or scored builds will run. The rest of setup can still proceed.
 3. **Replace `{{USER_NAME}}`** in `vera-system/relationships/user.md` with their name
 4. **Replace `YYYY-MM-DD`** in `vera-system/state.md` with today's date
 5. **Create output directories** if missing:

@@ -24,12 +24,11 @@ import sys
 import time
 from pathlib import Path
 
-try:
-    import requests
-except ImportError:
-    print("ERROR: 'requests' package not found.", file=sys.stderr)
-    print("Install it: pip install -r vera-system/requirements.txt", file=sys.stderr)
-    sys.exit(1)
+# OpenVera has no third-party dependencies. http_util is a stdlib-only shim
+# exposing the small slice of the requests API the calls below use; importing it
+# as `requests` keeps every call site unchanged.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import http_util as requests  # noqa: E402
 
 
 def load_api_key():

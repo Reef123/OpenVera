@@ -325,6 +325,7 @@ KNOWN_SCRIPTS = {
     "doctor.py",
     "frontmatter.py",
     "gate-scan.py",
+    "http_util.py",
     "loop-report.py",
     "manifest-update.py",
     "openrouter.py",
