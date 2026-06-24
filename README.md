@@ -1,11 +1,11 @@
  # 🐘 OpenVera
 
 <p align="center">
-  <em>A personal AI workbench that remembers your ideas, researches the space, builds a V0, captures lessons, and carries context forward to v1+.</em>
+  <em>A personal AI workbench that remembers your context, researches before building, ships a prototype, and reviews its own code. Work carries forward instead of starting over.</em>
 </p>
 
 <p align="center">
-  <em>Vague idea → researched → shipped → remembered</em>
+  <em>Idea → researched → shipped → remembered. In one session or many.</em>
 </p>
 
 <p align="center">
@@ -20,11 +20,11 @@
 
 ---
 
-OpenVera is a harness for Claude Code: files, skills, hooks, and scripts that wrap the model so your work compounds.
+OpenVera is a harness for Claude Code: files, skills, hooks, and scripts that wrap the model so your work carries forward instead of starting over.
 
-Most AI coding setups forget everything between sessions. You re-explain context, lose the thread, start cold. OpenVera keeps your work in files on disk: state, decisions, patterns, lessons. Session fifty starts where session one left off, and knows things session one didn't.
+It runs the whole arc, not just one trick. It remembers your context between sessions, researches the space before it writes code, ships a working prototype, reviews what it built, and carries the lessons into the next run. The whole loop runs on plain files you can read, grep, and edit.
 
-It researches before it builds, pushes back before you commit, and writes down what it learns before it lets a session end. The whole loop runs on plain files you can read, grep, and edit.
+Most AI coding setups forget everything between sessions: you re-explain context, lose the thread, start cold. OpenVera keeps state, decisions, patterns, and lessons in files on disk, so session fifty starts where session one left off and knows things session one didn't.
 
 Two ways in, depending on where you are:
 
@@ -118,7 +118,7 @@ The write-back side is only half the harness. The same skepticism runs upstream,
 
 **It researches before it builds.** `/scout` is a 2-3 minute recon (~$0.10): Reddit and YouTube for what real people hit. `/research` goes deep (~$0.50): 8 steps, multiple models so one model's blind spots get caught, a source registry so claims are checkable. Either way, external findings stay untrusted: extract the technique, verify packages and env vars before you adopt.
 
-**Something that isn't you pushes back.** `/panel` reviews your plan for blind spots before `/build`. Validator and reviewer agents check the code as it's built. A separate model scores the result. A scope guard cuts a V0 to 1-2 problems, because a finished V0 that solves one problem is worth more than a spec for V3 that never gets built.
+**Something that isn't you pushes back.** `/panel` reviews your plan for blind spots before `/build`. Validator and reviewer agents check the code as it's built. A separate model scores the result. A scope guard cuts a prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships.
 
 ## Why It's Built This Way
 
@@ -181,7 +181,7 @@ Costs below are typical USD ranges per invocation. Paid skills spend on OpenRout
 | `/panel [path]` | Pressure-test your idea before `/build`. 2 domain reviewers (read-only, clean-context) scan for blind spots: what's stated, missing, assumed. | Free |
 | `/advisor [decision]` | Checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. | Free |
 | `/code-review [path]` | Clean-context reviewer scans a path or diff, returns tiered findings | Free |
-| `/build new <idea>` | V0: idea to working app (resumable across sessions via state file) | ~$0.12 (scoring) |
+| `/build new <idea>` | First version: idea to working prototype (resumable across sessions via state file) | ~$0.12 (scoring) |
 | `/build full <project>` | Full SDLC: PRD, tech spec, arch review, phased builds, QA | Varies (research + scoring) |
 | `/improve <skill>` | Runs a skill, scores the output, proposes instruction fixes, verifies no regressions | ~$0.20–0.40 / cycle |
 | `/curate` | Weekly memory consolidation: prunes, merges, verifies promotions | Free |
@@ -203,20 +203,20 @@ All deterministic Python, wired in `.claude/settings.json`, readable in one sitt
 ## Two Ways to Build
 
 <p align="center">
-  <img src="assets/build-journey.png" alt="V0 vibe codes a working app; V1+ runs full SDLC across multiple sessions" width="860">
+  <img src="assets/build-journey.png" alt="Two build paths: one session ships a working prototype; multiple sessions run full SDLC" width="860">
 </p>
 
 Both start from an idea. If yours is still vague, run `/start-vague` first. It shapes a rough idea into a buildable `idea.md`, then hands it to `/build new`.
 
-### V0: Just Build It (`/build new`)
+### One session: idea to prototype (`/build new`)
 
 You have an idea you can describe in a sentence. `/build new` runs the whole pipeline (the one in the walkthrough above): scoping questions, scope guard, design tokens, then a build loop until it works in the browser. The state file persists across sessions, so when context compresses or you stop for the night, `/build continue` picks up exactly where you left off.
 
-### V1+: Full SDLC (`/build full`)
+### Multi-session: prototype to production (`/build full`)
 
-Your V0 works and you want to make it real. `/build full` runs the whole thing: deep research, gap analysis, PRD, tech spec, architecture review, phased builds with tests, code review, QA. This takes multiple sessions. Context is handed off through files, not memory.
+Your prototype works and you want to make it real. `/build full` runs the whole thing: deep research, gap analysis, PRD, tech spec, architecture review, phased builds with tests, code review, QA. This takes multiple sessions. Context is handed off through files, not memory.
 
-Don't start here. Start with V0. If it's worth investing in, you'll know.
+Don't start here. Start with `/build new`. If it's worth investing in, you'll know.
 
 ## Structure
 
