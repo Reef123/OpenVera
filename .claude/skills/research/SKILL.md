@@ -21,6 +21,8 @@ Not every question needs the full pipeline. Check the arguments:
 
 **If the user just wants a quick answer, suggest `/scout` instead.** /research exists for questions that need a paper artifact with sourced claims and decisions.
 
+**Delegation policy note.** This skill runs inline by default - it does not spawn its own subagents. If a caller (such as `/build`) spawns `/research` via the `researcher` agent, that spawn follows `vera-system/memory/delegation-policy.md` (spawn contract, fail-closed artifact verification, STATUS/ARTIFACT/NOTES return shape). Nothing else in this skill changes.
+
 ## Configuration (auto-loaded)
 
 ```!

@@ -21,6 +21,8 @@ Use this AFTER `/start-vague` Step 4 (bet locked in idea.md), BEFORE `/build new
 
 Skip if: you're in pure /scout / exploration mode, or the bet is genuinely throwaway-tiny.
 
+**Spec-method trigger.** Also convene the panel mid-build when a design tree stops moving, or when forks keep collapsing back to the same answer too easily - both read as the reasoning being stuck rather than settled. See `vera-system/memory/spec-method.md` for the fuller decision-tree doctrine; the panel's role there stays the same as here: blind-spot scan and bet lock, not flaw-finding.
+
 ---
 
 ## Step 1: Locate idea.md

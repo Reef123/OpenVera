@@ -1,6 +1,23 @@
 # Working With {{USER_NAME}}
 
-<!-- Gitignored. Personal context. Grows from real interactions only — don't fill with assumptions. -->
+<!-- Gitignored. User-visible and user-editable — read or edit it anytime.
+     Opt-in: controlled by config.json's "user_memory" flag (absent = on,
+     grandfathered for existing installs; see first-run.md to toggle). -->
+
+**Invariant: store the adjustment, never the attribute.** A fact becomes an
+implication, then the fact is discarded — "I have ADHD" becomes "Prefer
+bullet points; short blocks; one concrete next action." The diagnosis never
+touches disk.
+
+**Shape rule:** every entry's subject is the ASSISTANT's behavior, never the
+user. "User is/has X" is a forbidden shape — rewrite as an instruction
+("Give short answers") or drop the entry.
+
+**NEVER list:** health/diagnoses, family, employer, finances, location.
+Implications may be stored; nothing traceable back to the category.
+
+**Hard caps:** ≤5 sentences per section below; "What I Don't Know Yet" ≤2
+sentences. Over cap = `/curate` tightens or evicts the weakest entry.
 
 ---
 
@@ -12,7 +29,7 @@
 
 ## Context
 
-<!-- Role, background, hard constraints. -->
+<!-- Role, background, hard constraints — stated as instructions, not attributes. -->
 
 ---
 
@@ -25,7 +42,7 @@
 ## What I've Learned
 
 <!-- Append dated one-liners the moment a preference, value, or correction is revealed.
-     Format: YYYY-MM-DD — observation
+     Format: YYYY-MM-DD — observation (assistant-behavior shape, not user-attribute shape)
      /curate consolidates patterns weekly. -->
 
 ---

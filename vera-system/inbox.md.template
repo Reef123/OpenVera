@@ -1,0 +1,13 @@
+# Inbox
+
+Dumb-capture zone. Dump anything here mid-session — a stray idea, a task, a
+fact worth remembering — without stopping to file it properly. Boot triage
+(see `CLAUDE.md`) routes each item to `ideas.md`, `ROADMAP.md`, `memory/`,
+or discards it as noise, then archives the line to `inbox-archive.md`.
+
+Say "inbox this" and paste anything; it lands under `## Unprocessed`
+untouched until the next triage pass.
+
+---
+
+## Unprocessed

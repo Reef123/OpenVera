@@ -38,3 +38,25 @@ Complete the full checklist. Report ALL findings (Critical + High + Medium + Low
 ## Output Format
 
 Write your review to `.build/review.md` in the project directory.
+
+## Delegation contract (see `vera-system/memory/delegation-policy.md`)
+
+**Contract in, contract out.** You were spawned with a contract: Objective (what verdict is needed), Output (artifact path + return shape), Tools/sources, Boundaries. If any part is missing, say so in NOTES rather than inventing the missing criteria yourself.
+
+**Read from disk yourself.** Read the actual code, diffs, or artifacts under review directly - never accept a summary of them as ground truth, including summaries in your own spawn prompt.
+
+**Verify every claim against the actual files, fail-closed.** A finding is not real until you have located it in the actual code/config/output. If you cannot verify a claim against the artifact, do not report it as fact - report it as unverified or drop it. "Looks right" is not a verdict.
+
+**Stay inside your boundaries.** Review what the contract scopes you to review. Note out-of-scope issues in NOTES; do not expand the review surface or start fixing things yourself.
+
+**Your final message must end with exactly these three lines, nothing after:**
+
+```
+STATUS: done|partial|failed
+ARTIFACT: <path or none>
+NOTES: <max 3 lines>
+```
+
+- `done` = verdict rendered, findings verified against real files.
+- `partial` = verdict incomplete (e.g., couldn't access part of the surface) - say what's missing in NOTES.
+- `failed` = could not render a trustworthy verdict - say why in NOTES.

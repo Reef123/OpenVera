@@ -181,23 +181,25 @@ Don't auto-create skills. Flag for the user.
 
 ### 8. User Profile
 
-Two passes on `vera-system/relationships/user.md`:
+Check the opt-in first — run `python3 vera-system/scripts/vera_config.py user_memory`; it prints `true` or `false` (an absent config key means enabled — legacy installs are grandfathered on, and this command is the only check that handles that; never infer the flag from the full config dump). If `false`, skip this entire section silently: no reads, no writes, no report line.
 
-**Pass A — Pattern detection inside user.md.** Read the `What I've Learned` section. Look for clusters of 3+ entries pointing at the same theme (tone preference, decision style, value, recurring constraint). For each cluster:
-- Promote a one-line summary into the right section (`How We Work` / `What They Value` / `Context`)
-- Delete the source entries it now covers
-- If a single entry has been confirmed across 3+ separate sessions and isn't covered upstairs, promote it too
+**Shape rule + NEVER list apply to every write in this section, no exceptions.** Every entry's subject is the ASSISTANT's behavior, never the user — "User is/has X" is a forbidden shape; rewrite as an instruction or drop it. Never write anything traceable to health/diagnoses, family, employer, finances, or location, even as an aside — implications may be stored, the category itself may not. Enforce the hard caps in the template header (≤5 sentences per section, "What I Don't Know Yet" ≤2 sentences) — over cap means tighten existing entries or evict the weakest one, not add without pruning.
 
-**Pass B — Delta from conversation logs.** Read the last 3 conversation logs. Surface signals not yet captured anywhere in user.md:
-- Preferences revealed (e.g., always picks Sonnet for light tasks)
-- Corrections that imply a working style
-- Anything in the profile contradicted by recent behavior
+**Promotion gates — two lanes, reusing the v1.16.1 promotions machinery (curate-mode.py, `memory/promotions.tsv`) as the second lane. No new organs.**
 
-Append dated one-liners to `What I've Learned`. Don't promote one-shot signals — Pass A handles promotion once 3 instances exist.
+- **Told** (the user explicitly states a preference, in-session): promote to the right section (`How We Work` / `What They Value` / `Context`) same-session, marked provisional. Record it: `python3 vera-system/scripts/curate-mode.py promotions record --match "<2-4 word phrase>" --pattern "user.md:<section>"`.
+- **Observed** (inferred from behavior, not stated): requires 2 recurrences **across different sessions** before promotion — down from the old 3-session bar. Check `What I've Learned` for a same-theme entry from an earlier session; on the 2nd recurrence, promote and record via the same `curate-mode.py promotions record` call.
+- **Provisional → validated:** handled automatically by the existing no-contradiction window — run `python3 vera-system/scripts/curate-mode.py promotions check` (same call already used for lessons.md promotions) and read its output for any `user.md:` pattern_ref rows.
 
-**Conservative bar:** "User prefers X" from one session isn't a pattern. Three independent confirmations is.
+**Removal is asymmetric — instant, no gate.** "Stop doing X" is a fact, not an inference: the moment it's said, delete the entry it contradicts immediately. No recurrence requirement, no waiting on promotions check, no relitigating in a future session.
 
-user.md is gitignored — safe for personal observations.
+**Pass A — Pattern detection inside user.md.** Read `What I've Learned`. Apply the Observed gate (2 recurrences, different sessions) to cluster candidates; promote per the rules above and delete the source entries the promotion now covers.
+
+**Pass B — Delta from conversation logs.** Read the last 3 conversation logs for candidate signals — but only via each log's `Curate-flag:` line (doc-sync's handoff lane; see `doc-sync/SKILL.md`). Don't re-mine full conversation prose for personal signal — that's exactly the surface the NEVER list exists to keep curate off. Told signals in a `Curate-flag:` line promote same-session; Observed signals get appended as a dated one-liner to `What I've Learned` (shape-rule-compliant) and wait for the 2nd recurrence.
+
+**Report every add/remove — nothing lands silently.** Add one line per change to the curate report's CHANGES section, e.g. "added 1 working-style note (Observed, 2nd recurrence)" or "removed 1 entry (Told: stop doing X)".
+
+user.md is gitignored — safe for personal observations, subject to the NEVER list above regardless.
 
 ### 9. Consolidate
 

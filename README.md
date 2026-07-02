@@ -24,6 +24,8 @@ OpenVera is a harness for [Claude Code](https://docs.anthropic.com/en/docs/claud
 
 It runs the whole arc, not just one trick: it remembers your context between sessions, researches the space before it writes code, ships a working prototype, reviews what it built, and carries the lessons into the next run. Most AI coding setups forget everything between sessions; OpenVera keeps state, decisions, patterns, and lessons in plain files on disk, so session fifty starts where session one left off. The whole loop runs on files you can read, grep, and edit.
 
+Every session opens with what moved and what's next: a cockpit view of recent momentum, the next action per open thread, and anything genuinely blocked on you, so you never open a project cold. A running `inbox.md` catches whatever you paste in mid-thought; the next session routes it to an idea, a roadmap item, or the trash instead of it disappearing into scrollback.
+
 ## Get Started
 
 ```bash
@@ -103,7 +105,7 @@ The same skepticism runs upstream, before any code exists.
 
 **Research.** `/scout` is a 2-3 minute recon: Reddit and YouTube for what real people hit. `/research` goes deep, across multiple models so one model's blind spots get caught, with a source registry so claims are checkable. External findings stay untrusted: extract the technique, verify packages and env vars before you adopt.
 
-**Pushback.** `/panel` reviews the plan for blind spots before `/build`. Validator and reviewer agents check the code as it's built. A scope guard cuts a prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships.
+**Pushback.** `/panel` reviews the plan for blind spots before `/build`. Validator and reviewer agents check the code as it's built. A scope guard cuts a prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships. Before any build even starts, a quick check asks whether the next decision is easy to undo; if it's a one-way door, you get a nudge to think it through first instead of discovering the cost after it's built.
 
 ## Skills
 
@@ -134,7 +136,7 @@ Slash commands that do real things. Each sits in the system prompt as one line u
 
 Both start from an idea; if yours is still vague, run `/start-vague` first to shape it into a buildable `idea.md`.
 
-- **`/build new`: one session, idea to prototype.** Scoping questions, scope guard, design tokens, then a build loop until it works in the browser. The state file persists, so `/build continue` picks up exactly where you left off when context compresses or you stop for the night.
+- **`/build new`: one session, idea to prototype.** Scoping questions, scope guard, design tokens, then a build loop until it works in the browser. The state file persists, so `/build continue` picks up exactly where you left off when context compresses or you stop for the night. A feature only counts as done once it's actually verified working, tracked in a ledger the model can't quietly edit; and resuming a build re-checks the app still runs before any new work starts, so a broken session boundary gets caught instead of built on top of.
 - **`/build full`: multi-session, prototype to production.** Deep research, gap analysis, PRD, tech spec, architecture review, phased builds with tests, code review, QA. Context is handed off through files, not memory. Don't start here; start with `/build new`. If it's worth investing in, you'll know.
 
 ## Why It's Built This Way
@@ -143,6 +145,7 @@ Both start from an idea; if yours is still vague, run `/start-vague` first to sh
 - **Three-tier context.** Core (~300 lines) loads every session, Recall loads on demand, Archival is search-only. The window doesn't fill with what isn't relevant right now.
 - **Skills load lazy.** Each skill is one line in the system prompt until invoked. Keep 50 on hand, pay for the one you run.
 - **Enforcement over discipline.** Anything the loop depends on is a hook or a script in `.claude/hooks/`, not a reminder. Deterministic Python, readable in one sitting. Habits decay; gates don't.
+- **Cheap tier for plumbing, capable tier for judgment.** Subagents that fetch, format, or sync run on a cheaper model tier; the calls that decide scope, review code, or gate a release stay on the capable one. You get parallel throughput without paying model cost for work that doesn't need it.
 
 ## What OpenVera Won't Do
 
@@ -172,6 +175,8 @@ The `.secrets` file is gitignored and chmod 600; permissions require Claude to a
 ## Make It Yours
 
 After bootstrap: set the tone in `vera-system/who-i-am/voice.md`, tell Claude who you are in `vera-system/relationships/user.md`, and add your own rules to `vera-system/memory/patterns.md`. Change paths or the default model in `vera-system/config.json`. To add a skill, drop a `.claude/skills/<name>/SKILL.md` with YAML frontmatter (name + description) and instructions in the body.
+
+Bootstrap also asks if you want a working-style profile kept in `relationships/user.md`. It learns how to work with you, without keeping a dossier on you: preferences and patterns get written down, never health, family, employer, finances, or location. You can read it, edit it, or turn it off any time by flipping `user_memory` in `config.json`.
 
 ## Recommended MCPs
 

@@ -75,6 +75,11 @@ Omit `<slug>` to resume the most-recently-touched project. The script prints `SL
 - **mode=new** (`WORKTREE=n/a`) — no worktree; resume the V0 pipeline at the printed `STAGE` directly.
 - A `WARN=...` line means the state file's mode was empty or unrecognized; the script fell back to worktree detection. Check the state file is intact before trusting the resume point.
 
+**Verify-before-build opener (mechanical, before resuming any work).** A session boundary is where inter-session rot hides — dependencies drift, a half-finished edit left the app broken, or the last session ended mid-component. Before picking up new work, confirm the app still runs as-is:
+- If `init.sh` exists at the project root (V0 projects, scaffolded after this became standard), run it: `bash <project>/init.sh`. `SMOKE_PASS` → proceed to the resume action below. `SMOKE_FAIL` → fix whatever broke FIRST, before touching the recorded stage/phase — resuming new work on top of a broken app compounds the rot.
+- If `init.sh` doesn't exist (older project, or mode=full mid-SDLC with no scaffold-stage equivalent yet), do the closest manual equivalent: start the dev server / run command from `CLAUDE.md` frontmatter and confirm it boots before continuing.
+- Report the check result in one line before resuming: *"Verified <slug> still runs — picking up at <stage>."* or *"<slug> was broken on resume — fixed <what>, now picking up at <stage>."*
+
 Then resume by mode: **mode=full** → read [full-sdlc.md](full-sdlc.md) and pick up at the recorded phase (after entering the worktree). **mode=new** → read [v0-stages.md](v0-stages.md) and pick up at the recorded V0 stage. Do not send a mode=new project into the full SDLC.
 
 ### `status`
@@ -132,6 +137,8 @@ python3 vera-system/scripts/build-state.py <slug> "Full Stage 0" --substage "kic
 ```
 
 **Key preflight (mechanical):** run `python3 vera-system/scripts/openrouter.py --verify`. On failure, tell the user in the kickoff message that this upgrade ships unscored (Stage 2's external judge gets skipped) and that adding a key to `vera-system/.secrets` enables it. Surfacing this at kickoff beats discovering it after the sprint.
+
+**Reversibility triage (mechanical, one question):** before the kickoff AskUserQuestion fires, silently classify the trigger this upgrade is chasing. Is the next real decision a one-way door (data model change, auth model, framework swap, anything expensive to undo) or a two-way door (add a feature, fix a bug, tweak a flow)? Two-way → proceed straight into the kickoff below, no extra step. One-way → tell the user before they pick a depth: *"This looks like a one-way door ([name it]) — worth a short spec session first (see `vera-system/memory/spec-method.md`) before we commit to a direction, or you can proceed and we'll adjust if it's wrong."* Let them choose; don't block on it. This is a judgment call, not a gate — most `/build full` triggers are two-way and should skip straight through.
 
 Read the project's existing artifacts first, in this order:
 

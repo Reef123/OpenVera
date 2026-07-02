@@ -95,6 +95,20 @@ if [[ -z "$USER_NAME" ]]; then
 fi
 echo ""
 
+# --- Step 1b: User memory opt-in ---
+# Default NO on Enter and in headless (INTERACTIVE=0) runs — the flag only
+# turns on when a real human at a real terminal says yes. Same /dev/tty
+# pattern as the key retry/skip/quit loops below.
+USER_MEMORY="false"
+if [[ "$INTERACTIVE" == "1" ]]; then
+  read -rp "User memory file? (learns how to work with you — working-style notes only, never personal facts; you can read or edit it anytime) [y/N] " um_choice < "$TTY_IN" || um_choice="n"
+  case "${um_choice:-n}" in
+    [yY]*) USER_MEMORY="true" ;;
+    *)     USER_MEMORY="false" ;;
+  esac
+fi
+echo ""
+
 # --- Pre-flight: Python dependencies ---
 # OpenVera runs on the Python standard library alone, so normally there's
 # nothing to install here — no pip, no PyPI, no PEP-668 wall, no broken-pip
@@ -178,6 +192,8 @@ copy_template_if_missing "$SYSTEM_DIR/memory/MEMORY.md.template"
 copy_template_if_missing "$SYSTEM_DIR/memory/lessons.md.template"
 copy_template_if_missing "$SYSTEM_DIR/ideas.md.template"
 copy_template_if_missing "$SYSTEM_DIR/ROADMAP.md.template"
+copy_template_if_missing "$SYSTEM_DIR/inbox.md.template"
+copy_template_if_missing "$SYSTEM_DIR/cockpit.md.template"
 
 # User relationship file — safe replacement without sed escaping issues
 USER_FILE="$SYSTEM_DIR/relationships/user.md"
@@ -305,6 +321,23 @@ target.write_text(json.dumps(DEFAULTS, indent=2) + '\n')
 print(f"  Wrote {target}")
 PYEOF
 fi
+
+# Write the user-memory opt-in into config.json explicitly, every bootstrap
+# run — fresh installs must never rely on the grandfathered "key absent"
+# default (that fallback exists for installs that predate this flag, not
+# for new ones). Preserves every other key already in the file.
+USER_MEMORY="$USER_MEMORY" CONFIG_FILE="$CONFIG_FILE" "$PYTHON_CMD" << 'PYEOF' || echo "  WARNING: could not write user_memory flag to config.json."
+import json, os, pathlib
+target = pathlib.Path(os.environ['CONFIG_FILE'])
+value = os.environ['USER_MEMORY'] == 'true'
+try:
+    data = json.loads(target.read_text())
+except (OSError, json.JSONDecodeError):
+    data = {}
+data['user_memory'] = value
+target.write_text(json.dumps(data, indent=2) + '\n')
+print(f"  user_memory: {value}")
+PYEOF
 
 # Create conversations directory marker
 touch "$SYSTEM_DIR/conversations/.gitkeep"

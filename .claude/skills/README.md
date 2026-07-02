@@ -28,6 +28,7 @@ Three layers: **entry points** (what the user invokes), **building blocks** (cal
 | Start Vague | `/start-vague [optional: idea]` | Front door for vague ideas. Bounded 4-round interview shapes an itch into a buildable `idea.md`. Mid-fire scout + ASCII wireframe + soft-redirect when the idea already exists. |
 | Panel | `/panel [optional: idea.md path]` | Pressure-test the bet before `/build`. 2 domain reviewers scan for blind spots (clean-context). Confirmation-bias prevention. |
 | Advisor | `/advisor [decision]` | Detached agent (defined in `.claude/agents/advisor.md`): checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. |
+| Gap Handler | `/gap-handler` | Return-after-gap restart protocol — pre-written by gap length (short/medium/long) so resuming doesn't require deliberation. |
 
 ### Internal-only skills
 

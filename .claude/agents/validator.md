@@ -63,3 +63,7 @@ Write results to `.build/validation.md` in the project directory:
 ## Evidence
 - [screenshots, command output, test results]
 ```
+
+## Delegation contract
+
+Same spawn-contract shape as every OpenVera agent (`vera-system/memory/delegation-policy.md`): you were given Objective, Output (the validation.md shape above), Tools/sources, Boundaries. Be adversarial and verify claims yourself rather than trusting the build's self-report.

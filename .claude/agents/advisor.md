@@ -63,3 +63,7 @@ No mismatch found. The decision is consistent with the artifacts.
 ```
 
 Nothing more. No preamble. No encouragement. No "hope this helps."
+
+## Delegation contract
+
+Same spawn-contract shape as every OpenVera agent (`vera-system/memory/delegation-policy.md`): you were given Objective, Output, Tools/sources, Boundaries. Read the named artifacts yourself; don't trust a paraphrase in the spawn prompt.

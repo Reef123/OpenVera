@@ -58,6 +58,7 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
    - Non-goals are explicit — state what you're NOT doing
    - Constraints are complete — future sessions can't guess context
    - **Classify each major decision** as one-way door (irreversible, needs deep analysis) or two-way door (reversible, decide fast). Two-way doors get less ceremony downstream.
+   - **Kill forks in writing.** When the discovery/structured-question rounds surface an option you're NOT taking, don't just drop it — add a row to `## Decision Classification` with the killed branch named in Rationale and a one-line Reversal Trigger (what would have to become true to revisit it). An unwritten kill gets re-argued next session; a written one with a trigger doesn't. This is the same table used for chosen decisions — killed forks are rows in it too, not a separate log. See `vera-system/memory/spec-method.md` "Kill forks in writing" for the full method when a decision is genuinely contentious enough to need it.
 
 6. **Visual validation (UI projects only).** If the project includes user-facing screens:
    - If you have a design tool (e.g., Stitch, Figma MCP), generate concept wireframes for each major user story. Otherwise, create a simple ASCII wireframe or skip.
@@ -65,7 +66,16 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
    - If wireframes miss the mark, iterate until the concept lands
    - Record any design tool project/screen IDs in the PRD's Concept Wireframes section
 
-7. **Gate:** Present PRD summary and concept wireframes (if any) to user. Then ask ONE open discovery question before closing:
+6.5. **Show diagram, not tell (per open question).** Before firing any structured question in step 4, or before writing a User Story, run one test: would the user understand this better shown than read? A component relationship, a flow with branches, a screen layout — these are shown-not-told cases. A single scope decision or a yes/no constraint usually isn't. When the test says yes, don't default to prose — render it as a text wireframe (ASCII boxes) OR a quick HTML mockup, and ask the user which format they'd rather see: *"Want this as a quick text sketch or an HTML mockup?"* Skip the ask when the answer is obvious from context (e.g., they've already said "just text is fine" earlier in the session).
+
+7. **Self-review before the flash.** Before presenting the PRD to the user, re-read your own draft once, scanning for:
+   - **Placeholders left in** — any literal `[PLACEHOLDER]`-shaped text that should've been filled.
+   - **Contradictions** — a Non-Goal that a Functional Requirement quietly reintroduces, or two FRs that can't both be true.
+   - **Ambiguity** — a requirement a different reader could implement two different ways.
+   - **Scope creep phrases** — grep the draft for `"add validation"`, `"TBD"`, `"similar to Task N"` (or the PRD's own FR-N cross-references) and any other line that defers a decision instead of making one. These read as progress but are gaps wearing a checkmark.
+   Fix what you find inline, silently — this is a quality pass, not something to narrate to the user. Only surface it if fixing would change scope enough to need their input.
+
+8. **Gate:** Present PRD summary and concept wireframes (if any) to user. Then ask ONE open discovery question before closing:
    > "What's your gut say — anything feel off about this scope?"
 
    Wait for response. If they surface something, incorporate it. Then request formal approval.
@@ -115,9 +125,10 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
 
 4. **Design the architecture.** Components, data model, interfaces, file structure.
    - Start with the simplest architecture that meets all requirements
-   - Document alternatives and why they were rejected
+   - Document alternatives and why they were rejected — a rejected alternative is a killed fork; give it a Decision Classification row in the PRD if it was a real contender, same table as Phase 1.
    - Every component must trace back to a PRD requirement
-   - **Create a Mermaid architecture diagram** in the tech spec showing components, data flow, and integration points. This diagram is the reviewer's reference in Phase 6.
+   - **Interface consistency:** for every component boundary, the Produces signature on one side must match the Consumes signature on the other. This is what Phase 4's build-phase Interfaces blocks inherit from — get it right here and phase planning just copies it forward.
+   - **Create a Mermaid architecture diagram** in the tech spec showing components, data flow, and integration points. This diagram is the reviewer's reference in Phase 6 — it's the "show, don't tell" case for architecture: a component-and-data-flow relationship is read faster from a diagram than a paragraph, every time.
 
 5. **Ask technical questions.** If there are genuine technical trade-offs, surface them.
 
@@ -137,7 +148,9 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
    - Security considerations are NOT optional
    - Error handling table forces thinking about failure modes
 
-7. **Gate:** Present architecture summary to user. If stack changed from V0, highlight it explicitly. Wait for approval.
+7. **Self-review before the flash.** Re-read the draft tech spec once: any placeholder left unfilled, any component whose interface contradicts how another component calls it, any ambiguous responsibility split, any `"add validation"` / `"TBD"` / `"similar to Task N"`-shaped deferral. Fix inline, silently.
+
+8. **Gate:** Present architecture summary to user. If stack changed from V0, highlight it explicitly. Wait for approval.
 
 ---
 
@@ -215,23 +228,27 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
    - Each phase should be completable in one session
    - Each phase should produce something testable
 
-2. **Order phases by dependencies.** Foundation first. Each phase builds on the last.
+2. **Order phases by dependencies.** Foundation first. Each phase builds on the last. If a phasing option gets ruled out (e.g., an ordering that seemed obvious but breaks a dependency), add it to the PRD's `## Decision Classification` table with the reversal trigger — same table Phase 1 started, not a new one.
 
-3. **Map PRD requirements to phases.** Every FR-N must appear in at least one phase.
+3. **Map PRD requirements to phases (coverage map — mandatory before the plan ships).** Build a simple table: one row per FR-N/NFR-N from the PRD, one column naming which Build Phase addresses it. Every requirement must have at least one phase. A requirement with no phase is a gap the plan is about to ship silently — either add a phase or cut the requirement from the PRD (with a Decision Classification row explaining the cut) before Phase 4's gate. This map can be inline prose in the phase plan (e.g., under Phase Strategy) — it doesn't need its own template section, just needs to exist and be checked.
 
-4. **Visual specs (UI projects only).** Invoke `/frame --from-spec` to generate `DESIGN.md` and per-screen wireframes. `/frame` handles design-tool routing internally (Stitch MCP when available, text wireframes otherwise) and applies the Vera Considered Palettes aesthetic floor. Record screen references in each build phase's Visual Spec section.
+4. **Interfaces block per build phase.** For any phase whose output another phase consumes (which is most of them past Phase 1), write a short Consumes/Produces block under that phase's Dependencies section: what shape of data/function/component this phase expects to receive, and what shape it hands off. Keep it to signatures, not implementations — a type or a one-line schema, not code. This is what makes it safe to hand different phases to different subagents later: each one can build against a contract instead of guessing at what the last phase actually produced. Flag any place where a Produces signature from one phase doesn't match the next phase's Consumes signature — that's a seam that will break at integration, catch it now.
+
+5. **Visual specs (UI projects only).** Invoke `/frame --from-spec` to generate `DESIGN.md` and per-screen wireframes. `/frame` handles design-tool routing internally (Stitch MCP when available, text wireframes otherwise) and applies the Vera Considered Palettes aesthetic floor. Record screen references in each build phase's Visual Spec section.
 
    DESIGN.md is the styling source of truth. Wireframes show layout. Both are references for Build + Code Review.
 
-5. **Write test specs for each phase.** This is the critical step.
+5.5. **Show diagram, not tell (per phasing question).** Same test as Phase 1: before asking a phasing or dependency question, would the user understand it better shown than read? Phase ordering with a real dependency chain is a shown-not-told case — sketch it (text arrows, or an ASCII box chain) rather than describing it in a paragraph, and ask which format they want if it's substantial enough to matter.
+
+6. **Write test specs for each phase.** This is the critical step.
    - Unit tests: What individual behaviors to verify
    - Integration tests: What cross-component behaviors to verify
    - Edge cases: What error/boundary conditions to test
    - These are WHAT to test, not HOW — implementation details come in Phase 5
 
-6. **Define acceptance criteria for QA.** These are the end-to-end checks for Phase 7.
+7. **Define acceptance criteria for QA.** These are the end-to-end checks for Phase 7.
 
-7. **Ask phasing questions if needed.**
+8. **Ask phasing questions if needed.**
 
    ```
    AskUserQuestion(
@@ -244,11 +261,13 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
    )
    ```
 
-8. **Write the phase plan.** Use [templates/phase-plan.md](templates/phase-plan.md).
+9. **Write the phase plan.** Use [templates/phase-plan.md](templates/phase-plan.md).
 
-9. **Ambition check.** Before presenting, verify the SDLC tier matches scope. If scope is thin for the chosen tier, downgrade. If it's too ambitious for one tier, split.
+10. **Ambition check.** Before presenting, verify the SDLC tier matches scope. If scope is thin for the chosen tier, downgrade. If it's too ambitious for one tier, split.
 
-10. **Gate:** Present phase summary with test specs and visual specs (if any). Wait for approval.
+11. **Self-review before the flash.** Re-read the draft plan once before presenting: any placeholder text left unfilled, any phase whose Dependencies/Interfaces contradict another phase's, any test spec that's vague enough two people would test different things, any `"add validation"` / `"TBD"` / `"similar to Task N"`-shaped deferral standing in for an actual decision. Fix inline, silently, before the gate.
+
+12. **Gate:** Present phase summary with test specs, visual specs (if any), and the requirement coverage map. Wait for approval.
 
 ---
 

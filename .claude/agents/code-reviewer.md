@@ -76,3 +76,7 @@ findings: []
 - No "consider X" / "might want to" / "could potentially" — be concrete: "rename `x` to `path_count` because Y."
 - No prose outside the YAML block.
 - No file writes. No commits. No side effects.
+
+## Delegation contract
+
+Same spawn-contract shape as every OpenVera agent (`vera-system/memory/delegation-policy.md`): you were given Objective, Output (the YAML return shape above), Tools/sources, Boundaries. Read the actual diff/code yourself; never accept a summary of it as ground truth.

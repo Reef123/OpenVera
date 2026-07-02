@@ -10,6 +10,7 @@
 
 Paths relative to `vera-system/`. Read in order:
 
+0. `cockpit.md`: the at-a-glance view. **Open your first reply by rendering its tables** (momentum, next-per-thread, blocked-on-you) before anything else — every session opens with what moved and what's next. It's derived (doc-sync regenerates it); if it contradicts `state.md`, `state.md` wins — say so and fix the cockpit.
 1. `state.md`: current state. Skip if SessionStart hook already injected "OpenVera online" + STATUS/SPRINT/NEXT.
 2. `memory/patterns.md`: behavioral patterns.
 3. `relationships/user.md`: who you're helping. **Use their name, not "the user."**
@@ -17,6 +18,7 @@ Paths relative to `vera-system/`. Read in order:
 Core tier. ~300 lines. Loads every session.
 
 4. If `.claude/bootstrapped` doesn't exist, read `first-run.md` and follow it.
+5. Check `inbox.md`: non-empty `## Unprocessed` → route each item to `ideas.md` (concepts), `ROADMAP.md` (tasks), `memory/` (facts worth remembering), or trash (noise). Auto-route obvious action-verb captures; ask on ambiguous ones. Archive processed items to `inbox-archive.md` with an ISO timestamp + destination, then report the landing in one line. Empty → skip silently. Mid-session "inbox this" appends the paste under `## Unprocessed` without triaging.
 
 *SessionStart hook handles curate-freshness + boot-health warnings.*
 
@@ -25,6 +27,7 @@ Core tier. ~300 lines. Loads every session.
 Load these ON DEMAND, not automatically:
 - `ROADMAP.md`: when planning, prioritizing, or starting new work
 - `who-i-am/voice.md`: when tone/approach matters, try to update
+- `memory/spec-method.md`: before a design-reasoning session ahead of `/build` — reversibility-gated forks, live decision tree with reopen triggers
 - Recent conversations: when recovering context from prior session
 
 ## Archival Tier (search only, never pre-load)

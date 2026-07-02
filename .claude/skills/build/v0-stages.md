@@ -54,6 +54,8 @@ Heads up: no working OpenRouter key, so this V0 ships unscored (the external jud
 
 Then proceed normally — nothing else about the build changes.
 
+**Reversibility triage (mechanical, one question, no extra stop):** V0 is meant to teach through building, not through reasoning — most V0 decisions are two-way doors (stack, component pattern, feature scope) and should skip straight into Frame below. Only when the idea itself hinges on something genuinely one-way (a data-model choice that's expensive to migrate, a platform/vendor lock-in, an irreversible external commitment) does it earn a pause: fold one line into the opener — *"Heads up: [the one-way call] is hard to undo once V0 ships on it. Flagging it so you can catch it now; see `vera-system/memory/spec-method.md` if you want to reason it through before we build."* Then continue into Frame regardless of their answer — V0's whole value is "build now, let the build teach you." This is a nudge, not a gate.
+
 ---
 
 ### Frame (one free-text partner check before the design tree)
@@ -450,6 +452,8 @@ Agent(
 
 3. **Spec (5 min):** Read `idea.md` to pull `## The bet` (guaranteed to exist after step 0) and `## Wireframe (proposed)` (present only when `/start-vague` Step 3.5b confirmed a sketch — preserve verbatim into spec.md component-boundaries section so `/frame` can refine it). Then write `spec.md` (template below). **Spec is written BEFORE design artifacts** — `/frame --from-spec` reads spec.md mood signals to pick a palette from the rotation set, and reads spec.md component boundaries to scaffold wireframes. Design without spec context produces generic output.
 
+   **Self-review before it's the build target (30 sec, silent):** before moving to step 4, re-read the Core Flow and Cut List once for placeholders left unfilled, a Core Flow step that contradicts something in Out of Scope, or any Cut List entry vague enough to hide a real decision (`"add validation"`, `"TBD"`, `"similar to [other feature]"`). Fix inline. V0 specs are short enough this is genuinely fast — skip the ceremony, just do the scan.
+
 4. **Design artifacts (3-5 min):** Now that spec.md exists, invoke `/frame` to generate architecture diagrams, design system, and wireframes:
 
    ```
@@ -525,6 +529,28 @@ Bullets, not a table — Why-Cut reasons routinely wrap and break table renderin
 
    Run dev server + verification commands from inside the scaffold subdir. Project-level artifacts (`CLAUDE.md`, `spec.md`, `retro.md`, `v1-checklist.md`, `v1-notes.md`) stay at the project root. If the scaffold doesn't load → fix it first; never write app code into a broken scaffold.
 
+   **Write `init.sh` at the project root** (one command, start dev server + a basic smoke check) — this is what `/build continue` runs first when resuming a multi-session build, so a session boundary doesn't silently resume on top of a broken app. Shape:
+   ```bash
+   #!/bin/bash
+   set -e
+   cd "$(dirname "$0")/<scaffold-subdir>"
+   # start the dev server in the background, wait for it, hit one route, report pass/fail
+   <dev server start command> &
+   SERVER_PID=$!
+   sleep <enough to boot>
+   curl -sf <localhost URL from CLAUDE.md> > /dev/null && echo "SMOKE_PASS" || echo "SMOKE_FAIL"
+   kill $SERVER_PID
+   ```
+   Adapt the start/kill mechanics to the stack (Node dev server, Python `--reload`, etc.) — the contract is just "one script, one command, prints SMOKE_PASS or SMOKE_FAIL." `chmod +x init.sh`.
+
+   **Write `features.json` at the project root** — one entry per Core Flow step from spec.md, each `{"feature": "<name>", "passes": false}`. This is the mechanical anti-Fake-Completeness ledger for the build: a `passes` flag flips to `true` only after the validator agent (Stage 2) actually confirms that feature works, never on the supervisor's say-so. Removing or editing existing entries is forbidden — if scope changes, add a new entry and note the old one's fate in `retro.md`, don't silently delete it. JSON is deliberate here (not Markdown) — the model tampers with JSON structure less readily than it edits prose. No "V0 complete" claim (Stage 3 score, Stage 4a ship) is valid while any entry still reads `"passes": false`.
+   ```json
+   [
+     {"feature": "<Core Flow step 1>", "passes": false},
+     {"feature": "<Core Flow step 2>", "passes": false}
+   ]
+   ```
+
    ```bash
    python3 vera-system/scripts/build-state.py <slug> "V0 Stage 1" --substage "scaffold verified"
    ```
@@ -562,7 +588,9 @@ supervisor (you):
     if FAIL again on same component with same intent-mismatch → STOP fixing code.
     Read .claude/skills/wireframe-first/SKILL.md and walk it on this screen.
     Re-build only against the ratified spec.
-  if PASS → next component
+  if PASS → flip that feature's entry in features.json to "passes": true
+            (only after the validator's PASS, never on the supervisor's own say-so)
+            → next component
     ↓
   after core flow complete:
     spawn reviewer agent:
@@ -695,6 +723,8 @@ python3 vera-system/scripts/telemetry.py build <PASS|SOFT_FAIL> --project <slug>
 Stage 4 is split into two sub-stages so the V0→V1 handoff artifact gets its own clear scope and telemetry. 4a proves V0 runs and captures evidence; 4b codifies that evidence into the V1-facing handoff contract.
 
 **Order matters.** State files (frontmatter, telemetry, any data the V0 reads) must be written BEFORE booting the dev server. Otherwise the first-paint check reads stale data and the user opens a V0 that looks broken (real failure mode from user testing 2026-05-10 — vera-dashboard rendered `Hero: 0 builds shipped` because telemetry was written after server boot).
+
+0. **features.json gate (mechanical, before any ship step below).** Read `{paths.projects_dir}/<slug>/features.json`. If any entry still reads `"passes": false`, do NOT proceed to ship — the feature isn't actually done. Either go fix and validate it (flip to `true` only via the Stage 2 validator pass), or if it was legitimately cut mid-build, leave the entry as `"passes": false` (never delete or hand-edit it to `true`) and record the cut in spec.md Cut List + `retro.md` so the gap is visible, not hidden. No "V0 complete" claim is valid while any entry still reads `false` without a matching Cut List explanation.
 
 1. **Verify the core flow works end-to-end** (browser screenshot, command output, or test results — match the validation method from Stage 0).
 

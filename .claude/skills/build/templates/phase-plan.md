@@ -82,6 +82,11 @@ Replace all `[PLACEHOLDER]` values. Remove this instruction block.
 - **Requires:** [What must exist before this phase starts]
 - **Produces:** [What downstream phases need from this]
 
+### Interfaces
+*Skip only if nothing downstream consumes this phase's output.*
+- **Consumes:** [shape of data/function/component this phase expects to receive — a type or one-line schema, not code]
+- **Produces:** [shape this phase hands off — must match the next phase's Consumes]
+
 ### PRD Requirements Addressed
 - FR-[N]: [requirement]
 
@@ -120,6 +125,11 @@ Replace all `[PLACEHOLDER]` values. Remove this instruction block.
 ### Dependencies
 - **Requires:** Phase 1 complete
 - **Produces:** [What downstream phases need from this]
+
+### Interfaces
+*Skip only if nothing downstream consumes this phase's output.*
+- **Consumes:** [shape this phase expects from Phase 1's Produces — must match]
+- **Produces:** [shape this phase hands off]
 
 ### PRD Requirements Addressed
 - FR-[N]: [requirement]
@@ -161,6 +171,14 @@ Replace all `[PLACEHOLDER]` values. Remove this instruction block.
 
 ### Rollback Boundaries
 - [If phase N fails, can we revert without losing phase N-1?]
+
+### Requirement Coverage Map
+*Every FR-N/NFR-N from the PRD must have at least one phase. A requirement with no row here is a gap shipping silently — fix before the Phase 4 gate.*
+
+| Requirement | Covered by |
+|-------------|-----------|
+| FR-[N] | Build Phase [N] |
+| NFR-[N] | Build Phase [N] |
 
 ---
 

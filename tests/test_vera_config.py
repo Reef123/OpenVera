@@ -183,6 +183,86 @@ class ConfigIOTests(unittest.TestCase):
         model = vera_config.get_llm_model("default_model")
         self.assertTrue(isinstance(model, str) and model)
 
+    def test_cockpit_size_threshold_registered(self):
+        # cockpit.md is a boot-tier derived view (v1.20) — must share the same
+        # mechanical cap enforcement as state.md/ROADMAP.md/etc, or doctor.py
+        # and curate-mode.py silently skip checking it.
+        self.assertIn("vera-system/cockpit.md", vera_config.SIZE_THRESHOLDS)
+        self.assertEqual(vera_config.SIZE_THRESHOLDS["vera-system/cockpit.md"], 60)
+
+    def test_user_md_size_threshold_registered(self):
+        # relationships/user.md (v1.20 user-memory lane) gets the same
+        # mechanical cap enforcement as the other boot-tier files.
+        self.assertIn("vera-system/relationships/user.md", vera_config.SIZE_THRESHOLDS)
+        self.assertEqual(vera_config.SIZE_THRESHOLDS["vera-system/relationships/user.md"], 60)
+
+
+class UserMemoryEnabledTests(unittest.TestCase):
+    """user_memory_enabled() is a three-state read of the RAW config.json —
+    key absent (legacy/grandfathered) vs present-true vs present-false. It
+    must read differently from load_config()'s DEFAULTS-merged view, or the
+    three states collapse into two."""
+
+    def _with_config(self, content):
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            if content is not None:
+                path.write_text(content)
+            with mock.patch.object(vera_config, "config_path", return_value=path):
+                return vera_config.user_memory_enabled()
+
+    def test_key_absent_is_grandfathered_enabled(self):
+        self.assertTrue(self._with_config('{"version": 1}'))
+
+    def test_key_present_true(self):
+        self.assertTrue(self._with_config('{"user_memory": true}'))
+
+    def test_key_present_false(self):
+        self.assertFalse(self._with_config('{"user_memory": false}'))
+
+    def test_missing_file_is_grandfathered_enabled(self):
+        self.assertTrue(self._with_config(None))
+
+    def test_malformed_json_is_grandfathered_enabled(self):
+        self.assertTrue(self._with_config("{not json"))
+
+    def test_user_memory_not_in_defaults(self):
+        # Load-bearing: if this key were added to DEFAULTS, load_config()
+        # would always inject it and "absent" would become undetectable.
+        self.assertNotIn("user_memory", vera_config.DEFAULTS)
+
+
+class UserMemoryCliTests(unittest.TestCase):
+    """`python3 vera_config.py user_memory` is the check the doc-sync and
+    curate skills prescribe. It must route through user_memory_enabled()
+    (raw-file read), because the generic key lookup on the merged config
+    cannot represent the absent-key = grandfathered-enabled state."""
+
+    def _cli_supported(self):
+        # Runs the real script against the dev checkout's own config.json
+        # (which has no user_memory key) — exactly the state a legacy
+        # install is in.
+        import subprocess
+        script = Path(vera_config.__file__).resolve()
+        return subprocess.run(
+            [sys.executable, str(script), "user_memory"],
+            capture_output=True, text=True,
+        )
+
+    def test_cli_prints_bare_boolean(self):
+        result = self._cli_supported()
+        self.assertEqual(result.returncode, 0)
+        self.assertIn(result.stdout.strip(), ("true", "false"))
+
+    def test_cli_absent_key_reports_enabled(self):
+        # The dev checkout's config.json has no user_memory key — the CLI
+        # must report the grandfathered-enabled state, not "unknown key".
+        result = self._cli_supported()
+        self.assertEqual(result.stdout.strip(), "true")
+        self.assertNotIn("Unknown top-level key", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

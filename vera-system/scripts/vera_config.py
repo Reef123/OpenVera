@@ -124,6 +124,8 @@ SIZE_THRESHOLDS = {
     "vera-system/memory/MEMORY.md": 200,
     "vera-system/memory/lessons.md": 150,
     "vera-system/ROADMAP.md": 150,
+    "vera-system/cockpit.md": 60,
+    "vera-system/relationships/user.md": 60,
 }
 
 
@@ -211,6 +213,38 @@ def get_llm_provider() -> str:
     return cfg.get("llm", {}).get("provider", DEFAULTS["llm"]["provider"])
 
 
+def user_memory_enabled() -> bool:
+    """Three-state opt-in check for the user.md memory lane (v1.20).
+
+    Reads the RAW config.json file directly — NOT load_config()'s
+    DEFAULTS-merged view — because the three states this function
+    distinguishes only exist before merging:
+
+      - key absent:        legacy install (predates this flag) -> True
+                            (grandfathered: existing users keep the
+                            behavior they already had, no silent change)
+      - key present, true:  user opted in at bootstrap -> True
+      - key present, false: user opted out at bootstrap -> False
+
+    `user_memory` is deliberately NOT added to DEFAULTS above — doing so
+    would make load_config() always inject the key, and this function
+    would no longer be able to tell "absent" from "present and true".
+    Never raises: missing/malformed config.json reads as absent (legacy) ->
+    True, matching load_config()'s fail-open contract elsewhere in this
+    module.
+    """
+    path = config_path()
+    if not path.exists():
+        return True
+    try:
+        raw = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return True
+    if "user_memory" not in raw:
+        return True
+    return bool(raw["user_memory"])
+
+
 def _deep_copy(d):
     """Shallow recursive copy of nested dicts/lists. Avoids importing copy."""
     if isinstance(d, dict):
@@ -237,7 +271,12 @@ if __name__ == "__main__":
     cfg = load_config()
     if len(sys.argv) > 1:
         key = sys.argv[1]
-        if key in cfg:
+        if key == "user_memory":
+            # Three-state flag: absent key means enabled (legacy install).
+            # load_config()'s merged view can't show that, so route through
+            # the raw-file helper instead of the generic key lookup.
+            print("true" if user_memory_enabled() else "false")
+        elif key in cfg:
             print(json.dumps(cfg[key], indent=2))
         else:
             print(f"Unknown top-level key: {key}", file=sys.stderr)
