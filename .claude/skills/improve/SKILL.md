@@ -1,7 +1,7 @@
 ---
 name: improve
 description: "Autonomous improvement loop — run a skill against test inputs, score output via rubric, analyze failures, propose instruction changes to SKILL.md, verify improvement. Human gate on every change."
-argument-hint: <skill-name> [--batch] | status
+argument-hint: "<skill-name> [--batch] | status"
 allowed-tools: Bash(python3 vera-system/scripts/*) Bash(git *)
 ---
 

@@ -7,7 +7,7 @@ Persistent knowledge across sessions. Signal only — no noise.
 - `lessons.md` — Machine-appendable capture lane. /build failures and doc-sync course corrections append one dated line each; /curate flags 3+ recurrences for promotion to patterns.md and prunes the rest.
 - `promotions.tsv` — Machine ledger of lessons promoted to patterns.md. `curate-mode.py promotions` records each promotion and verifies the lesson stopped recurring (statuses: PROVISIONAL, VALIDATED, FAILED).
 - `MEMORY.md` — Auto-memory index (grows over time)
-- `delegation-policy.md` - How orchestrating skills spawn subagents: fresh-default/fork-rare/worktree-for-parallel-writes, tier-per-task (cheap tier for plumbing, capable tier for judgment gates), MAX 3 concurrent, spawn contracts + fail-closed artifact verification. Read before editing `/build`, `/research`, `/panel`, or any skill that spawns agents.
+- `delegation-policy.md` - How orchestrating skills spawn subagents: fresh-default/fork-rare/worktree-for-parallel-writes, tier-per-task (cheap tier for plumbing, capable tier for judgment gates), MAX 3 concurrent, spawn contracts + fail-closed artifact verification. Read before editing `/build`, `/research`, the `/build new` Stage 0 interview gate, or any skill that spawns agents.
 - `hooks-map.md` — inventory of all 6 `.claude/settings.json` hooks (event, script, purpose, fail-open/fail-closed) + candidates evaluated and rejected, with reopen triggers.
 
 **Rule:** If you discover a pattern, write it down immediately. Not later. Now. Confirmed cross-session patterns go to patterns.md; single-session lessons go to lessons.md and earn promotion by recurring.

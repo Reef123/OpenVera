@@ -1,7 +1,7 @@
 ---
 name: wireframe-first
 description: "Iterative wireframing method for ONE screen or substantial component. ASCII boxes, beat-by-beat, ratify before code. Prevents the rebuild-loop failure mode (multiple code attempts when the real issue is unresolved design)."
-argument-hint: <screen-or-component-name>
+argument-hint: "<screen-or-component-name>"
 ---
 
 # Wireframe First

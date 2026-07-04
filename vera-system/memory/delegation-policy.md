@@ -1,6 +1,6 @@
 # Delegation Policy - Orchestrator + Subagents
 
-*How OpenVera spawns, scopes, and trusts subagents. Governs `/build` and every skill that spawns agents (`/research`, `/panel`, and any future orchestrator). Adapted from the private-Vera policy; verified against Claude Code docs + Anthropic engineering posts (sources at bottom).*
+*How OpenVera spawns, scopes, and trusts subagents. Governs `/build` and every skill that spawns agents (`/research`, the `/build new` Stage 0 interview gate, and any future orchestrator). Adapted from the private-Vera policy; verified against Claude Code docs + Anthropic engineering posts (sources at bottom).*
 
 ---
 
@@ -104,7 +104,7 @@ Define once, reuse across skills. Only roles used by 2+ skills earn a file; one-
 
 | Agent | Tier | Tools (scoped) | Used by |
 |-------|------|-----------------|---------|
-| `researcher` | Cheap | Read, Write, Glob, Grep, WebSearch, WebFetch, Bash | `/build`, `/research`, `/panel` |
+| `researcher` | Cheap | Read, Write, Glob, Grep, WebSearch, WebFetch, Bash | `/build`, `/research`, `/build new` Stage 0 interview gate (evidence-gathering lenses) |
 | `implementer` | Cheap | Read, Write, Edit, Glob, Grep, Bash | `/build` loop (worktree isolation when running in parallel) |
 | `reviewer` | Capable | Read, Glob, Grep, Bash, Write, Edit | `/build` review step, ship/no-ship gates |
 | `doc-sync` | Cheap | Read, Glob, Grep, Edit, Write, Bash | every skill's end-of-session doc-sync spawn |

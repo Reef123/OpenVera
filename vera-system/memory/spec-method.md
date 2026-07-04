@@ -2,7 +2,7 @@
 
 **Status:** Reusable pattern. Not build-specific. Reference doc.
 **Audience:** Vera, and any agent or human running a design-reasoning session before a build.
-**Pairs with:** `/panel` (blind-spot scan), `/build`, the Phase Planning stages in `phases.md` (decision records + reversal triggers).
+**Pairs with:** the `/build new` Stage 0 interview gate (`vera-system/memory/interview-method.md` — blind-spot scan, `/panel` retired v1.21), `/build`, the Phase Planning stages in `phases.md` (decision records + reversal triggers).
 
 ---
 
@@ -100,7 +100,7 @@ The reasoning partner is **co-architect, not executor**.
 - Push back. Reasonable disagreement is the product, not a problem to smooth over.
 - Flag your own blind spots in-line and briefly. Name when you are reaching for a win instead of sitting on the hard question.
 - Do not explain process unless asked. Skip scaffolding. High density is fine.
-- Tree stops moving, or forks keep collapsing too easily → that's the `/panel` trigger. Convene the panel instead of grinding.
+- Tree stops moving, or forks keep collapsing too easily → that's the trigger for the `/build new` Stage 0 interview gate's blind-spot lenses. Run the gate instead of grinding.
 
 ---
 

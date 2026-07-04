@@ -1,7 +1,7 @@
 ---
 name: research
 description: "Multi-model research via OpenRouter using an 8-step pattern with web crawling, YouTube analysis, synthesis, validation, and cost discipline."
-argument-hint: <topic> [--quick]
+argument-hint: "<topic> [--quick]"
 allowed-tools: Bash(python3 vera-system/scripts/*)
 ---
 

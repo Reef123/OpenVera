@@ -1,7 +1,7 @@
 ---
 name: frame
 description: "Design system (DESIGN.md tokens + build contract), architecture diagrams (Mermaid), and wireframes. Invoked by /build or when user mentions design, style, branding, vibe, or aesthetic — even if they don't say 'design'."
-argument-hint: <project-slug> [--quick] [--deep] [--arch] [--ui] [--system <brand>] [--from-spec]
+argument-hint: "<project-slug> [--quick] [--deep] [--arch] [--ui] [--system <brand>] [--from-spec]"
 ---
 
 # /frame — Design System & Wireframe Generator

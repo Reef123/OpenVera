@@ -26,9 +26,9 @@ Three layers: **entry points** (what the user invokes), **building blocks** (cal
 | Curate | `/curate` | Weekly memory consolidation. |
 | Doc-Sync | `/doc-sync` | Session documentation: state, logs, alignment. **Run every session.** |
 | Start Vague | `/start-vague [optional: idea]` | Front door for vague ideas. Bounded 4-round interview shapes an itch into a buildable `idea.md`. Mid-fire scout + ASCII wireframe + soft-redirect when the idea already exists. |
-| Panel | `/panel [optional: idea.md path]` | Pressure-test the bet before `/build`. 2 domain reviewers scan for blind spots (clean-context). Confirmation-bias prevention. |
 | Advisor | `/advisor [decision]` | Detached agent (defined in `.claude/agents/advisor.md`): checks a decision against project artifacts, reports mismatches. Auto-fires on scope/depth mismatch in `/build full` Stage 0. |
 | Gap Handler | `/gap-handler` | Return-after-gap restart protocol — pre-written by gap length (short/medium/long) so resuming doesn't require deliberation. |
+| Panel (retired) | `/panel` | RETIRED v1.21 — absorbed by `/build new` Stage 0's interview gate (`vera-system/memory/interview-method.md`). Tombstone only; deletes next release. |
 
 ### Internal-only skills
 
@@ -46,9 +46,10 @@ These have no slash command. Other skills read their `SKILL.md` inline as contex
 | `/improve` | ~$0.20–0.40 per cycle |
 | `/build` (scoring) | ~$0.12 per score |
 | `/scout` | $0.00–0.10 (depends on YouTube usage) |
-| `/panel`, `/consult`, `/curate`, `/doc-sync`, `/build full` (excluding research/scoring) | Free |
+| `/consult`, `/curate`, `/doc-sync`, `/build full` (excluding research/scoring) | Free |
+| `/build new` Stage 0 interview gate | Free |
 
-`/panel` and `/consult` are free because they run Explore subagents inside the Claude Code session, not paid OpenRouter calls.
+`/consult` and the Stage 0 interview gate are free because they run inside the Claude Code session (Explore subagents / direct conversation), not paid OpenRouter calls.
 
 **Rule:** Don't call Claude via OpenRouter. You ARE Claude.
 

@@ -1,7 +1,7 @@
 ---
 name: consult
 description: "Decision accelerator — reframe the real question, summon 2-4 domain experts with different incentives, find agreement, isolate real tradeoffs, recommend a path. Free (no API calls). Use for any decision with genuine tradeoffs between known options."
-argument-hint: <decision or tradeoff>
+argument-hint: "<decision or tradeoff>"
 ---
 
 # /consult — Decision Accelerator

@@ -1,7 +1,7 @@
 ---
 name: scout
 description: "Quick community recon — Reddit + YouTube + web in 2-3 minutes. Use when you need real-world opinions, gotchas, or 'what actually works' before building or deciding. Lighter than /research."
-argument-hint: <question> [--reddit] [--youtube] [--web]
+argument-hint: "<question> [--reddit] [--youtube] [--web]"
 allowed-tools: Bash(python3 vera-system/scripts/*)
 ---
 

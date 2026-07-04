@@ -105,7 +105,7 @@ The same skepticism runs upstream, before any code exists.
 
 **Research.** `/scout` is a 2-3 minute recon: Reddit and YouTube for what real people hit. `/research` goes deep, across multiple models so one model's blind spots get caught, with a source registry so claims are checkable. External findings stay untrusted: extract the technique, verify packages and env vars before you adopt.
 
-**Pushback.** `/panel` reviews the plan for blind spots before `/build`. Validator and reviewer agents check the code as it's built. A scope guard cuts a prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships. Before any build even starts, a quick check asks whether the next decision is easy to undo; if it's a one-way door, you get a nudge to think it through first instead of discovering the cost after it's built.
+**Pushback.** `/build new` Stage 0 offers a soft interview gate before any code: one question at a time, biggest decisions first, each carrying a recommendation, plus one unrecommended question that checks you're pointed the right way before you spend the build hours. Skip it with one word if you don't need it. Validator and reviewer agents check the code as it's built. A scope guard cuts a prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships. Before any build even starts, a quick check asks whether the next decision is easy to undo; if it's a one-way door, you get a nudge to think it through first instead of discovering the cost after it's built.
 
 ## Skills
 
@@ -119,7 +119,6 @@ Slash commands that do real things. Each sits in the system prompt as one line u
 | `/consult <decision>` | Simulates a panel of domain experts, gives you one recommendation | Free |
 | `/frame` | Generates a design system, architecture diagrams, wireframes | Free |
 | `/wireframe-first` | Sketches one screen in plain text and gets your sign-off before any code | Free |
-| `/panel [path]` | Pressure-test your idea before `/build`. 2 domain reviewers scan for blind spots: what's stated, missing, assumed. | Free |
 | `/advisor [decision]` | Checks a decision against project artifacts, reports mismatches | Free |
 | `/code-review [path]` | Clean-context reviewer scans a path or diff, returns tiered findings | Free |
 | `/build new <idea>` | First version: idea to working prototype (resumable across sessions via state file) | Free (~$0.12 scored) |
@@ -159,7 +158,7 @@ Enforced in `.claude/settings.json` and the hooks, not promised in prose. Audit 
 
 ## Keys are Optional
 
-The whole memory loop and most skills (`/start-vague`, `/consult`, `/frame`, `/wireframe-first`, `/panel`, `/advisor`, `/code-review`, `/curate`, `/doc-sync`) run with no key. `/scout` covers web search keyless; `/build` ships fine, just unscored (you still get the validator and reviewer agents, only the external judge is skipped).
+The whole memory loop and most skills (`/start-vague`, `/consult`, `/frame`, `/wireframe-first`, `/advisor`, `/code-review`, `/curate`, `/doc-sync`) run with no key. `/scout` covers web search keyless; `/build` ships fine, just unscored (you still get the validator and reviewer agents, only the external judge is skipped). The Stage 0 interview gate is free either way, no key needed.
 
 Keys add the depth: `/research` and `/improve` need OpenRouter for their multi-model calls, `/scout`'s Reddit and YouTube depth runs through OpenRouter (video analysis needs a Google AI key), and `/build`'s external scoring gate needs OpenRouter. At install time, `git clone` pulls the repo, and if you paste a key into bootstrap it gets verified with one call; skip the prompts to skip the calls. There is no `pip install` step: OpenVera runs on the Python standard library alone.
 

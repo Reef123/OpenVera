@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: "Adversarial code review by a clean-context Claude subagent. Read-only. Returns Critical/High/Medium/Low findings against correctness, security, design, reliability, tests, quality. Standalone (no /build pipeline coupling)."
-argument-hint: <path-or-git-range> [--against <spec>] [--write <output-path>]
+argument-hint: "<path-or-git-range> [--against <spec>] [--write <output-path>]"
 allowed-tools: Read, Glob, Grep, Bash(git diff:*) Bash(git show:*) Bash(git log:*) Bash(wc:*) Bash(find:*)
 ---
 
@@ -16,7 +16,7 @@ Spawn a clean-context Claude subagent (`code-reviewer`) to adversarially review 
 
 **Don't use this for:**
 - `/build full` Phase 6 — that pipeline still uses `Agent(subagent_type: "reviewer", ...)` internally, which writes `.build/review.md` in-flow. This skill is a sibling, not a replacement.
-- Reviewing ideas or PRDs — use `/panel` for that.
+- Reviewing ideas or PRDs — that's the `/build new` Stage 0 interview gate (`vera-system/memory/interview-method.md`), not this skill.
 
 **Cost:** Free-ish. The subagent uses your Claude Code plan tokens. No external API.
 

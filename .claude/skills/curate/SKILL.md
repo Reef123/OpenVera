@@ -1,6 +1,6 @@
 ---
 name: curate
-description: "Memory consolidation — prune stale, merge duplicates, flag drift. Progressive: light mode for young harnesses, full mode at 10+ memory files. Auto-writes with git safety."
+description: "Memory consolidation — prune stale, merge duplicates, flag drift. Progressive: light mode for young harnesses, full mode at 10+ memory files. Auto-writes with git safety. Flags land in the memory/curate-flags.md ledger (reconcile-and-age); telemetry row per run via telemetry.py."
 ---
 
 # Curate — Memory Consolidation
@@ -9,11 +9,23 @@ Review memory files, clean what's stale or duplicated, report what changed.
 
 **Boot hook warns you when > 7 days since last curate.** Run manually with `/curate`.
 
+### Optional: schedule weekly runs
+
+You MAY additionally set up a Claude Code `/schedule` routine (cloud-side) to fire `/curate` on a weekly cadence, e.g. `/schedule weekly curate per .claude/skills/curate/SKILL.md`. This is purely additive — it's a second way to *trigger* a run, not a replacement for local tracking. The boot tripwire (stale-lock crash detection) and the `> 7 days` cadence check in `session-start.py` / `vera-system/CLAUDE.md` remain the source of truth for "did curate actually run": a scheduled cloud-side run still has to satisfy the same completion contract (Safety Rule 0 — no lock file, fresh `.claude/last-curate-date`, same-date `curate:` commit) before the next boot will consider it done. If a scheduled run can't reach the repo to commit and stamp the date, don't rely on it silently — the local check will (correctly) still flag it as overdue.
+
 ---
 
 ## Safety Rules
 
-0. **Acquire the curate lock FIRST:** `touch .claude/.curate-running`. While it exists (and is under 60 min old), the PostToolUse mark-dirty hook skips — so curate's own writes don't re-arm the doc-sync gates for work curate commits itself. Remove it at the very end (after the timestamp write): `rm -f .claude/.curate-running`.
+0. **Acquire the curate lock FIRST — content matters, not a bare touch:**
+
+   ```bash
+   echo "RUNNING $(date -u +%Y-%m-%dT%H:%M:%S)" > .claude/.curate-running
+   ```
+
+   While it exists (and is under 60 min old), the PostToolUse mark-dirty hook skips — so curate's own writes don't re-arm the doc-sync gates for work curate commits itself. The `RUNNING <ts>` content is the dead-run tripwire: if this run dies mid-way, the lock survives to the next boot, and `session-start.py` reads the timestamp and surfaces "last curate crashed, started <ts>" before removing it. A bare `touch` loses that timestamp — never use it.
+
+   **Completion contract:** a curate run COMPLETED = no lock file AND a fresh `.claude/last-curate-date` AND a same-date `curate:` commit. Any other combination reads as crashed or in-flight. This is why the lock is removed LAST (see the Git Commit + Timestamp step in each mode below) — commit, then date-stamp, then `rm -f .claude/.curate-running`, strictly in that order. Never remove the lock before the commit lands.
 1. **Git commit BEFORE making changes.** `pre-curate: save current state`. If clean, skip.
 2. **Git commit AFTER changes.** `curate: [one-line summary]`.
 3. **Never modify curated pattern files.** `patterns.md` is hand-curated. Flag issues in report only. (`lessons.md` and `memory/promotions.tsv` are the machine lane — curate MAY prune lessons.md and the promotions scripts write the ledger, see the Lessons Scan.)
@@ -56,13 +68,22 @@ For MEMORY.md entries:
 - Remove lines pointing to deleted files
 - Run `python3 vera-system/scripts/curate-mode.py sizes` — if MEMORY.md prints OVER, trim until it passes. **Do not commit a curate that leaves MEMORY.md over its cap** — entries past the cap are silently truncated at load time, which is invisible context loss.
 
-### 4. Git Commit + Timestamp
+### 3b. Reconcile the Flag Ledger (if this run produced any flags)
+
+Light mode rarely produces flags (it's a quick prune, not a drift scan), but if a doctor error or dead pointer is worth a human decision, it goes in `vera-system/memory/curate-flags.md` — same reconcile-and-age rules as Full Mode's ledger step below. Most Light runs touch nothing here; skip silently if there's nothing to add.
+
+### 4. Git Commit + Timestamp — order is the contract
+
+Strictly in this order (completion contract, Safety Rule 0):
 
 ```
 curate: light — pruned [N] stale entries
 ```
 
-Write current date to `.claude/last-curate-date`.
+1. Commit the change above.
+2. Write current date to `.claude/last-curate-date`.
+3. Log the run: `python3 vera-system/scripts/telemetry.py curate PASS --note "light — [N] stale pruned"` (use `SOFT_FAIL`/`HARD_FAIL` if doctor found errors this run — soft-fail, never blocks the run).
+4. Remove the lock LAST: `rm -f .claude/.curate-running`.
 
 ### 5. Report
 
@@ -168,6 +189,31 @@ Pick the keyword with judgment: a short literal phrase (2 to 4 words) that appea
 
 **(d) Prune, evidence-aware.** Delete lines already promoted to patterns.md ONLY if dated on or before their promotion date in promotions.tsv, and one-off lines older than ~10 sessions that never recurred. NEVER delete a line that matches a promotion keyword and is dated after the promotion date: those lines are active recurrence evidence that `promotions check` reads next run, and deleting them silently converts a FAILED promotion into a fake VALIDATED one. lessons.md is a capture lane, not an archive; keep it under its line cap.
 
+### 6.7. Project Registry Sweep (census — tiered walk)
+
+Curate is the ONE place a full project census runs — doc-sync stays delta-only every other session (see `doc-sync/SKILL.md` §2b). Weekly is cheap enough for a full walk; every session is not.
+
+```bash
+python3 vera-system/scripts/project-index.py --format json
+```
+
+Each row carries `tier: "hot"` or `"cold"` (project-index.py's own tiered-walk gate — see its header comment). Handle the two tiers differently, on purpose:
+
+- **Hot** (`status: building/exploring/live`, or a missing/unrecognized status): the real check. Confirm frontmatter parses (name/slug/status present) and that ROADMAP.md / `vera-system/cockpit.md`'s Top-projects row for this slug matches what the index reports (status, not stale by more than this run). Mismatch → drift.
+- **Cold** (`status: parked/shipped/declined/deprecated`): the script already did the only check that's allowed — CLAUDE.md exists and its frontmatter parses. Do nothing further with the folder itself.
+- **Parked folders are NEVER opened, full stop** — not by this step, not by any other. A parked project's wake condition lives in the ROADMAP.md parked table, not in the project folder. This step's parked-side check is a **table cross-check only**: every `status: parked` slug from the index should appear in ROADMAP's parked table (with a wake condition), and vice versa. A parked slug missing from the table (no wake condition recorded anywhere) → drift row — that project can never wake on its own.
+
+**Backfill.** A `{projects_dir}/<slug>/` directory with no `CLAUDE.md` (index row derived name/slug from the dirname alone, `has_*` fields all null with no status): look for `spec.md` or `idea.md` in that folder for a name/summary to seed from, then:
+
+```bash
+python3 vera-system/scripts/frontmatter.py create --slug <slug> --name "<derived name>" \
+  --status exploring --origin "/curate backfill" --summary "<one line from spec/idea, or the dirname if nothing better>"
+```
+
+If neither `spec.md` nor `idea.md` exists and the dirname alone isn't a reasonable name (e.g. build cruft, a stray dir) — do NOT guess a backfill. Add a drift row to `curate-flags.md` instead (`Consequence`: "project untracked — invisible to registry/cockpit/dashboard until backfilled or removed"). Never silently omit an un-backfillable project from the report.
+
+**Drift → the ledger.** Every mismatch this step finds (hot drift, parked-table cross-check miss, un-backfillable project) becomes a row in `curate-flags.md`, same reconcile-and-age mechanics as step 10.5 below — don't write a separate ledger, feed these into the same reconcile pass. Fill `Consequence` honestly: real drift costs something concrete (e.g. "cockpit shows wrong project state" or "project can never wake — no table entry"); genuinely cosmetic drift (e.g. a stale `updated:` date on an otherwise-correct row) gets `Consequence: none — cosmetic` and never escalates, per the consequence-gate.
+
 ### 7. Skill-from-Experience
 
 Read the last 5 conversation logs. Look for multi-step patterns that appeared 3+ times:
@@ -214,13 +260,29 @@ user.md is gitignored — safe for personal observations, subject to the NEVER l
 - Reorder by relevance
 - Run `python3 vera-system/scripts/curate-mode.py sizes` — if MEMORY.md prints OVER, trim until it passes. **Do not commit a curate that leaves MEMORY.md over its cap** (silent truncation at load time). Other OVER files go in FLAGGED FOR REVIEW.
 
-### 11. Git Commit + Timestamp
+### 10.5. Reconcile the Flag Ledger
+
+Every flag surfaced this run (staleness, duplicates, contradictions, retro/graduation drift, parked-rot, leaked commitments, etc.) lands in `vera-system/memory/curate-flags.md` — the durable home. The FLAGGED FOR REVIEW section of the console/state.md report still prints in full (human-readable summary for this run), but the ledger is what survives to the next run.
+
+1. Read the ledger. For every flag this run produced, match against existing rows first — **reconcile, never re-derive from scratch.** Same underlying issue, even reworded, is the same row: increment `Runs survived`, update Notes if the situation changed.
+2. Genuinely new flags → new row, `Runs survived: 1`. Fill `Consequence` honestly — what it costs the user if left unaddressed. If there's no real consequence (cosmetic/tidiness only), say so explicitly (`Consequence: none — cosmetic`); do NOT leave the cell blank to dodge the question, and do NOT invent a consequence to make a flag look important.
+3. Flags verified fixed → `Status: resolved: <one-line proof>`. A resolved row stays one more run for visibility, then delete it (row number retires, never reused).
+4. Recurring HALTs (a safety check that fired identically before) → ONE named escalating row (`HALT recurred Nx: <reason>`), never a fresh unlinked flag per run.
+5. Any row reaching `Runs survived ≥ 3` with a non-empty `Consequence` claims a boot slot as a park-or-kill ask (boot reads the ledger — see `vera-system/CLAUDE.md`). A row at age ≥3 with no real consequence stays visible in the ledger but does NOT interrupt boot — note both cases in the report.
+6. Run `python3 vera-system/scripts/ledger-lint.py vera-system/memory/curate-flags.md` after editing. Fix any lint error before committing (an escalating row with an empty `Consequence` is the most likely one).
+
+### 11. Git Commit + Timestamp — order is the contract
+
+Strictly in this order (completion contract, Safety Rule 0):
 
 ```
 curate: pruned [N] stale, merged [N] dupes, flagged [N] for review
 ```
 
-Write current date to `.claude/last-curate-date`.
+1. Commit the change above.
+2. Write current date to `.claude/last-curate-date`.
+3. Log the run: `python3 vera-system/scripts/telemetry.py curate PASS --note "full — [N] stale, [N] merged, [N] flags open"` (use `SOFT_FAIL` if doctor found warnings, `HARD_FAIL` if a safety rule halted the run). This is the run-happened row telemetry.py already supports — no new tsv, no schema change. Flag counts themselves are NOT telemetry fields; the doc-sync cockpit computes them by counting `curate-flags.md` rows at read time.
+4. Remove the lock LAST: `rm -f .claude/.curate-running`. If the run dies at any earlier point, the leftover lock is what tells the next boot the truth.
 
 ### 12. Report
 
@@ -259,7 +321,7 @@ If bridge skills exist, invoke them. Skip silently if none.
 
 ## What NOT to Do
 
-- Don't create new memory files (only consolidate existing)
+- Don't create new memory files (only consolidate existing) — exception: `vera-system/memory/curate-flags.md`, the ledger, which is curate's own output surface
 - Don't add comments like "removed by curate" — just remove cleanly
 - Don't auto-create skills or auto-edit skills/patterns — flag for human review only
 

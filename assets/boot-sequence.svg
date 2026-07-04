@@ -8,7 +8,7 @@
   <rect x="60" y="150" width="1080" height="140" rx="14" fill="#FFFDF7" stroke="#3A2418" stroke-width="2.5"/>
   <rect x="60" y="150" width="14" height="140" rx="7" fill="#C89B3C"/>
   <text x="100" y="206" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="bold" fill="#3A2418" letter-spacing="2">CORE</text>
-  <text x="100" y="244" font-family="Helvetica Neue, Arial, sans-serif" font-size="19" fill="#3A2418" opacity="0.8">state.md &#183; patterns.md &#183; boot rules &#183; about 300 lines total</text>
+  <text x="100" y="244" font-family="Helvetica Neue, Arial, sans-serif" font-size="19" fill="#3A2418" opacity="0.8">cockpit.md &#183; state.md &#183; patterns.md &#183; boot rules &#183; about 300 lines total</text>
   <rect x="868" y="195" width="232" height="44" rx="22" fill="#C89B3C"/>
   <text x="984" y="224" font-family="Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="bold" fill="#3A2418" text-anchor="middle">loads every session</text>
 

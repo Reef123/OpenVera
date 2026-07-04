@@ -22,6 +22,9 @@ Core tier. ~300 lines. Loads every session.
 
 *SessionStart hook handles curate-freshness + boot-health warnings.*
 
+6. **Curate crash response.** If the SessionStart hook injects a "CURATE CRASHED" notice (a `.curate-running` lock survived from a prior session — any leftover lock at boot means the last run died mid-way, since a new session means nothing legitimately still running): before committing anything over it, run `git diff vera-system/memory/` and review — it may hold half-applied edits from the crashed run. Then re-run `/curate`. The hook has already read the lock's timestamp and removed it; don't re-read the lock file yourself, just act on the notice.
+7. **Aged flags.** Read `vera-system/memory/curate-flags.md` — any row at `Runs survived` ≥ 3 whose `Consequence` names a real, concrete cost claims a boot slot as a park-or-kill ask (surface it, don't silently resolve). Rows at that age with no real consequence (`none — cosmetic`) stay in the ledger but never interrupt boot — the consequence-gate (`LEDGER-CONVENTION.md`). Cockpit's health line already summarizes the counts; this step is where an escalating row actually gets a decision.
+
 ## Recall Tier (read when relevant)
 
 Load these ON DEMAND, not automatically:
@@ -65,7 +68,7 @@ Everything in OpenVera is one of these:
 
 | Primitive | What | Where | Example |
 |-----------|------|-------|---------|
-| **Agents** | Autonomous actors in isolated contexts. Fresh memory, scoped tools, can be spawned in parallel. | `.claude/agents/<name>.md` | Research subagent, code reviewer, domain expert panel |
+| **Agents** | Autonomous actors in isolated contexts. Fresh memory, scoped tools, can be spawned in parallel. | `.claude/agents/<name>.md` | Research subagent, code reviewer, advisor |
 | **Skills** | Reusable knowledge packages. Auto-discoverable, preloadable, invoked via `/slash-command`. | `.claude/skills/<name>/SKILL.md` | `/research`, `/build`, `/doc-sync`, `/improve` |
 
 **Orchestration pattern:** a Skill spawns Agents that invoke other Skills. Example: `/build new` spawns research + scope-guard agents that invoke `/research` and `/scout`.

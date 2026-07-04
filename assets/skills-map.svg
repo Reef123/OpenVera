@@ -55,5 +55,5 @@
 
   <!-- SUBSTRATE -->
   <rect x="60" y="580" width="1080" height="64" rx="12" fill="#3A2418"/>
-  <text x="600" y="620" font-family="Helvetica Neue, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FBF8F2" text-anchor="middle">shared state on disk: state.md &#183; memory &#183; build state &#183; telemetry</text>
+  <text x="600" y="620" font-family="Helvetica Neue, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FBF8F2" text-anchor="middle">shared state on disk: cockpit &#183; state.md &#183; inbox &#183; memory &#183; build state &#183; telemetry</text>
 </svg>

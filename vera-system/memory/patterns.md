@@ -85,7 +85,7 @@ Skills work across sessions. State that lives only in conversation context dies 
 
 ## Domain Expert Check
 
-Before building: identify 2-3 domain perspectives. What would each expert check first? Agreement = foundation. Conflict = design decisions. Two minutes, not twenty. Operationalized via `/panel`.
+Before building: identify 2-3 domain perspectives. What would each expert check first? Agreement = foundation. Conflict = design decisions. Two minutes, not twenty. Operationalized via the `/build new` Stage 0 interview gate's evidence-or-cut blind-spot lenses (`vera-system/memory/interview-method.md`, `/panel` retired v1.21).
 
 **Tripwire:** "Am I excited about surface polish instead of whether the foundation supports the actual use case?"
 
@@ -115,7 +115,7 @@ Every plan needs an explicit "today's slice" — embarrassingly small, doable in
 For any substantial UI change — new screen, big component rewrite, structural redesign — sketch the layout in text BEFORE writing code. Get sign-off. Then implement. Three sentences max: layout + active element + interaction. Skip ONLY for trivial edits, precise specs, or explicit "just build it." **Tripwire:** "Am I rebuilding this for the third time?"
 
 ### Push for PRDs When Building
-For any new build, push for a PRD-shaped artifact BEFORE code. The minimum: problem (one sentence), persona, success signal, scope boundary. In OpenVera this lives in `idea.md` for V0 (`## Original spark` + `## The problem` + `## Who it's for` + `## The bet` + `## What good looks like`) and in the full PRD that `/build full` Phase 1 writes. **No PRD = building the wrong thing fast.** The rest of the pipeline (`/steer`, `/super-masterplan`, `/panel`) reads the PRD — skipping it means downstream stages run on vibes. **Tripwire:** "Can I name the problem in one sentence? The user? What 'shipped' looks like? If no, stop and write." When the user says "let's just build," push back once: *"5 min for a PRD-lite (`/start-vague`) or we'll likely build the wrong thing — which one?"* If they confirm skip, skip and note it in `retro.md`. Skip-by-default ONLY for throwaway scripts (single-file, no UI, one-shot), tiny edits, or dogfood experiments where the PRD IS the experiment.
+For any new build, push for a PRD-shaped artifact BEFORE code. The minimum: problem (one sentence), persona, success signal, scope boundary. In OpenVera this lives in `idea.md` for V0 (`## Original spark` + `## The problem` + `## Who it's for` + `## The bet` + `## What good looks like`) and in the full PRD that `/build full` Phase 1 writes. **No PRD = building the wrong thing fast.** The rest of the pipeline (`/steer`, `/super-masterplan`, the `/build new` Stage 0 interview gate) reads the PRD — skipping it means downstream stages run on vibes. **Tripwire:** "Can I name the problem in one sentence? The user? What 'shipped' looks like? If no, stop and write." When the user says "let's just build," push back once: *"5 min for a PRD-lite (`/start-vague`) or we'll likely build the wrong thing — which one?"* If they confirm skip, skip and note it in `retro.md`. Skip-by-default ONLY for throwaway scripts (single-file, no UI, one-shot), tiny edits, or dogfood experiments where the PRD IS the experiment.
 
 ---
 

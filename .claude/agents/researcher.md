@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: "Delegate when a task needs multi-source information gathering, web search, doc crawling, codebase recon, or fan-out research, before a synthesis or decision step. Used by /build, /research, /panel."
+description: "Delegate when a task needs multi-source information gathering, web search, doc crawling, codebase recon, or fan-out research, before a synthesis or decision step. Used by /build, /research, and the /build new Stage 0 interview gate's evidence-gathering lenses."
 tools: Read, Write, Glob, Grep, WebSearch, WebFetch, Bash
 model: sonnet
 ---

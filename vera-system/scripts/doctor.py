@@ -16,6 +16,7 @@ Exit codes:
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -311,6 +312,106 @@ else:
     note("No doc-sync history yet (run /doc-sync at session end)")
 
 
+# --- Check 8b: Ledger lint (tier-1 md-table ledgers) ---
+# Per vera-system/memory/LEDGER-CONVENTION.md. Warning-tier only: a malformed
+# ledger is drift to fix, never a reason to fail the harness. Ledgers here may
+# not exist yet (e.g. curate-flags.md is created by a separate work item) —
+# that's normal on a fresh install, skip silently rather than warn.
+print("\n[Ledger lint]")
+KNOWN_TIER1_LEDGERS = [
+    "vera-system/memory/curate-flags.md",
+]
+try:
+    import importlib.util
+
+    ledger_lint_path = SCRIPT_DIR / "ledger-lint.py"
+    spec = importlib.util.spec_from_file_location("ledger_lint", ledger_lint_path)
+    ledger_lint = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ledger_lint)
+
+    found_any = False
+    for rel in KNOWN_TIER1_LEDGERS:
+        ledger_path = REPO_ROOT / rel
+        if not ledger_path.exists():
+            continue
+        found_any = True
+        problems = ledger_lint.lint_file(ledger_path)
+        if problems:
+            for p in problems:
+                warn(f"{rel}: {p}")
+        else:
+            note(f"{rel} passes ledger-lint")
+    if not found_any:
+        note("No tier-1 ledgers present yet (normal for a fresh harness)")
+except Exception as exc:
+    warn(f"Ledger lint skipped: {exc}")
+
+
+# --- Check 8c: Project registry frontmatter ---
+# Every projects/<slug>/ directory should carry a CLAUDE.md with the
+# required frontmatter fields (name/slug/status) — project-index.py's
+# registry and the doc-sync/curate census both depend on it. Warning tier
+# only: a project missing this is drift for /curate to backfill or flag
+# (curate/SKILL.md §6.7), never a reason to fail the harness.
+print("\n[Project registry]")
+REQUIRED_PROJECT_FIELDS = ["name", "slug", "status"]
+
+
+def _parse_frontmatter_min(path):
+    """Minimal YAML frontmatter reader — mirrors project-index.py's
+    parse_frontmatter. Duplicated, not imported: that file's hyphenated
+    name can't be imported as a module (same reason curate-mode.py inlines
+    its own copy)."""
+    text = path.read_text()
+    fm_match = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
+    if not fm_match:
+        return {}
+    data = {}
+    for line in fm_match.group(1).strip().split("\n"):
+        if ":" in line:
+            key, _, value = line.partition(":")
+            data[key.strip()] = value.strip()
+    return data
+
+
+try:
+    sys.path.insert(0, str(SCRIPT_DIR))  # harmless if Check 10 does it again later
+    from vera_config import get_path as _get_projects_path
+    projects_root = REPO_ROOT / _get_projects_path("projects_dir")
+except Exception as exc:
+    projects_root = None
+    warn(f"Project registry check skipped: could not resolve projects_dir ({exc})")
+
+if projects_root is not None:
+    if projects_root.exists():
+        checked = 0
+        clean = 0
+        for pd in sorted(projects_root.iterdir()):
+            if not pd.is_dir():
+                continue
+            checked += 1
+            claude_md = pd / "CLAUDE.md"
+            if not claude_md.exists():
+                warn(f"project '{pd.name}' has no CLAUDE.md — untracked in the registry (curate can backfill)")
+                continue
+            try:
+                meta = _parse_frontmatter_min(claude_md)
+            except OSError as exc:
+                warn(f"project '{pd.name}' CLAUDE.md unreadable: {exc}")
+                continue
+            missing = [f for f in REQUIRED_PROJECT_FIELDS if not meta.get(f) or meta.get(f) == "null"]
+            if missing:
+                warn(f"project '{pd.name}' CLAUDE.md missing frontmatter field(s): {', '.join(missing)}")
+            else:
+                clean += 1
+        if checked == 0:
+            note("No projects yet (normal for a fresh harness)")
+        else:
+            note(f"{clean}/{checked} project(s) have valid CLAUDE.md frontmatter")
+    else:
+        note("Projects directory not present yet (normal for a fresh harness)")
+
+
 # --- Check 9: Script inventory (security) ---
 # Skills pre-approve Bash(python3 vera-system/scripts/*) via allowed-tools.
 # Any unexpected script in this directory runs WITHOUT user approval.
@@ -326,11 +427,11 @@ KNOWN_SCRIPTS = {
     "frontmatter.py",
     "gate-scan.py",
     "http_util.py",
+    "ledger-lint.py",
     "loop-report.py",
     "manifest-update.py",
     "openrouter.py",
     "palette-pick.py",
-    "panel-score.py",
     "project-index.py",
     "score-gate.py",
     "stamp.py",

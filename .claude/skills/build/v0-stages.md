@@ -16,19 +16,22 @@ Vera check-in fire points + format: see [`vera-checkins.md`](vera-checkins.md).
 
 ---
 
-## Panel gate (auto — always pressure-test the bet before building)
+## Interview gate (soft — Stage 0's pre-build gate, replaces the old /panel handoff)
 
-`/build new` auto-runs `/panel` once a bet exists and before the Build Loop. Domain eyes on the bet are cheap insurance against building the wrong thing fast.
+`/build new` offers the interview by default once a bet exists and before the Build Loop — the single pre-build gate (v1.21, "the one gate"; `/panel` is retired). Full method: `vera-system/memory/interview-method.md`.
 
 **When it fires:**
-- **From `/start-vague`** (`idea.md` already has `## The bet`): run `/panel` *first*, before Stage 0's design-tree walk.
-- **Direct `/build new`** (no bet yet): the bet is synthesized at Stage 1 step 0 — run `/panel` immediately after that, before scaffold (Stage 1 step 6) and Stage 2.
-- **Skip** if `idea.md` already has a `## Panel log` whose `Bet at panel time` matches the current `## The bet` — the user just ran it manually; don't re-fire.
+- **From `/start-vague`** (`idea.md` already has `## The bet`): offer the interview *first*, before Stage 0's design-tree walk.
+- **Direct `/build new`** (no bet yet): the bet is synthesized at Stage 1 step 0 — offer the interview immediately after that, before scaffold (Stage 1 step 6) and Stage 2.
+- **Soft gate:** offer it, don't block on it. One word ("skip") kills it — no re-asking, no guilt line. Log the skip (see interview-method.md) so 1.22's learning loop can later check whether interviewed builds score better.
+- **Skip the offer entirely** if `idea.md` already shows an `Interview:` resolution note from a prior run this session — don't re-offer on a re-entry.
 
-**Verdict handling** (from `/panel` Step 6):
-- **Proceed** → continue the pipeline.
-- **Deeper understanding** → the panel runs its Step 6b interview, updates `idea.md`, and re-shows the verdict; continue once it lands on proceed. If the interview changed scope, re-derive/patch `spec.md` before Stage 2.
-- **Kill** → stop the build; route back to `/start-vague` Step 4.
+**Running it:**
+- Bet-check first (`artifact-lint.py --profile idea`) — if it fails, route back to `/start-vague` / Stage 1 step 0 to lock the bet before offering the interview.
+- Run the grill-me sequence per `interview-method.md`: ~6 questions capped, one recommendation each except the direction question (no recommendation there — it's the circuit breaker), one adversarial beat on the biggest call, answers fold into `idea.md`/`spec.md` in place as they resolve.
+- **Direction question fires exactly once in the sequence.** Read the gap between the assumed direction and the pick: aligned/small gap → tweak and continue (the normal case); ~180° reversal → restart the whole sequence re-anchored to the corrected direction (don't salvage prior answers).
+- Blind-spot lenses fold in as gate moves, evidence-or-cut (no role-play reviewers) — see interview-method.md.
+- If the interview grows scope, show the before/after scope-diff, then re-derive/patch `spec.md` before Stage 2.
 
 ---
 

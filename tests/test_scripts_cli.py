@@ -27,34 +27,6 @@ def _run(script, *args):
     )
 
 
-class PanelScoreTests(unittest.TestCase):
-    def test_missing_file_clean_exit(self):
-        result = _run("panel-score.py", "--file", "/nonexistent/findings.json")
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("cannot read", result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
-
-    def test_missing_keys_are_valid_input(self):
-        # score_findings defaults absent severity/confidence to low — a dict
-        # with no score keys is legitimate model output, not an error.
-        result = subprocess.run(
-            [sys.executable, str(_SCRIPTS_DIR / "panel-score.py")],
-            input='[{"concern": "no scores here"}]',
-            capture_output=True, text=True, timeout=30,
-        )
-        self.assertEqual(result.returncode, 0)
-
-    def test_non_dict_entry_clean_exit(self):
-        result = subprocess.run(
-            [sys.executable, str(_SCRIPTS_DIR / "panel-score.py")],
-            input='["just a string, not an object"]',
-            capture_output=True, text=True, timeout=30,
-        )
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("malformed finding", result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
-
-
 class TelemetryTests(unittest.TestCase):
     def test_traversal_skill_name_rejected(self):
         result = _run("telemetry.py", "../evil", "PASS")
@@ -240,6 +212,68 @@ class ScoreGateCliTests(unittest.TestCase):
         self.assertNotIn("Traceback", result.stderr)
 
 
+class LedgerLintCliTests(unittest.TestCase):
+    HEADER = "| # | Flag | First seen | Runs survived | Consequence | Status | Notes |\n" \
+             "|---|------|-----------|---------------|-------------|--------|-------|\n"
+
+    def _write(self, tmp, body):
+        path = Path(tmp) / "ledger.md"
+        path.write_text(self.HEADER + body)
+        return path
+
+    def test_good_fixture_passes(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            body = (
+                "| 1 | Something unresolved | 2026-07-01 | 1 | | open | fresh flag |\n"
+                "| 2 | Aged real issue | 2026-06-01 | 3 | breaks nightly build | open | escalated, has a real cost |\n"
+            )
+            path = self._write(tmp, body)
+            result = _run("ledger-lint.py", str(path))
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("OK", result.stdout)
+
+    def test_escalation_without_consequence_fails(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            body = "| 1 | Cosmetic-only flag | 2026-06-01 | 3 | | open | no named cost |\n"
+            path = self._write(tmp, body)
+            result = _run("ledger-lint.py", str(path))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("escalation_without_consequence", result.stdout)
+
+    def test_duplicate_row_number_fails(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            body = (
+                "| 1 | First flag | 2026-06-01 | 1 | | open | a |\n"
+                "| 1 | Duplicate number | 2026-06-02 | 1 | | open | b |\n"
+            )
+            path = self._write(tmp, body)
+            result = _run("ledger-lint.py", str(path))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("duplicate_row_number", result.stdout)
+
+    def test_missing_column_fails(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ledger.md"
+            path.write_text(
+                "| # | Flag | Status |\n"
+                "|---|------|--------|\n"
+                "| 1 | x | open |\n"
+            )
+            result = _run("ledger-lint.py", str(path))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("missing_column", result.stdout)
+
+    def test_missing_file_clean_exit(self):
+        result = _run("ledger-lint.py", "/nonexistent/ledger.md")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("no_file", result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+
+
 class GateScanCliTests(unittest.TestCase):
     def test_fires_on_crowded_category(self):
         result = _run("gate-scan.py", "scout", "a better todo app")
@@ -250,6 +284,62 @@ class GateScanCliTests(unittest.TestCase):
         result = _run("gate-scan.py", "scout", "a RAW to JPEG converter CLI")
         self.assertEqual(result.returncode, 0)
         self.assertIn("RESULT=PASS", result.stdout)
+
+
+class ProjectIndexTieredWalkTests(unittest.TestCase):
+    """v1.21 §8.9 — cold (parked/shipped/declined/deprecated) projects get a
+    frontmatter-only check; hot projects get the full rglob walk. Uses
+    clearly-scratch slugs under the real projects_dir, removed afterward."""
+
+    HOT_SLUG = "zzz-cli-tier-hot"
+    COLD_SLUG = "zzz-cli-tier-cold"
+
+    def _projects_dir(self):
+        import sys as _sys
+        _sys.path.insert(0, str(_SCRIPTS_DIR))
+        import vera_config
+        return _REPO_ROOT / vera_config.get_path("projects_dir")
+
+    def _write_project(self, slug, status):
+        pd = self._projects_dir() / slug
+        (pd / "canary").mkdir(parents=True, exist_ok=True)
+        (pd / "canary" / "marker.py").write_text("# canary\n")
+        (pd / "CLAUDE.md").write_text(
+            f"---\nname: {slug}\nslug: {slug}\n"
+            f"status: {status}   # lifecycle: exploring -> building -> shipped -> live  (parked/declined = terminal)\n"
+            "created: 2026-07-04\nupdated: 2026-07-04\nstack: null\nrun: null\nscore: null\n"
+            "origin: /build new\n---\n# fixture\n"
+        )
+        return pd
+
+    def tearDown(self):
+        import shutil
+        for slug in (self.HOT_SLUG, self.COLD_SLUG):
+            pd = self._projects_dir() / slug
+            if pd.exists():
+                shutil.rmtree(pd)
+
+    def test_cold_project_skips_rglob_hot_project_does_not(self):
+        import json
+        self._write_project(self.HOT_SLUG, "building")
+        self._write_project(self.COLD_SLUG, "parked")
+
+        result = _run("project-index.py", "--format", "json")
+        self.assertEqual(result.returncode, 0)
+        rows = {r["slug"]: r for r in json.loads(result.stdout)}
+
+        hot = rows[self.HOT_SLUG]
+        cold = rows[self.COLD_SLUG]
+        self.assertEqual(hot["tier"], "hot")
+        self.assertEqual(cold["tier"], "cold")
+        # Hot got the real walk (canary/marker.py counted); cold's folder
+        # contents were never opened — all artifact/source fields are null,
+        # not merely zero (zero would mean "walked and found nothing").
+        self.assertEqual(hot["source_files"], 1)
+        self.assertIsNone(cold["source_files"])
+        self.assertIsNone(cold["has_spec"])
+        self.assertIsNone(cold["has_build_state"])
+        self.assertIsNone(cold["has_research"])
 
 
 if __name__ == "__main__":

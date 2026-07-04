@@ -33,6 +33,26 @@ PROJECTS_DIR = REPO_ROOT / get_path("projects_dir")
 
 RUNS_DIR = SYSTEM_DIR / "runs"
 
+# Tiered walk (v1.21, build-spec §8.9 / architecture "Instances" item 2 —
+# "why walk roads already paved"). Statuses that are terminal/static get a
+# frontmatter-only existence check: no rglob, no source-count, no other
+# file-exists calls into the project folder. `parked` in particular is never
+# opened at all beyond this — its wake condition lives in the ROADMAP parked
+# table, not in this scan. Anything not in this set (building, exploring,
+# live, or a missing/unrecognized status) is treated as HOT and gets the
+# full walk, same as before this change — unknown defaults to the safe
+# (more-checking) side, only known-terminal statuses default to cold.
+COLD_STATUSES = {"parked", "shipped", "declined", "deprecated"}
+
+
+def _is_cold(meta):
+    # frontmatter.py writes status with a trailing inline comment
+    # ("status: parked   # lifecycle: ..."), and parse_frontmatter() (below)
+    # doesn't strip inline comments from any field — strip it here, locally,
+    # rather than changing the shared parser's behavior for every caller.
+    status = (meta.get("status") or "").split("#", 1)[0].strip().lower()
+    return status in COLD_STATUSES
+
 
 def parse_frontmatter(path):
     """Extract YAML frontmatter from a markdown file."""
@@ -94,18 +114,30 @@ def scan_projects():
         if not meta.get("name"):
             meta["name"] = project_dir.name.replace("-", " ").title()
 
-        # Check for key artifacts
-        meta["has_spec"] = (project_dir / "spec.md").exists()
-        meta["has_build_state"] = (project_dir / "build-state.md").exists()
-        meta["has_research"] = (project_dir / "research").is_dir()
+        cold = _is_cold(meta)
+        meta["tier"] = "cold" if cold else "hot"
 
-        # Count source files (rough project size signal)
-        source_extensions = {".py", ".js", ".ts", ".svelte", ".jsx", ".tsx", ".go", ".rs"}
-        source_count = sum(
-            1 for f in project_dir.rglob("*")
-            if f.suffix in source_extensions and "node_modules" not in str(f)
-        )
-        meta["source_files"] = source_count
+        if cold:
+            # Cold/terminal project: frontmatter parse is the whole check.
+            # Deliberately no .exists()/.is_dir()/.rglob() calls below this
+            # point — that would still be "opening" the folder's contents.
+            meta["has_spec"] = None
+            meta["has_build_state"] = None
+            meta["has_research"] = None
+            meta["source_files"] = None
+        else:
+            # Check for key artifacts
+            meta["has_spec"] = (project_dir / "spec.md").exists()
+            meta["has_build_state"] = (project_dir / "build-state.md").exists()
+            meta["has_research"] = (project_dir / "research").is_dir()
+
+            # Count source files (rough project size signal)
+            source_extensions = {".py", ".js", ".ts", ".svelte", ".jsx", ".tsx", ".go", ".rs"}
+            source_count = sum(
+                1 for f in project_dir.rglob("*")
+                if f.suffix in source_extensions and "node_modules" not in str(f)
+            )
+            meta["source_files"] = source_count
 
         projects.append(meta)
 

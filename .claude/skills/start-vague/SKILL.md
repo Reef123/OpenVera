@@ -554,8 +554,7 @@ AskUserQuestion(
       question: "What next?",
       header: "Next",
       options: [
-        {label: "Build it (Recommended)", description: "/build new turns this into a working app, resumable across sessions"},
-        {label: "Pressure-test the bet", description: "/panel scans for blind spots before /build (~3 min)"},
+        {label: "Build it (Recommended)", description: "/build new turns this into a working app, resumable across sessions — Stage 0 offers a quick interview gate first"},
         {label: "Dig deeper first", description: "/research goes wide on the topic (~15 min)"},
         {label: "Save for later", description: "Idea's saved — come back whenever"}
       ],
@@ -569,8 +568,6 @@ AskUserQuestion(
 
 **Breadcrumb before build starts:**
 > "/build new will ask about the job, the pain, stack, and how to validate — then it builds autonomously."
-
-**Pressure-test the bet** → Run `/panel <slug>`. Two domain reviewers (clean-context Explore subagents) scan idea.md for blind spots — what's stated, missing, or assumed. Surfaces top concerns, you confirm what you've already considered, bet locks. Confirmation-bias check before /build.
 
 **Dig deeper** → Run `/research [topic]`.
 

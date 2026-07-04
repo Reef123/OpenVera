@@ -4,10 +4,10 @@ artifact-lint.py — deterministic mandatory-section check for build artifacts.
 
 The skills already tell the model "this artifact MUST contain these sections" and
 then trust the model to self-check. Self-checks drift: a missing `## What V0 did
-NOT prove` slips through, an idea.md reaches /panel without `## The bet`. This
-script does the mechanical part — does the file exist, and does it contain each
-required section heading with non-empty content under it — so the HARD_FAIL has
-teeth instead of being a sentence the model can skip.
+NOT prove` slips through, an idea.md reaches the /build new Stage 0 interview gate
+without `## The bet`. This script does the mechanical part — does the file exist,
+and does it contain each required section heading with non-empty content under
+it — so the HARD_FAIL has teeth instead of being a sentence the model can skip.
 
 It checks STRUCTURE, not judgment: the model still writes the prose and decides
 whether the content is good. This only catches the artifact shipping without a
@@ -15,7 +15,7 @@ mandatory section, or with the heading present but nothing under it.
 
 Profiles (the `--profile` argument):
 
-  idea      — idea.md before /panel and /build new Stage 0.
+  idea      — idea.md before the /build new Stage 0 interview gate.
               Required: ## The bet, ## Who it's for, ## The problem
   handoff   — handoff.md, the V0->V1 contract written at Stage 4b.
               Required: ## Outcome, ## Observable behavior, ## What V0 proved,

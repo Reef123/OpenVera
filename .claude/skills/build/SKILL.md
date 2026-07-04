@@ -1,7 +1,7 @@
 ---
 name: build
 description: "Full pipeline orchestrator. Two modes: 'new' for V0 (one user stop → autonomous build → ship), 'full' for complete SDLC. One command: idea to working product."
-argument-hint: new <idea> | full <project> | continue | status
+argument-hint: "new <idea> | full <project> | continue | status"
 allowed-tools: Bash(python3 vera-system/scripts/*)
 ---
 
