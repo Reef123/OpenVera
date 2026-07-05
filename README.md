@@ -29,9 +29,11 @@
 
 ## The Problem
 
-AI coding tools waste your time in more ways than one. They start every session from zero, so you re-explain the project and re-settle old decisions. They say yes to every idea, so you build the wrong thing fast. They call work done without running it. And whatever they learn dies with the chat, so the fiftieth build is no smarter than the first.
+You know the routine. Monday, you and your AI ship something good. Tuesday, it can read every file you two wrote and still has no idea where you left off. The approach you tried and killed, the decision that took an hour to settle, the bug that ate your evening: gone with the chat. So you re-explain, and some of what you explain is wrong, because you don't remember Monday perfectly either.
 
-OpenVera is a harness for Claude Code that closes all four gaps: files, skills, hooks, and scripts that wrap the model with an actual process. It researches before building, pushes back on scope, verifies work in a real browser, and writes everything down. State, decisions, patterns, and lessons live in plain files you can read, grep, and edit. Session fifty starts where session one left off, and it starts smarter.
+And here's the part that should bother you more: everyone is running the same model. You, me, the person who installed it an hour ago. A year of projects together buys you no edge over somebody who started this morning, because nothing the two of you learned survived a single session.
+
+OpenVera is the part you own. It wraps Claude Code in files, skills, hooks, and scripts: a process the model can't skip. It researches before it builds and pushes back on scope before you burn an evening on the wrong thing. Work gets verified in a real browser before anything gets called done. And everything worth keeping gets written down: state, decisions, lessons, your taste in how things get built. Plain files you can read, grep, edit, and carry anywhere. You rent the model. The files are yours. Session fifty starts where session one left off, and by then the harness knows how you build.
 
 Every session opens with a cockpit: what moved, the next action per open thread, and what's blocked on you. Whatever you paste in mid-thought lands in `inbox.md` and gets routed next session instead of dying in scrollback.
 
