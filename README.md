@@ -1,30 +1,43 @@
- # 🐘 OpenVera
+<h1 align="center">🐘 OpenVera</h1>
 
 <p align="center">
-  <em>A personal AI workbench that remembers your context, researches before building, ships a prototype, and reviews its own code. Work carries forward instead of starting over.</em>
+  <strong>A personal AI workbench built on <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>.</strong><br>
+  It researches before building, ships a working prototype, reviews its own code, and remembers all of it for next time.
 </p>
 
 <p align="center">
-  <em>Idea → researched → shipped → remembered. In one session or many.</em>
+  <em>Models get replaced. The harness gets smarter.</em>
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <img src="https://img.shields.io/badge/Claude_Code-required-purple.svg" alt="Claude Code">
-  <img src="https://img.shields.io/badge/Setup-5_min-blue.svg" alt="Setup">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/Claude_Code-required-purple.svg" alt="Claude Code required">
+  <img src="https://img.shields.io/badge/Setup-5_min-blue.svg" alt="Five minute setup">
+  <img src="https://img.shields.io/badge/Python-stdlib_only-blue.svg" alt="Python stdlib only, no pip installs">
 </p>
 
 <p align="center">
-  <a href="https://openvera.ai"><strong>openvera.ai</strong></a>
+  <a href="#get-started">Get Started</a> ·
+  <a href="#your-first-ten-minutes">First Ten Minutes</a> ·
+  <a href="#the-loop">The Loop</a> ·
+  <a href="#skills">Skills</a> ·
+  <a href="#what-openvera-wont-do">What It Won't Do</a> ·
+  <a href="https://openvera.ai">openvera.ai</a>
 </p>
 
 ---
 
-OpenVera is a harness for [Claude Code](https://docs.anthropic.com/en/docs/claude-code): files, skills, hooks, and scripts that wrap the model so a project picks up where you left it, session after session.
+## The Problem
 
-It runs the whole arc, not just one trick: it remembers your context between sessions, researches the space before it writes code, ships a working prototype, reviews what it built, and carries the lessons into the next run. Most AI coding setups forget everything between sessions; OpenVera keeps state, decisions, patterns, and lessons in plain files on disk, so session fifty starts where session one left off. The whole loop runs on files you can read, grep, and edit.
+Every AI coding session starts from zero. You explain the project again. Decisions you settled last week get reopened. The lesson it learned on Tuesday is gone by Thursday. Your code gets better every session. Your setup stays exactly as smart as the day you installed it.
 
-Every session opens with what moved and what's next: a cockpit view of recent momentum, the next action per open thread, and anything genuinely blocked on you, so you never open a project cold. A running `inbox.md` catches whatever you paste in mid-thought; the next session routes it to an idea, a roadmap item, or the trash instead of it disappearing into scrollback.
+OpenVera is a harness for Claude Code: files, skills, hooks, and scripts that wrap the model so all of that survives. State, decisions, patterns, and lessons live in plain files on disk. You can read them, grep them, and edit them. Session fifty starts where session one left off.
+
+Memory is the floor. The rest of the harness runs the whole arc on top of it. It researches the space before writing code, pushes back on scope before you spend build hours, ships a working prototype, reviews what it built, and carries the lessons into the next run. Every session opens with a cockpit: what moved, the next action per open thread, and what's blocked on you. Whatever you paste in mid-thought lands in `inbox.md` and gets routed next session instead of dying in scrollback.
+
+The whole idea in one breath:
+
+> I have an idea. I open it and start building. It writes down what we did so I don't lose it. And the framework comes with me to the next one.
 
 ## Get Started
 
@@ -32,7 +45,10 @@ Every session opens with what moved and what's next: a cockpit view of recent mo
 curl -fsSL https://raw.githubusercontent.com/Reef123/OpenVera/main/install.sh | bash
 ```
 
-Clones into `./openvera` and runs the interactive bootstrap. (Append `-s -- ~/some/path` to choose where it lands.) Prefer to inspect first? Clone and run `./bootstrap.sh` by hand:
+Clones into `./openvera` and runs the interactive bootstrap. Append `-s -- ~/some/path` to choose where it lands.
+
+> [!NOTE]
+> Piping curl into bash is a trust decision. The script is short. Read [install.sh](install.sh) first, or clone and run bootstrap by hand:
 
 ```bash
 git clone https://github.com/Reef123/OpenVera.git openvera
@@ -40,16 +56,18 @@ cd openvera
 ./bootstrap.sh
 ```
 
-Either way, bootstrap asks your name and optional API keys, fills the templates, and runs a health check. At the end it offers to open Claude Code, so just press Enter. Once you're in, Claude boots into OpenVera automatically whenever you open the `openvera/` folder. API keys are optional: the harness, most skills, and the whole memory loop run on your existing Claude Code subscription; keys add deep research, `/scout` depth, and an external scoring gate ([details](#keys-are-optional)).
+Bootstrap asks your name and optional API keys, fills the templates, and runs a health check. At the end it offers to open Claude Code, so just press Enter. From then on, Claude boots into OpenVera automatically whenever you open the `openvera/` folder.
+
+API keys are optional. The harness, most skills, and the whole memory loop run on your existing Claude Code subscription. Keys add deep research, `/scout` depth, and an external scoring gate ([details](#keys-are-optional)).
 
 ## Your First Ten Minutes
 
-Here's the shape of a first session (illustrative: your questions, timings, and project will differ):
+The shape of a first session. Illustrative: your questions, timings, and project will differ.
 
 ```text
 $ claude
 
-  🐘 OpenVera online. Harness healthy.
+  🐘 OpenVera online. First session, curate triggers in 7 days.
   First build: /start-vague (vague idea) or /build new <idea> (clear one)
 
 > /build new a price-per-serving calculator for my recipes
@@ -76,7 +94,7 @@ $ claude
   Safe to close.
 ```
 
-That last step is not optional politeness. If you try to end a session with unsynced work, a hook blocks it once and points you at `/doc-sync`. That's the harness enforcing its own loop, which is the whole idea.
+That last step is enforced. End a session with unsynced work and a hook blocks it once and points you at `/doc-sync`. The harness polices its own loop. That is the whole idea, and the next section is how.
 
 ## The Loop
 
@@ -84,12 +102,15 @@ That last step is not optional politeness. If you try to end a session with unsy
   <img src="assets/the-loop.png" alt="The harness loop: BUILD produces work, CAPTURE is forced (a session can't end until lessons are written back), CURATE is judged (only what recurs survives), PROMOTE turns lessons into patterns and patterns into code" width="860">
 </p>
 
-Most agent loops automate. Few learn. The difference is whether each cycle changes the loop itself. OpenVera's loop has four organs, and each one is mechanical, not a promise:
+Most agent loops automate. Few learn. The difference is whether each cycle changes the loop itself. OpenVera's loop has four organs, and each one is mechanical:
 
-- **Capture is forced.** Failures and course corrections append one dated line to `memory/lessons.md`. A Stop hook blocks a session from ending while harness state is unsynced. Zero lessons is a valid session: the gate forces write-back, never wisdom.
-- **Curation is judged.** `/curate` runs weekly: one-offs age out, and anything that recurs 3+ times gets flagged for promotion into `patterns.md`. You approve; the machine never edits your patterns file.
-- **Promotion is verified.** Every promotion lands in `memory/promotions.tsv`. Gone for 14 days: validated. Recurs: marked failed and flagged for mechanical enforcement, a hook or a doctor check or a script gate. Prose that doesn't work graduates into code that does.
-- **The loop is measured.** `loop-report.py` answers what cycle fifty knows that cycle one didn't, and keeps a trend file.
+**Capture is forced.** Failures and course corrections append one dated line to `memory/lessons.md`. The `textarea paste` line in the first-ten-minutes transcript is what capture looks like in practice. A Stop hook blocks the session from ending while state is unsynced. Zero lessons is a valid session: the gate forces the write-back, never the wisdom. You can't theater a file write.
+
+**Curation is judged.** `/curate` runs weekly. One-off lessons age out. Anything that recurs three or more times gets flagged for promotion into `patterns.md`. You approve every promotion. The machine never edits your patterns file.
+
+**Promotion is verified.** Every promotion lands in `memory/promotions.tsv` with a fate. Gone for 14 days: validated. Recurs anyway: marked failed and flagged for mechanical enforcement, a hook or a doctor check instead of prose. Words that don't work graduate into code that does.
+
+**The loop is measured.** `loop-report.py` answers one question: what does cycle fifty know that cycle one didn't?
 
 ```text
 **Loop report 2026-06-10.** Since cycle 1 the loop has captured 31 lessons
@@ -97,7 +118,7 @@ Most agent loops automate. Few learn. The difference is whether each cycle chang
 and run 22 skill invocations in the last 30 days (86% pass).
 ```
 
-When a skill underperforms, `/improve` runs it against tests, scores the output, proposes one change to the skill's own instructions, and re-runs everything to check for regressions before you accept. Models get replaced. The harness gets smarter.
+When a skill underperforms, `/improve` runs it against tests, scores the output, proposes one change to the skill's own instructions, and re-runs everything to check for regressions before you accept.
 
 ## Before Code: Research and Pushback
 
@@ -105,25 +126,26 @@ The same skepticism runs upstream, before any code exists.
 
 **Research.** `/scout` is a 2-3 minute recon: Reddit and YouTube for what real people hit. `/research` goes deep, across multiple models so one model's blind spots get caught, with a source registry so claims are checkable. External findings stay untrusted: extract the technique, verify packages and env vars before you adopt.
 
-**Pushback.** `/build new` Stage 0 offers a soft interview gate before any code: one question at a time, biggest decisions first, each carrying a recommendation, plus one unrecommended question that checks you're pointed the right way before you spend the build hours. Skip it with one word if you don't need it. Validator and reviewer agents check the code as it's built. A scope guard cuts a prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships. Before any build even starts, a quick check asks whether the next decision is easy to undo; if it's a one-way door, you get a nudge to think it through first instead of discovering the cost after it's built.
+**Pushback.** `/build new` opens with a soft interview gate before any code: one question at a time, biggest decisions first, each carrying a recommendation. One question arrives with no recommendation attached, because it checks whether you're pointed the right way, and that answer has to come from you. Skip the whole gate with one word if you don't need it. A scope guard then cuts the prototype to one or two problems, because a finished prototype that solves one problem beats a spec for V3 that never ships. And before any build starts, a quick check asks whether the next decision is easy to undo. One-way doors get a nudge to think first.
 
 ## Skills
 
-Slash commands that do real things. Each sits in the system prompt as one line until you invoke it; the full instructions load only then, so you can keep dozens on hand and pay the token cost only for the one you run. Most are free on your existing Claude Code subscription; paid skills spend on OpenRouter calls.
+Slash commands that do real things. Each sits in the system prompt as one line until you invoke it; the full instructions load only then. Keep dozens on hand, pay the token cost only for the one you run. Most are free on your existing Claude Code subscription; paid skills spend on OpenRouter calls.
 
 | Command | What It Does | Cost (USD) |
 |---------|--------------|------|
 | `/start-vague` | Takes a vague idea and turns it into something buildable | Free |
-| `/scout <question>` | Quick research: Reddit, YouTube, web. 2-3 minutes. | $0.00–0.10 |
-| `/research <topic>` | Deep multi-model research. 8 steps, source registry, paper output. | $0.15–0.55 |
+| `/scout <question>` | Quick research: Reddit, YouTube, web. 2-3 minutes. | $0.00-0.10 |
+| `/research <topic>` | Deep multi-model research. 8 steps, source registry, paper output. | $0.15-0.55 |
 | `/consult <decision>` | Simulates a panel of domain experts, gives you one recommendation | Free |
 | `/frame` | Generates a design system, architecture diagrams, wireframes | Free |
 | `/wireframe-first` | Sketches one screen in plain text and gets your sign-off before any code | Free |
 | `/advisor [decision]` | Checks a decision against project artifacts, reports mismatches | Free |
 | `/code-review [path]` | Clean-context reviewer scans a path or diff, returns tiered findings | Free |
-| `/build new <idea>` | First version: idea to working prototype (resumable across sessions via state file) | Free (~$0.12 scored) |
-| `/build full <project>` | Full SDLC: PRD, tech spec, arch review, phased builds, QA | Varies (research + scoring) |
-| `/improve <skill>` | Runs a skill, scores the output, proposes instruction fixes, verifies no regressions | ~$0.20–0.40 / cycle |
+| `/build new <idea>` | First version: idea to working prototype, resumable across sessions | Free (~$0.12 scored) |
+| `/build full <project>` | Full SDLC: PRD, tech spec, arch review, phased builds, QA | Varies |
+| `/improve <skill>` | Runs a skill, scores the output, proposes instruction fixes, verifies no regressions | ~$0.20-0.40 / cycle |
+| `/gap-handler` | Restart protocol after days away, sized to the length of the gap | Free |
 | `/curate` | Weekly memory consolidation: prunes, merges, verifies promotions | Free |
 | `/doc-sync` | Updates state file, conversation log, roadmap, lesson capture | Free |
 
@@ -133,10 +155,10 @@ Slash commands that do real things. Each sits in the system prompt as one line u
   <img src="assets/build-journey.png" alt="Two build paths: one session ships a working prototype; multiple sessions run full SDLC" width="860">
 </p>
 
-Both start from an idea; if yours is still vague, run `/start-vague` first to shape it into a buildable `idea.md`.
+Both start from an idea. If yours is still vague, run `/start-vague` first to shape it into a buildable `idea.md`.
 
-- **`/build new`: one session, idea to prototype.** Scoping questions, scope guard, design tokens, then a build loop until it works in the browser. The state file persists, so `/build continue` picks up exactly where you left off when context compresses or you stop for the night. A feature only counts as done once it's actually verified working, tracked in a ledger the model can't quietly edit; and resuming a build re-checks the app still runs before any new work starts, so a broken session boundary gets caught instead of built on top of.
-- **`/build full`: multi-session, prototype to production.** Deep research, gap analysis, PRD, tech spec, architecture review, phased builds with tests, code review, QA. Context is handed off through files, not memory. Don't start here; start with `/build new`. If it's worth investing in, you'll know.
+- **`/build new`: one session, idea to prototype.** Scoping questions, scope guard, design tokens, then a build loop until it works in the browser. The state file persists, so `/build continue` picks up exactly where you left off when context compresses or you stop for the night. A feature counts as done only once it's verified working, tracked in a ledger the model can't quietly edit. Resuming a build re-checks the app still runs before any new work starts, so a broken session boundary gets caught instead of built on.
+- **`/build full`: multi-session, prototype to production.** Deep research, gap analysis, PRD, tech spec, architecture review, phased builds with tests, code review, QA. Context is handed off through files, not memory. Don't start here. Start with `/build new`; if it's worth investing in, you'll know.
 
 ## Why It's Built This Way
 
@@ -144,7 +166,7 @@ Both start from an idea; if yours is still vague, run `/start-vague` first to sh
 - **Three-tier context.** Core (~300 lines) loads every session, Recall loads on demand, Archival is search-only. The window doesn't fill with what isn't relevant right now.
 - **Skills load lazy.** Each skill is one line in the system prompt until invoked. Keep 50 on hand, pay for the one you run.
 - **Enforcement over discipline.** Anything the loop depends on is a hook or a script in `.claude/hooks/`, not a reminder. Deterministic Python, readable in one sitting. Habits decay; gates don't.
-- **Cheap tier for plumbing, capable tier for judgment.** Subagents that fetch, format, or sync run on a cheaper model tier; the calls that decide scope, review code, or gate a release stay on the capable one. You get parallel throughput without paying model cost for work that doesn't need it.
+- **Cheap tier for plumbing, capable tier for judgment.** Subagents that fetch, format, or sync run on a cheaper model tier; the calls that decide scope, review code, or gate a release stay on the capable one. Parallel throughput without paying capable-model prices for work that doesn't need it.
 
 ## What OpenVera Won't Do
 
@@ -156,13 +178,14 @@ Enforced in `.claude/settings.json` and the hooks, not promised in prose. Audit 
 - **Won't edit your patterns.** `patterns.md` is hand-curated by rule; the machine lane is separate files.
 - **Won't phone home.** After install, the only scripts that touch the network are `openrouter.py` and `youtube-analyze.py`, and only when a skill you invoked calls them. Run logs and session conversation logs stay local.
 
-## Keys are Optional
+## Keys Are Optional
 
-The whole memory loop and most skills (`/start-vague`, `/consult`, `/frame`, `/wireframe-first`, `/advisor`, `/code-review`, `/curate`, `/doc-sync`) run with no key. `/scout` covers web search keyless; `/build` ships fine, just unscored (you still get the validator and reviewer agents, only the external judge is skipped). The Stage 0 interview gate is free either way, no key needed.
+The whole memory loop and most skills (`/start-vague`, `/consult`, `/frame`, `/wireframe-first`, `/advisor`, `/code-review`, `/gap-handler`, `/curate`, `/doc-sync`) run with no key. `/scout` covers web search keyless. `/build` ships fine, just unscored: you still get the validator and reviewer agents, only the external judge is skipped. The interview gate is free either way.
 
-Keys add the depth: `/research` and `/improve` need OpenRouter for their multi-model calls, `/scout`'s Reddit and YouTube depth runs through OpenRouter (video analysis needs a Google AI key), and `/build`'s external scoring gate needs OpenRouter. At install time, `git clone` pulls the repo, and if you paste a key into bootstrap it gets verified with one call; skip the prompts to skip the calls. There is no `pip install` step: OpenVera runs on the Python standard library alone.
+Keys add the depth. `/research` and `/improve` need OpenRouter for their multi-model calls, `/scout`'s Reddit and YouTube depth runs through OpenRouter (video analysis needs a Google AI key), and `/build`'s external scoring gate needs OpenRouter. Paste a key into bootstrap and it gets verified with one call; skip the prompts to skip the calls. There is no `pip install` step. OpenVera runs on the Python standard library alone.
 
 To add keys later:
+
 ```bash
 cp vera-system/.secrets.template vera-system/.secrets
 chmod 600 vera-system/.secrets
@@ -175,7 +198,9 @@ The `.secrets` file is gitignored and chmod 600; permissions require Claude to a
 
 After bootstrap: set the tone in `vera-system/who-i-am/voice.md`, tell Claude who you are in `vera-system/relationships/user.md`, and add your own rules to `vera-system/memory/patterns.md`. Change paths or the default model in `vera-system/config.json`. To add a skill, drop a `.claude/skills/<name>/SKILL.md` with YAML frontmatter (name + description) and instructions in the body.
 
-Bootstrap also asks if you want a working-style profile kept in `relationships/user.md`. It learns how to work with you, without keeping a dossier on you: preferences and patterns get written down, never health, family, employer, finances, or location. You can read it, edit it, or turn it off any time by flipping `user_memory` in `config.json`.
+Bootstrap also asks if you want a working-style profile kept in `relationships/user.md`. It learns how to work with you without keeping a dossier on you: preferences and patterns get written down, never health, family, employer, finances, or location. You can read it, edit it, or turn it off any time by flipping `user_memory` in `config.json`.
+
+The point of all this: OpenVera ships empty of anyone else's taste. Over your first few projects it absorbs your decisions, your defaults, your look. Then it stamps them on everything that follows.
 
 ## Recommended MCPs
 
@@ -237,3 +262,5 @@ See [RECOVERY.md](RECOVERY.md) for hook errors, missing skills, broken bootstrap
 MIT. See [LICENSE](LICENSE).
 
 Built by [Shareef Ellis](https://x.com/shareefatwork). Changelog on [@openveraai](https://x.com/openveraai). Inspirations in [THANKS.md](THANKS.md).
+
+*The elephant remembers.*
