@@ -29,15 +29,32 @@
 
 ## The Problem
 
-Every AI coding session starts from zero. You explain the project again. Decisions you settled last week get reopened. The lesson it learned on Tuesday is gone by Thursday. Your code gets better every session. Your setup stays exactly as smart as the day you installed it.
+AI coding tools waste your time in more ways than one. They start every session from zero, so you re-explain the project and re-settle old decisions. They say yes to every idea, so you build the wrong thing fast. They call work done without running it. And whatever they learn dies with the chat, so the fiftieth build is no smarter than the first.
 
-OpenVera is a harness for Claude Code: files, skills, hooks, and scripts that wrap the model so all of that survives. State, decisions, patterns, and lessons live in plain files on disk. You can read them, grep them, and edit them. Session fifty starts where session one left off.
+OpenVera is a harness for Claude Code that closes all four gaps: files, skills, hooks, and scripts that wrap the model with an actual process. It researches before building, pushes back on scope, verifies work in a real browser, and writes everything down. State, decisions, patterns, and lessons live in plain files you can read, grep, and edit. Session fifty starts where session one left off, and it starts smarter.
 
-Memory is the floor. The rest of the harness runs the whole arc on top of it. It researches the space before writing code, pushes back on scope before you spend build hours, ships a working prototype, reviews what it built, and carries the lessons into the next run. Every session opens with a cockpit: what moved, the next action per open thread, and what's blocked on you. Whatever you paste in mid-thought lands in `inbox.md` and gets routed next session instead of dying in scrollback.
+Every session opens with a cockpit: what moved, the next action per open thread, and what's blocked on you. Whatever you paste in mid-thought lands in `inbox.md` and gets routed next session instead of dying in scrollback.
 
 The whole idea in one breath:
 
 > I have an idea. I open it and start building. It writes down what we did so I don't lose it. And the framework comes with me to the next one.
+
+## One Install, the Whole Arc
+
+| Stage | What you get | Where |
+|-------|--------------|-------|
+| Shape | A vague idea becomes a buildable one | `/start-vague` |
+| Research | Multi-model research with a source registry, plus 2-3 minute community recon | `/research`, `/scout` |
+| Pushback | Interview gate, scope guard, one-way-door check, simulated expert panel | `/build new`, `/consult` |
+| Design | Design tokens, wireframes signed off before code, architecture diagrams | `/frame`, `/wireframe-first` |
+| Build | Idea to working prototype in one session, or full SDLC across many | `/build new`, `/build full` |
+| Verify | Real-browser checks, a done-ledger the model can't quietly edit, external scoring | `/build`, Playwright MCP |
+| Review | Clean-context code review, decisions checked against project artifacts | `/code-review`, `/advisor` |
+| Remember | State, lessons, cockpit, and inbox survive the session | `/doc-sync`, hooks |
+| Improve | Skills that score their own output and fix their own instructions | `/improve`, `/curate` |
+| Recover | A restart protocol sized to how many days you've been gone | `/gap-handler` |
+
+Each stage stands alone. The rest of this README walks the ones that need more than a row.
 
 ## Get Started
 

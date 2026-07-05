@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; }
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background: #241811;
+    overflow: hidden;
+  }
+  .card {
+    position: relative;
+    width: 1280px;
+    height: 640px;
+    /* deep espresso base with a soft warm highlight top-left */
+    background:
+      radial-gradient(1100px 700px at 12% -10%, #33241a 0%, rgba(51,36,26,0) 60%),
+      radial-gradient(900px 900px at 108% 120%, #2c1e14 0%, rgba(44,30,20,0) 55%),
+      #221610;
+  }
+  /* hairline top accent */
+  .topline {
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #C89B3C 0%, #8B5A3C 45%, rgba(139,90,60,0) 100%);
+  }
+
+  /* subtle loop motif, right side, ghosted */
+  .loop { position: absolute; top: 320px; left: 1010px; }
+
+  .content {
+    position: absolute;
+    left: 84px; top: 0; bottom: 0;
+    width: 820px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  .brandrow { display: flex; align-items: center; gap: 26px; margin-bottom: 30px; }
+  .mark {
+    font-size: 96px; line-height: 1;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45));
+  }
+  .wordmark {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    font-size: 112px;
+    line-height: 1;
+    letter-spacing: -1px;
+    color: #FFFDF7;
+  }
+  .wordmark .open { color: #C89B3C; }
+
+  .rule {
+    width: 108px; height: 3px; margin: 4px 0 30px 4px;
+    background: #8B5A3C; border-radius: 2px;
+  }
+
+  .tagline {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-size: 42px;
+    line-height: 1.28;
+    color: #F3E9DA;
+    max-width: 780px;
+  }
+  .tagline .accent { color: #E7C77A; font-style: italic; }
+
+  .foot {
+    position: absolute;
+    left: 88px; bottom: 60px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #C89B3C; }
+  .url {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: #C89B3C;
+    text-transform: lowercase;
+  }
+  .built {
+    position: absolute;
+    right: 84px; bottom: 60px;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: #9c7350;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="topline"></div>
+
+    <!-- ghosted learning-loop accent -->
+    <svg class="loop" width="520" height="520" viewBox="-260 -260 520 520" fill="none">
+      <g opacity="0.16">
+        <circle cx="0" cy="0" r="180" stroke="#C89B3C" stroke-width="2" stroke-dasharray="2 14" stroke-linecap="round"/>
+        <path d="M 127 -127 A 180 180 0 0 1 127 127" stroke="#C89B3C" stroke-width="3" stroke-linecap="round"/>
+        <path d="M -127 127 A 180 180 0 0 1 -127 -127" stroke="#8B5A3C" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 127 127 L 108 100 M 127 127 L 100 108" stroke="#C89B3C" stroke-width="3" stroke-linecap="round"/>
+        <path d="M -127 -127 L -108 -100 M -127 -127 L -100 -108" stroke="#8B5A3C" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <g opacity="0.22">
+        <circle cx="0" cy="-180" r="7" fill="#C89B3C"/>
+        <circle cx="180" cy="0" r="7" fill="#C89B3C"/>
+        <circle cx="0" cy="180" r="7" fill="#8B5A3C"/>
+        <circle cx="-180" cy="0" r="7" fill="#8B5A3C"/>
+      </g>
+    </svg>
+
+    <div class="content">
+      <div class="brandrow">
+        <div class="mark">&#128024;</div>
+        <div class="wordmark"><span class="open">Open</span>Vera</div>
+      </div>
+      <div class="rule"></div>
+      <div class="tagline">Models get replaced.<br><span class="accent">The harness gets smarter.</span></div>
+    </div>
+
+    <div class="foot">
+      <span class="dot"></span>
+      <span class="url">openvera.ai</span>
+    </div>
+  </div>
+</body>
+</html>
