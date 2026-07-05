@@ -31,11 +31,11 @@
 
 You know the routine. Monday, you and your AI ship something good. Tuesday, it can read every file you two wrote and still has no idea where you left off. The approach you tried and killed, the decision that took an hour to settle, the bug that ate your evening: gone with the chat. So you re-explain, and some of what you explain is wrong, because you don't remember Monday perfectly either.
 
-And here's the part that should bother you more: everyone is running the same model. You, me, the person who installed it an hour ago. A year of projects together buys you no edge over somebody who started this morning, because nothing the two of you learned survived a single session.
-
-OpenVera is the part you own. It wraps Claude Code in files, skills, hooks, and scripts: a process the model can't skip. It researches before it builds and pushes back on scope before you burn an evening on the wrong thing. Work gets verified in a real browser before anything gets called done. And everything worth keeping gets written down: state, decisions, lessons, your taste in how things get built. Plain files you can read, grep, edit, and carry anywhere. You rent the model. The files are yours. Session fifty starts where session one left off, and by then the harness knows how you build.
+OpenVera makes the thread survive. It wraps Claude Code in files, skills, hooks, and scripts: a process the model can't skip. It researches before it builds and pushes back on scope before you burn an evening on the wrong thing. Work gets verified in a real browser before anything gets called done. And everything worth keeping gets written down: state, decisions, lessons, your taste in how things get built. Plain files you can read, grep, edit, and carry anywhere. Session fifty starts where session one left off, and by then the harness knows how you build.
 
 Every session opens with a cockpit: what moved, the next action per open thread, and what's blocked on you. Whatever you paste in mid-thought lands in `inbox.md` and gets routed next session instead of dying in scrollback.
+
+Half-formed ideas count too. You know the ones. Perfect in the shower, and by the time you sit down all you've got is "something with recipes, maybe." Most tools need you to already know what you're building. `/start-vague` starts from what you have: it asks questions one at a time until the idea is specific enough to build, then writes it up and the build starts.
 
 The whole idea in one breath:
 
