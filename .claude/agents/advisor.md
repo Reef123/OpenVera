@@ -1,7 +1,7 @@
 ---
 name: advisor
 description: "Detached agent — reads project artifacts and a current decision, reports mismatches. Reveals inconsistency, never prescribes. No session context, no rapport. Use for scope/depth/framing checks."
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep
 ---
 

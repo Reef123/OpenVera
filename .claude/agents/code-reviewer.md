@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: "Standalone adversarial code reviewer. Read-only. Used by the /code-review skill. Returns findings as YAML to the calling thread (does NOT write artifacts itself). Sibling to in-flow `reviewer` — use that one inside /build pipelines."
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep, Bash
 ---
 

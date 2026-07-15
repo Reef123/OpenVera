@@ -597,6 +597,8 @@ supervisor (you):
     ↓
   after core flow complete:
     spawn reviewer agent:
+      (one-line heads-up to the user first: this review runs on the same model
+       as the session; smaller background model only on explicit request)
       Agent(subagent_type: "reviewer", prompt: "Review {project_path}. Spec at: {spec_path}. Read all source files, compare against spec, find issues. Write review to {project_path}/.build/review.md")
     ↓
   fix Critical/High findings → Score

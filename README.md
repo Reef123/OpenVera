@@ -151,6 +151,8 @@ The same skepticism runs upstream, before any code exists.
 
 Slash commands that do real things. Each sits in the system prompt as one line until you invoke it; the full instructions load only then. Keep dozens on hand, pay the token cost only for the one you run. Most are free on your existing Claude Code subscription; paid skills spend on OpenRouter calls.
 
+One cost shape worth knowing: review steps run on the same model as your session, so the judge is never weaker than the author. Background legwork (implementation steps, research fan-out, doc updates) runs on a smaller, cheaper model. OpenVera tells you in one line whenever a review spawns; reply if you want that review on the cheaper model instead.
+
 | Command | What It Does | Cost (USD) |
 |---------|--------------|------|
 | `/start-vague` | Takes a vague idea and turns it into something buildable | Free |

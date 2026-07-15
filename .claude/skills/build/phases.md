@@ -364,6 +364,8 @@ Then update the MANIFEST Trace Map by hand: for each PRD requirement addressed i
 
 **Agent:** Spawn as a separate reviewer agent for context isolation. The reviewer should NOT have written the code it's reviewing.
 
+**Model note (one line to the user before spawning):** "This review runs on the same model as this conversation, so the reviewer is at least as capable as the model that wrote the code. Want it cheaper? Say so and I'll run it on the smaller background model instead." If the user takes the cheaper option, pass the per-spawn model override and record the downgrade in the review artifact's header.
+
 ```
 Agent(
   subagent_type: "reviewer",
@@ -439,6 +441,8 @@ python3 vera-system/scripts/manifest-update.py <slug> phase-complete --phase "Ph
 **When:** After simplification, before QA. Runs ONCE. Skip for projects with no server-side code, no user input, and no auth (pure static sites).
 
 **Agent:** Spawn as a separate reviewer agent for fresh eyes.
+
+**Model note:** same as Phase 6 - the reviewer runs on the session's model; give the user the same one-line heads-up, and downgrade only on explicit request.
 
 ```
 Agent(

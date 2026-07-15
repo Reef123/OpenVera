@@ -416,6 +416,11 @@ echo "    claude mcp add playwright -- npx @playwright/mcp@latest    ${DIM}# /bu
 echo "    claude mcp add context7   -- npx -y @upstash/context7-mcp  ${DIM}# /research, /build docs${RESET}"
 echo "    ${DIM}# UI design? Use Claude Design (claude.ai, Pro+) — exports handoff for /build${RESET}"
 echo ""
+echo "  ${GOLD}${BOLD}Cost shape${RESET}"
+echo "    ${DIM}Reviews run on the same model as your session, so the judge is never${RESET}"
+echo "    ${DIM}weaker than the author. Background work uses a smaller, cheaper model.${RESET}"
+echo "    ${DIM}You get a one-line heads-up whenever a review spawns; reply to downgrade it.${RESET}"
+echo ""
 
 # Remind about skipped keys (only if at least one is missing)
 if [[ -z "$OPENROUTER_KEY" || -z "$GOOGLE_KEY" ]]; then

@@ -18,7 +18,7 @@ Spawn a clean-context Claude subagent (`code-reviewer`) to adversarially review 
 - `/build full` Phase 6 — that pipeline still uses `Agent(subagent_type: "reviewer", ...)` internally, which writes `.build/review.md` in-flow. This skill is a sibling, not a replacement.
 - Reviewing ideas or PRDs — that's the `/build new` Stage 0 interview gate (`vera-system/memory/interview-method.md`), not this skill.
 
-**Cost:** Free-ish. The subagent uses your Claude Code plan tokens. No external API.
+**Cost:** Free-ish. The subagent uses your Claude Code plan tokens, on the same model as your session, so the reviewer is never weaker than the model that wrote the code. No external API. If you want a cheaper pass, ask for the smaller background model when you invoke the skill.
 
 ---
 

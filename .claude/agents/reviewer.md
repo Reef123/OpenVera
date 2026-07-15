@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: "Code reviewer for /build pipeline. Reads source + spec, writes review.md with findings categorized Critical/High/Medium/Low. Never modifies source. Calibrated to find at least three issues."
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep, Bash, Write, Edit
 ---
 

@@ -63,6 +63,10 @@ Actual model IDs (Sonnet, Opus, Haiku, or whatever ships next) live ONLY in `.cl
 - Every spawn carries an explicit model choice in the agent's frontmatter or the per-invocation override - never rely on an unstated default, since that can silently route plumbing onto the expensive tier.
 - Model resolution order (verified): environment override, then per-invocation param, then agent-file frontmatter, then the main model.
 
+**The judge-floor invariant (why gate agents say `inherit`).** Judgment agents (`reviewer`, `code-reviewer`, `advisor`) pin `model: inherit` in frontmatter: a gate always runs on the same model as the session whose work it judges, so the judge is never weaker than the author. Plumbing agents stay pinned to the cheap tier. Downgrading a gate is allowed but must be deliberate and visible: pass the per-invocation model override at spawn time, say so to the user, and note the downgrade in the review artifact. A silent downgrade is the exact failure this invariant prevents - nothing errors when a weaker model waves work through.
+
+**Effort routing (second knob).** Where the runtime supports per-spawn reasoning effort, route it like tiers: plumbing spawns at low effort, judgment spawns inherit the session's effort. Cheap and fast for mechanical work, full depth at the gates.
+
 ---
 
 ## Lever C - Concurrency: MAX 3
