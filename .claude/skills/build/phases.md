@@ -10,13 +10,20 @@ Detailed instructions for each SDLC phase. Referenced by `SKILL.md` during execu
 
 **Purpose:** Define WHAT we're building and WHY. Not HOW.
 
-**Context to read:** None (this is the starting phase).
+**Context to read:** The steer planning brief, when one exists (see step 1b). Otherwise none.
 
 **Template:** [templates/prd.md](templates/prd.md)
 
 ### Instructions
 
 1. **Understand the topic.** Read `$ARGUMENTS`. If it references existing code or systems, explore them first (Glob, Grep, Read).
+
+1b. **Consume the steer brief when one exists (required, not optional).** Glob for `*-2.md` next to the project's research docs: `{paths.projects_dir}/<slug>/research/*-2.md`, and `{paths.research_output_dir}/*-2.md`. A `-2` file is a planning brief that follows the `<research-file>-2.md` naming convention and carries a verdict/composite section. It's produced by the steer skill when that skill ships in a coming release, but any doc matching the convention and shape qualifies. Its verdict, gap-fills, and trajectory line are PRD inputs, not suggestions.
+   - **Selection (when the glob matches more than one file), in this order:** (1) the `-2` sibling of any research doc referenced by `handoff.md`, `spec.md`, or the MANIFEST; (2) a `-2` file whose basename contains the project slug; (3) if more than one candidate still remains, STOP and list them for the user; never guess.
+   - **Verify it IS a steer brief before consuming:** the basename follows `*-research-2.md` or the file carries steer-brief structure (a verdict/composite section sourced from `/steer`). A file that merely ends in `-2.md` without brief shape is ignored (and noted), not consumed; this gate feeds required PRD input, so false positives are worse than skips.
+   - **Found:** read it before drafting anything. The PRD header MUST cite it: `Consumed steer brief: <file>` plus one line on what it changed (or confirmed) in scope. (`templates/prd.md` carries this slot.)
+   - **Not found:** the PRD header states `No steer brief on file.` and you proceed normally.
+   Either way the PRD says which case happened. Silence is never ambiguous: a missing citation line means this step was skipped, and the Phase-1 gate reviewer treats that as a gate failure.
 
 2. **Research prior art.** What exists? What patterns apply? What failed elsewhere?
    - WebSearch: "$ARGUMENTS implementation patterns"

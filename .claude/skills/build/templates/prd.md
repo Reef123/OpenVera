@@ -12,6 +12,7 @@ Replace all `[PLACEHOLDER]` values. Remove this instruction block.
 **Author:** Vera + [Your Name]
 **Date:** [YYYY-MM-DD]
 **Status:** Draft | Approved
+**Steer brief:** Consumed steer brief: [file + one line on what it changed] | No steer brief on file.
 
 ---
 

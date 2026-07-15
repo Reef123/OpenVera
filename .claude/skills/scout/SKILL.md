@@ -44,8 +44,8 @@ Parse `$ARGUMENTS` for source hints:
 
 | Flag | Sources | Cost | Speed |
 |------|---------|------|-------|
-| (no flag) | Auto-detect: Reddit + web always, YouTube if visual topic | $0.00-0.05 | 1-2 min |
-| `--reddit` | Reddit only | $0.00-0.05 | 1 min |
+| (no flag) | Auto-detect: Reddit + web always, YouTube if visual topic | $0.005-0.05 | 1-2 min |
+| `--reddit` | Reddit only (Sonar preferred, cheapest solid path) | $0.005-0.05 | 1 min |
 | `--youtube` | YouTube search + analyze top result | $0.02-0.10 | 2-3 min |
 | `--web` | WebSearch + WebFetch only | $0.00 | 1 min |
 
@@ -64,7 +64,7 @@ Parse `$ARGUMENTS` for source hints:
 Check if `$ARGUMENTS` contains a URL:
 
 - **YouTube URL** (youtube.com or youtu.be) → Jump to **Direct Video Mode**
-- **Reddit URL** (reddit.com) → Reddit 403s direct fetches. With an OpenRouter key: `python3 vera-system/scripts/openrouter.py --model "{llm.default_model}" --search --prompt 'Find and summarize this Reddit thread: <URL>. Report the post, the substantive top comments, and any consensus.'` Without a key: `WebSearch` the thread title + `site:reddit.com` and synthesize from result snippets (note the lower fidelity). Synthesize, done
+- **Reddit URL** (reddit.com) → Reddit 403s direct fetches. With an OpenRouter key: `python3 vera-system/scripts/openrouter.py --model "perplexity/sonar" --prompt 'Find and summarize this Reddit thread: <URL>. Report the post, the substantive top comments, and any consensus.'` (~$0.005, never stack `--search` on a Sonar model call). Without a key: `WebSearch` the thread title + `site:reddit.com` and synthesize from result snippets (note the lower fidelity). Synthesize, done
 - **Other URL** → Run `WebFetch` on it, synthesize, done
 - **Plain question** → Continue to Step 1
 
@@ -95,11 +95,21 @@ Launch sources in parallel using subagents:
 
 **Reddit (if selected):**
 
-Reddit blocks unauthenticated direct fetches (HTTP 403), so search it through OpenRouter's web plugin — it reaches Reddit via search engines and returns clean results (~$0.006/search):
+Reddit blocks unauthenticated direct fetches (HTTP 403), so go through search. **Preferred - Sonar (Backend B), the light-tier default:**
+```bash
+python3 vera-system/scripts/openrouter.py --model "perplexity/sonar" --prompt 'Search Reddit for real opinions on "<QUESTION>". Return 3-5 results, each as: subreddit, post title, one-line takeaway, and the reddit.com URL. Reddit sources only.'
+```
+Measured cost: **$0.005/request flat**. Never stack `--search` on a Sonar model call - it has native web search built in, and the plugin double-pays for the same query.
+
+**Alternative - web plugin (Backend A), non-Sonar model:**
 ```bash
 python3 vera-system/scripts/openrouter.py --model "{llm.default_model}" --search --prompt 'Search Reddit for real opinions on "<QUESTION>". Return 3-5 results, each as: subreddit, post title, one-line takeaway, and the reddit.com URL. Reddit sources only.'
 ```
+~$0.006-0.14/call depending on model. Use Sonar above unless you specifically need a non-Sonar model's own synthesis.
+
 If results are thin (< 3 posts), run a second search with different keywords.
+
+**Corroborate-or-drop (mandatory):** Reddit results returned by a search-backed model can be fabricated, not just unverifiable - a plausible-looking subreddit/title/URL that doesn't actually exist. Cross-check every Reddit claim against at least one independently-found web source (WebSearch/WebFetch) before it goes in the answer. If it can't be corroborated, drop it - don't present it with a caveat instead.
 
 **No OpenRouter key configured?** Fall back to free `WebSearch` with `site:reddit.com <question keywords>` (2-3 query variants). You get result snippets rather than full threads — lower fidelity, so say so in the output.
 
@@ -113,12 +123,14 @@ Then:
 python3 vera-system/scripts/youtube-analyze.py "<video-url>" --prompt "Answer: <question>. Focus on practical advice and gotchas."
 ```
 
+**Pending:** a local transcript-only downloader (skipping the paid video-analysis call) is under evaluation and not built into this skill yet - the find-then-analyze path above is the only supported one for now.
+
 **Web (if selected):**
 Run 2-3 targeted WebSearch queries. Fetch 1-2 most relevant results — use Firecrawl MCP (`mcp__firecrawl__scrape`) if configured, otherwise WebFetch. Firecrawl handles JS-rendered pages and produces cleaner markdown.
 
 Selection rules (consistent with the flag table above):
 - No flag → auto-detect runs Reddit + web (and YouTube if visual).
-- `--reddit` → Reddit only. Skip web.
+- `--reddit` → Reddit only. Skip broad web research, but the corroborate-or-drop check above still requires a WebSearch/WebFetch pass to verify each Reddit claim - that verification query is exempt from this skip.
 - `--web` → Web only. Skip Reddit.
 - `--youtube` → YouTube only. Skip Reddit and web.
 

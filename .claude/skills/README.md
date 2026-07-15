@@ -42,10 +42,10 @@ These have no slash command. Other skills read their `SKILL.md` inline as contex
 
 | Skill | Typical Cost |
 |-------|-------------|
-| `/research` | $0.15–0.55 (light to deep) |
+| `/research` | $0.15–0.55 (standard to deep; Reddit leg routes through Sonar at ~$0.005/query) |
 | `/improve` | ~$0.20–0.40 per cycle |
 | `/build` (scoring) | ~$0.12 per score |
-| `/scout` | $0.00–0.10 (depends on YouTube usage) |
+| `/scout` | $0.00–0.10 (Reddit via Sonar ~$0.005/call; depends on YouTube usage) |
 | `/consult`, `/curate`, `/doc-sync`, `/build full` (excluding research/scoring) | Free |
 | `/build new` Stage 0 interview gate | Free |
 

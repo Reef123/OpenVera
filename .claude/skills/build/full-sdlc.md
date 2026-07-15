@@ -83,7 +83,7 @@ Each phase reads ONLY what it needs:
 
 | Phase | Reads |
 |-------|-------|
-| PRD | Nothing (fresh start) |
+| PRD | Steer brief (`*-2.md`) when present, else nothing |
 | Tech Design | PRD |
 | Arch Review | PRD + Tech Spec |
 | Phase Plan | PRD + Tech Spec + Arch Review |

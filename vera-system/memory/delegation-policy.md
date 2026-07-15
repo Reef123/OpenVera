@@ -96,6 +96,8 @@ The weakest link is not spawn mode, it is the lead trusting a subagent's prose. 
 
 6. **Adversarial second pass, gates only.** For judgment gates (code review, ship decisions): a cheap skeptic pass tries to refute the verdict before the lead accepts it. Legal to nest (a reviewer may spawn a verifier per finding, depth 5 max). Not for plumbing - tokens matter.
 
+7. **Missing-return recovery (mechanical, one shot).** Months of run evidence show a stable failure shape: the longest task in a batch stops mid-task and narrates instead of returning the contract, prompt wording never prevents it, and the work is usually already complete on disk. So the lead treats any non-contract return as `STATUS: partial`, never as done and never as failed. Recovery is mechanical: exactly ONE resume message ("finish remaining work, then return the contract"), and that resume demands disk-grounded proof: exact files changed, commands run, next incomplete step. The lead verifies the claims against the working tree (git diff or file reads) before accepting, so a lazy second return cannot fabricate done over stale state. If the second return still lacks the contract, surface it as partial with the transcript; never resume twice, never respawn (a fresh spawn loses the on-disk context). Where a stage is deterministic enough for a schema-enforced runner, prefer that; prose contracts are the fallback and this protocol is their net.
+
 ---
 
 ## Persistent Agent Definitions (`.claude/agents/`)
