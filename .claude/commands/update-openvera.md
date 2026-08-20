@@ -34,7 +34,7 @@ A harness change is only real once every surface that describes the harness agre
 
 5. **Run tests + doctor:**
    ```bash
-   python3 -m unittest discover -s tests
+   python3 -m unittest discover -s vera-system/tests
    python3 vera-system/scripts/doctor.py
    ```
    Tests must pass. Doctor exit 0 or 2 (warnings) is fine; exit 1 (error) is not — check `KNOWN_SCRIPTS` in `doctor.py` if a new script under `vera-system/scripts/` gets flagged as unexpected.

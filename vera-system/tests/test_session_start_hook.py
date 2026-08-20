@@ -12,7 +12,7 @@ tree, matching the module's own REPO_ROOT resolution.
 
 Stdlib unittest, runs on macOS system Python 3.9.6:
 
-    python3 -m unittest discover -s tests
+    python3 -m unittest discover -s vera-system/tests
     python3 tests/test_session_start_hook.py
 """
 import importlib.util
@@ -22,7 +22,7 @@ import sys
 import unittest
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _HOOKS_DIR = _REPO_ROOT / ".claude" / "hooks"
 _HOOK_PATH = _HOOKS_DIR / "session-start.py"
 

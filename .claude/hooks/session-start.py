@@ -7,7 +7,7 @@ Injects one contextual line + one rotating tip on healthy boot. Loud on errors.
 
 All side-effecting logic lives in main() (only runs under __main__) so the
 pure helpers below can be imported and unit-tested without touching the real
-repo's .claude/ lockfiles or blocking on stdin — see tests/test_session_start.py.
+repo's .claude/ lockfiles or blocking on stdin — see vera-system/tests/test_session_start.py.
 """
 import json
 import re

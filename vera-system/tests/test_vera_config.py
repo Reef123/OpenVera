@@ -10,7 +10,7 @@ pin that boundary.
 Stdlib unittest (no third-party dep) so it runs in CI and on the macOS
 system Python (3.9.6) without an install step. Run:
 
-    python3 -m unittest discover -s tests
+    python3 -m unittest discover -s vera-system/tests
     python3 tests/test_vera_config.py
 """
 import sys
@@ -18,7 +18,7 @@ import unittest
 from pathlib import Path
 
 # vera_config lives in vera-system/scripts; this file is in tests/.
-_SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "vera-system" / "scripts"
+_SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "vera-system" / "scripts"
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
 import vera_config  # noqa: E402

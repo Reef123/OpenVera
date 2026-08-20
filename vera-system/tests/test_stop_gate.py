@@ -9,7 +9,7 @@ compounding loop (gate or marker too lax).
 
 Stdlib unittest, runs on macOS system Python 3.9.6:
 
-    python3 -m unittest discover -s tests
+    python3 -m unittest discover -s vera-system/tests
     python3 tests/test_stop_gate.py
 """
 import importlib.util
@@ -19,7 +19,7 @@ import time
 import unittest
 from pathlib import Path
 
-_HOOKS_DIR = Path(__file__).resolve().parents[1] / ".claude" / "hooks"
+_HOOKS_DIR = Path(__file__).resolve().parents[2] / ".claude" / "hooks"
 
 
 def _load(name, filename):

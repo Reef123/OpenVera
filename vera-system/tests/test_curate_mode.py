@@ -8,7 +8,7 @@ truncation at load time, so a checker regression is invisible context loss.
 
 Stdlib unittest, runs on macOS system Python 3.9.6:
 
-    python3 -m unittest discover -s tests
+    python3 -m unittest discover -s vera-system/tests
     python3 tests/test_curate_mode.py
 """
 import contextlib
@@ -22,7 +22,7 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCRIPTS_DIR = _REPO_ROOT / "vera-system" / "scripts"
 sys.path.insert(0, str(_SCRIPTS_DIR))
 

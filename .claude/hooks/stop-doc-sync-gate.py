@@ -55,7 +55,7 @@ def repo_root() -> Path | None:
 
 
 def should_block(ending: bool, dirty: bool, stop_hook_active: bool) -> bool:
-    """Pure decision function — unit-tested in tests/test_stop_gate.py."""
+    """Pure decision function — unit-tested in vera-system/tests/test_stop_gate.py."""
     return ending and dirty and not stop_hook_active
 
 

@@ -9,7 +9,7 @@ ConnectionError/Timeout. Exercised against a local http.server — no network.
 
 Stdlib unittest, runs on macOS system Python 3.9.6:
 
-    python3 -m unittest discover -s tests
+    python3 -m unittest discover -s vera-system/tests
     python3 tests/test_http_util.py
 """
 import json
@@ -20,7 +20,7 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-_SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "vera-system" / "scripts"
+_SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "vera-system" / "scripts"
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
 import http_util  # noqa: E402

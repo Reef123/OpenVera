@@ -8,7 +8,7 @@ runs/ and never hard-fails the caller on I/O problems.
 
 Stdlib unittest, runs on macOS system Python 3.9.6:
 
-    python3 -m unittest discover -s tests
+    python3 -m unittest discover -s vera-system/tests
     python3 tests/test_scripts_cli.py
 """
 import subprocess
@@ -16,7 +16,7 @@ import sys
 import unittest
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCRIPTS_DIR = _REPO_ROOT / "vera-system" / "scripts"
 
 
