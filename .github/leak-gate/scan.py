@@ -104,7 +104,7 @@ def commit_hits(c, terms, check_identity_email=True):
         for e in sh("log", "-1", "--format=%ae%n%ce", c).split():
             if not e.endswith("@users.noreply.github.com"):
                 hits.append(f"commit {short}: [identity-email] non-noreply address in public history")
-    for entry in sh("diff", "--numstat", "-z", parent, c).split("\0"):
+    for entry in sh("diff", "--numstat", "-z", "--no-renames", parent, c).split("\0"):
         if not entry.strip():
             continue
         cols = entry.split("\t")
@@ -116,7 +116,7 @@ def commit_hits(c, terms, check_identity_email=True):
             if subprocess.run(["git", "cat-file", "-e", f"{c}:{path}"], capture_output=True).returncode == 0:
                 hits.append(f"commit {short}: {path}: [binary-added] content unscannable — verify by eye")
             continue
-        diff = sh("diff", parent, c, "--", path)
+        diff = sh("diff", "--no-renames", parent, c, "--", path)
         added = "\n".join(ln[1:] for ln in diff.splitlines()
                           if ln.startswith("+") and not ln.startswith("+++"))
         hits += match_text(f"commit {short}: {path}", added, terms, path=path)
